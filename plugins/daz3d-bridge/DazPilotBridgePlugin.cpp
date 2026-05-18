@@ -115,6 +115,29 @@ protected:
                             selectedOnly = true;
                         }
                         ioSettings.setBoolValue("SelectedOnly", selectedOnly);
+                        
+                        // Write materials (OBJ / FBX)
+                        bool includeMaterials = true;
+                        if (ese->settingsJson.contains("\"include_materials\":false") || ese->settingsJson.contains("\"include_materials\": false")) {
+                            includeMaterials = false;
+                        }
+                        ioSettings.setBoolValue("WriteMaterial", includeMaterials);
+                        ioSettings.setBoolValue("WriteTextures", includeMaterials);
+                        ioSettings.setBoolValue("EmbedTextures", includeMaterials);
+                        
+                        // Write animations (FBX)
+                        bool includeAnimations = true;
+                        if (ese->settingsJson.contains("\"include_animations\":false") || ese->settingsJson.contains("\"include_animations\": false")) {
+                            includeAnimations = false;
+                        }
+                        ioSettings.setBoolValue("WriteAnimations", includeAnimations);
+                        
+                        // Bake textures
+                        bool bakeTextures = false;
+                        if (ese->settingsJson.contains("\"bake_textures\":true") || ese->settingsJson.contains("\"bake_textures\": true")) {
+                            bakeTextures = true;
+                        }
+                        ioSettings.setBoolValue("BakeTextures", bakeTextures);
 
                         DzError err = exporter->writeFile(ese->path, &ioSettings);
                         if (err == DZ_NO_ERROR) {
@@ -160,34 +183,94 @@ static std::string JsonEscape(const char* value) {
     return JsonEscape(QString(value ? value : ""));
 }
 
-static QString ExtractJsonString(const std::string& json, const std::string& key) {
+static QString ExtractJsonValue(const std::string& json, const std::string& key) {
     std::string needle = "\"" + key + "\"";
     size_t keyPos = json.find(needle);
     if (keyPos == std::string::npos) return "";
     size_t colon = json.find(':', keyPos + needle.size());
     if (colon == std::string::npos) return "";
-    size_t firstQuote = json.find('"', colon + 1);
-    if (firstQuote == std::string::npos) return "";
-    size_t secondQuote = firstQuote + 1;
-    bool escaped = false;
-    for (; secondQuote < json.size(); ++secondQuote) {
-        char ch = json[secondQuote];
-        if (escaped) {
-            escaped = false;
-            continue;
-        }
-        if (ch == '\\') {
-            escaped = true;
-            continue;
-        }
-        if (ch == '"') break;
+    
+    // Skip whitespace
+    size_t valStart = colon + 1;
+    while (valStart < json.size() && (json[valStart] == ' ' || json[valStart] == '\t' || json[valStart] == '\r' || json[valStart] == '\n')) {
+        valStart++;
     }
-    if (secondQuote >= json.size()) return "";
-    return QString::fromUtf8(json.substr(firstQuote + 1, secondQuote - firstQuote - 1).c_str());
+    if (valStart >= json.size()) return "";
+    
+    char firstChar = json[valStart];
+    if (firstChar == '"') {
+        // String value
+        size_t firstQuote = valStart;
+        size_t secondQuote = firstQuote + 1;
+        bool escaped = false;
+        for (; secondQuote < json.size(); ++secondQuote) {
+            char ch = json[secondQuote];
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (ch == '\\') {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') break;
+        }
+        if (secondQuote >= json.size()) return "";
+        return QString::fromUtf8(json.substr(firstQuote + 1, secondQuote - firstQuote - 1).c_str());
+    } else if (firstChar == '{' || firstChar == '[') {
+        // Object or Array value: match braces/brackets
+        char closeChar = (firstChar == '{') ? '}' : ']';
+        int depth = 1;
+        size_t idx = valStart + 1;
+        bool inString = false;
+        bool escaped = false;
+        for (; idx < json.size(); ++idx) {
+            char ch = json[idx];
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (ch == '\\' && inString) {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') {
+                inString = !inString;
+                continue;
+            }
+            if (!inString) {
+                if (ch == firstChar) {
+                    depth++;
+                } else if (ch == closeChar) {
+                    depth--;
+                    if (depth == 0) {
+                        idx++; // include the closing brace/bracket
+                        break;
+                    }
+                }
+            }
+        }
+        if (depth != 0 || idx > json.size()) return "";
+        return QString::fromUtf8(json.substr(valStart, idx - valStart).c_str());
+    } else {
+        // Number, Boolean, or Null value
+        size_t idx = valStart;
+        for (; idx < json.size(); ++idx) {
+            char ch = json[idx];
+            if (ch == ',' || ch == '}' || ch == ']' || ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
+                break;
+            }
+        }
+        return QString::fromUtf8(json.substr(valStart, idx - valStart).c_str());
+    }
+}
+
+static QString ExtractJsonString(const std::string& json, const std::string& key) {
+    return ExtractJsonValue(json, key);
 }
 
 static QString ExtractArgString(const std::string& json, const std::string& key) {
-    return ExtractJsonString(json, key);
+    return ExtractJsonValue(json, key);
 }
 
 static std::string OkResponse(const QString& id, const std::string& data) {

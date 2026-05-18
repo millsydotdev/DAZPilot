@@ -217,6 +217,17 @@ pub fn import_model(path: &str, settings: ImportSettings) -> ImportResult {
 pub fn export_scene(node_id: &str, path: &str, settings: ExportSettings) -> ExportResult {
     log::info!("Exporting node {} to {} as {:?}", node_id, path, settings.format);
 
+    if let Some(parent) = std::path::Path::new(path).parent() {
+        if let Err(e) = std::fs::create_dir_all(parent) {
+            return ExportResult {
+                success: false,
+                file_path: path.to_string(),
+                file_size: 0,
+                message: format!("Failed to create export directory: {}", e),
+            };
+        }
+    }
+
     match crate::mcp_client::send_mcp_request(
         "export_scene",
         serde_json::json!({
@@ -249,6 +260,22 @@ pub fn export_scene(node_id: &str, path: &str, settings: ExportSettings) -> Expo
 
 pub fn batch_export(batch: BatchExport) -> BatchResult {
     log::info!("Batch exporting {} assets", batch.assets.len());
+    
+    if let Err(e) = std::fs::create_dir_all(&batch.output_directory) {
+        return BatchResult {
+            total: batch.assets.len() as u32,
+            succeeded: 0,
+            failed: batch.assets.len() as u32,
+            results: batch.assets.iter().map(|asset| {
+                ExportResult {
+                    success: false,
+                    file_path: format!("{}/{}.obj", batch.output_directory, asset),
+                    file_size: 0,
+                    message: format!("Failed to create batch export directory: {}", e),
+                }
+            }).collect(),
+        };
+    }
     
     let mut results = vec![];
     let mut succeeded = 0u32;
