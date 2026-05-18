@@ -25,6 +25,7 @@ use asset_fixer::{
 };
 
 use tauri::Manager;
+use tauri::Emitter;
 use log::info;
 use std::sync::Mutex;
 
