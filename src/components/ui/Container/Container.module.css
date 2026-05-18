@@ -1,0 +1,33 @@
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
+}
+
+.sm {
+  max-width: 640px;
+}
+
+.md {
+  max-width: 768px;
+}
+
+.lg {
+  max-width: 1024px;
+}
+
+.xl {
+  max-width: 1280px;
+}
+
+.full {
+  max-width: 100%;
+}
+
+.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

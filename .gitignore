@@ -1,0 +1,64 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/binaries/
+
+# C++ Build
+plugins/daz3d-bridge/build/
+plugins/daz3d-bridge/build2/
+plugins/daz3d-bridge/out/
+plugins/daz3d-bridge/.vs/
+plugins/daz3d-bridge/x64/
+
+# DAZ SDK (MUST NEVER BE COMMITTED due to proprietary licensing)
+DAZStudio4.5+ SDK/
+*.lib
+*.exp
+*.dll
+*.ilk
+*.pdb
+
+# Allow pre-compiled Tauri DLLs and server executables
+!src-tauri/resources/**/*.dll
+!src-tauri/resources/**/*.exe
+
+# Exclude massive local model files
+*.gguf
+
+# Local environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Rust build target directories globally
+**/target/
+
+# Temp research folder
+temp_research/
+

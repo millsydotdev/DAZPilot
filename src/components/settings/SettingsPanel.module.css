@@ -1,0 +1,227 @@
+.container {
+  display: flex;
+  height: 100%;
+  background: var(--color-bg-primary);
+}
+
+.sidebar {
+  width: 200px;
+  background: var(--color-bg-elevated);
+  border-right: 1px solid var(--color-border-subtle);
+  padding: var(--spacing-sm);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.tab:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+}
+
+.tab.active {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
+.content {
+  flex: 1;
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+}
+
+.panel {
+  max-width: 600px;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+.group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.checkboxInput {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.row {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.row > * {
+  flex: 1;
+}
+
+.statusCard {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+}
+
+.statusLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.statusValue {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.statusValue.ready {
+  color: var(--color-success-text);
+}
+
+.statusValue.loading {
+  color: var(--color-warning-text);
+}
+
+.indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.connected {
+  background: var(--color-success-text);
+  box-shadow: 0 0 8px var(--color-success-text);
+}
+
+.connecting {
+  background: var(--color-warning-text);
+  box-shadow: 0 0 8px var(--color-warning-text);
+  animation: pulse 1.5s infinite;
+}
+
+.notConnected {
+  background: var(--color-error-text);
+  box-shadow: 0 0 8px var(--color-error-text);
+}
+
+.helpBox {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+}
+
+.helpBox h4 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text-primary);
+}
+
+.helpBox p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.helpBox ul {
+  margin: var(--spacing-sm) 0 0 0;
+  padding-left: var(--spacing-lg);
+}
+
+.helpBox li {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border-subtle);
+  margin: var(--spacing-lg) 0;
+}
+
+.range {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+.rangeValue {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.saveButton {
+  margin-top: var(--spacing-md);
+}
+
+.connectButton,
+.disconnectButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,116 @@
+/* Input Component Styles */
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.inputWrapper:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.08);
+}
+
+.inputWrapper.error {
+  border-color: var(--color-error);
+}
+
+.inputWrapper.error:focus-within {
+  box-shadow: 0 0 0 1px var(--color-error);
+}
+
+/* Sizes */
+.sm {
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.md {
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.lg {
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+/* Icon positioning */
+.hasIcon .input {
+  flex: 1;
+}
+
+.iconLeft .input {
+  padding-left: var(--spacing-xs);
+}
+
+.iconRight .input {
+  padding-right: var(--spacing-xs);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.iconLeft .icon {
+  padding-left: var(--spacing-sm);
+}
+
+.iconRight .icon {
+  padding-right: var(--spacing-sm);
+}
+
+/* Input */
+.input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error message */
+.errorMessage {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-top: var(--spacing-xs);
+}
+
+/* Hint */
+.hint {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}

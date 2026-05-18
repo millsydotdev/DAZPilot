@@ -1,0 +1,305 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
+pub mod schema;
+
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
+
+pub static DATABASE: Lazy<Mutex<Option<SqliteDatabase>>> = Lazy::new(|| Mutex::new(None));
+
+pub fn init_database(app_data_dir: &std::path::Path) -> Result<(), String> {
+    let db_path = app_data_dir.join("dazpilot.db");
+    
+    let db = SqliteDatabase::new(&db_path)
+        .map_err(|e| format!("Failed to create database: {}", e))?;
+    
+    db.initialize()
+        .map_err(|e| format!("Failed to initialize database: {}", e))?;
+    
+    let mut guard = DATABASE.lock().map_err(|e| e.to_string())?;
+    *guard = Some(db);
+    
+    Ok(())
+}
+
+pub fn get_db() -> Result<std::sync::MutexGuard<'static, Option<SqliteDatabase>>, String> {
+    DATABASE.lock().map_err(|e| e.to_string())
+}
+
+pub struct SqliteDatabase {
+    path: std::path::PathBuf,
+}
+
+impl SqliteDatabase {
+    pub fn new(path: &std::path::Path) -> Result<Self, rusqlite::Error> {
+        Ok(Self {
+            path: path.to_path_buf(),
+        })
+    }
+    
+    pub fn initialize(&self) -> Result<(), rusqlite::Error> {
+        let conn = rusqlite::Connection::open(&self.path)?;
+        
+        conn.execute_batch(
+            r#"
+            -- Core tables
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                last_login TEXT
+            );
+            
+            CREATE TABLE IF NOT EXISTS content_sources (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                source_path TEXT NOT NULL,
+                source_type TEXT NOT NULL,
+                source_name TEXT,
+                last_scanned TEXT,
+                asset_count INTEGER DEFAULT 0
+            );
+            
+            CREATE TABLE IF NOT EXISTS user_assets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                source_id INTEGER,
+                asset_path TEXT NOT NULL UNIQUE,
+                asset_name TEXT NOT NULL,
+                original_name TEXT,
+                category TEXT,
+                subcategory TEXT,
+                vendor TEXT,
+                compatible_figures TEXT,
+                body_zones TEXT,
+                materials TEXT,
+                file_type TEXT,
+                file_size INTEGER,
+                indexed_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (source_id) REFERENCES content_sources(id)
+            );
+
+            -- FTS5 Virtual table for ultra-fast, smart text searching of assets
+            CREATE VIRTUAL TABLE IF NOT EXISTS user_assets_fts USING fts5(
+                asset_name,
+                original_name,
+                category,
+                subcategory,
+                vendor,
+                asset_path,
+                content='user_assets',
+                content_rowid='id'
+            );
+
+            -- Trigger to automatically index new assets on insert
+            CREATE TRIGGER IF NOT EXISTS user_assets_ai AFTER INSERT ON user_assets BEGIN
+                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
+                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path);
+            END;
+
+            -- Trigger to automatically clean FTS index on deletion
+            CREATE TRIGGER IF NOT EXISTS user_assets_ad AFTER DELETE ON user_assets BEGIN
+                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
+                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path);
+            END;
+
+            -- Trigger to automatically update FTS index on field updates
+            CREATE TRIGGER IF NOT EXISTS user_assets_au AFTER UPDATE ON user_assets BEGIN
+                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
+                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path);
+                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
+                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path);
+            END;
+
+            -- One-time sync migration to populate index for pre-existing assets
+            INSERT OR REPLACE INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
+            SELECT id, asset_name, original_name, category, subcategory, vendor, asset_path FROM user_assets;
+
+            CREATE TABLE IF NOT EXISTS sdk_classes (
+                name TEXT PRIMARY KEY,
+                file TEXT NOT NULL,
+                line INTEGER NOT NULL,
+                description TEXT,
+                parents TEXT,
+                related_classes TEXT,
+                indexed_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS sdk_methods (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class_name TEXT NOT NULL,
+                name TEXT NOT NULL,
+                return_type TEXT,
+                parameters TEXT,
+                description TEXT,
+                access TEXT,
+                line INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS sdk_enums (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class_name TEXT NOT NULL,
+                name TEXT NOT NULL,
+                values_json TEXT,
+                line INTEGER NOT NULL
+            );
+            
+            -- Permission tables
+            CREATE TABLE IF NOT EXISTS permissions (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE,
+                description TEXT,
+                category TEXT NOT NULL,
+                default_state TEXT DEFAULT 'prompt',
+                requires_prompt INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            CREATE TABLE IF NOT EXISTS user_roles (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT,
+                is_admin INTEGER DEFAULT 0,
+                inherit_from TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            CREATE TABLE IF NOT EXISTS role_permissions (
+                role_id TEXT NOT NULL,
+                permission_id TEXT NOT NULL,
+                state TEXT NOT NULL,
+                conditions TEXT,
+                PRIMARY KEY (role_id, permission_id)
+            );
+            
+            CREATE TABLE IF NOT EXISTS user_role_assignments (
+                user_id TEXT NOT NULL,
+                role_id TEXT NOT NULL,
+                assigned_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, role_id)
+            );
+            
+            -- AI decision tracking
+            CREATE TABLE IF NOT EXISTS ai_decisions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                session_id TEXT,
+                category TEXT,
+                decision_type TEXT,
+                decision_data TEXT,
+                user_response TEXT,
+                confidence REAL,
+                timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            -- Workflow chains
+            CREATE TABLE IF NOT EXISTS workflow_chains (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                chain_hash TEXT NOT NULL,
+                steps TEXT NOT NULL,
+                success_count INTEGER DEFAULT 0,
+                total_count INTEGER DEFAULT 0,
+                last_used TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            -- Accuracy metrics
+            CREATE TABLE IF NOT EXISTS accuracy_metrics (
+                user_id TEXT NOT NULL,
+                category TEXT NOT NULL,
+                total INTEGER DEFAULT 0,
+                accepted INTEGER DEFAULT 0,
+                rejected INTEGER DEFAULT 0,
+                modified INTEGER DEFAULT 0,
+                success_rate REAL DEFAULT 0.0,
+                last_updated TEXT DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, category)
+            );
+            
+            -- User preferences
+            CREATE TABLE IF NOT EXISTS user_preferences (
+                user_id TEXT PRIMARY KEY,
+                preferred_figure TEXT,
+                preferred_category TEXT,
+                auto_apply_shells INTEGER DEFAULT 0,
+                auto_apply_materials INTEGER DEFAULT 0,
+                physics_enabled INTEGER DEFAULT 1,
+                default_quality TEXT DEFAULT 'preview',
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            -- Initialize default data
+            INSERT OR IGNORE INTO permissions (id, name, description, category, default_state, requires_prompt)
+            VALUES 
+                ('feature.scene.create', 'Create Scene', 'Create new scenes', 'feature', 'granted', 0),
+                ('feature.scene.save', 'Save Scene', 'Save scenes to disk', 'feature', 'granted', 0),
+                ('feature.library.scan', 'Scan Library', 'Scan content directories', 'feature', 'granted', 0),
+                ('feature.library.browse', 'Browse Library', 'Browse and search assets', 'feature', 'granted', 0),
+                ('feature.animation.create', 'Create Animation', 'Create animations', 'feature', 'granted', 0),
+                ('feature.render.preview', 'Preview Render', 'Preview render', 'feature', 'granted', 0),
+                ('feature.render.full', 'Full Render', 'Full quality render', 'feature', 'granted', 0),
+                ('ai.auto_apply', 'AI Auto-Apply', 'Allow AI to auto-apply preferences', 'ai', 'prompt', 1),
+                ('ai.learn_patterns', 'AI Learning', 'Allow AI to learn patterns', 'ai', 'granted', 0),
+                ('ai.view_analytics', 'View Analytics', 'View AI performance analytics', 'ai', 'denied', 0),
+                ('daz3d.load_assets', 'Load Assets', 'Load assets in Daz3D', 'daz3d', 'granted', 0),
+                ('daz3d.modify_scene', 'Modify Scene', 'Modify Daz3D scenes', 'daz3d', 'granted', 0),
+                ('daz3d.execute_scripts', 'Execute Scripts', 'Execute scripts in Daz3D', 'daz3d', 'denied', 0),
+                ('system.settings', 'System Settings', 'Access system settings', 'system', 'denied', 0),
+                ('system.manage_users', 'Manage Users', 'Manage user accounts', 'system', 'denied', 0),
+                ('network.cloud_sync', 'Cloud Sync', 'Sync to cloud', 'network', 'denied', 0),
+                ('network.download', 'Download Assets', 'Download from network', 'network', 'denied', 0);
+            
+            -- Initialize default role
+            INSERT OR IGNORE INTO user_roles (id, name, description, is_admin)
+            VALUES ('basic', 'Basic User', 'Default user role', 0),
+                   ('admin', 'Administrator', 'Full admin access', 1);
+            
+            -- Assign basic permissions to basic role
+            INSERT OR IGNORE INTO role_permissions (role_id, permission_id, state)
+            SELECT 'basic', id, default_state FROM permissions 
+            WHERE category IN ('feature', 'ai') AND default_state = 'granted';
+            
+            -- Admin gets all
+            INSERT OR IGNORE INTO role_permissions (role_id, permission_id, state)
+            SELECT 'admin', id, 'granted' FROM permissions;
+            
+            -- Create default user if not exists
+            INSERT OR IGNORE INTO users (id, username) VALUES ('default', 'Default User');
+            
+            -- Assign default role to user
+            INSERT OR IGNORE INTO user_role_assignments (user_id, role_id)
+            VALUES ('default', 'basic');
+            
+            -- Default preferences
+            INSERT OR IGNORE INTO user_preferences (user_id) VALUES ('default');
+            "#
+        )?;
+        
+        Ok(())
+    }
+    
+    pub fn execute(&self, sql: &str) -> Result<(), rusqlite::Error> {
+        let conn = rusqlite::Connection::open(&self.path)?;
+        conn.execute_batch(sql)
+    }
+
+    pub fn path(&self) -> &std::path::Path {
+        &self.path
+    }
+    
+    pub fn query<T, F>(&self, sql: &str, mapper: F) -> Result<Vec<T>, rusqlite::Error>
+    where
+        F: FnMut(&rusqlite::Row<'_>) -> rusqlite::Result<T>,
+    {
+        let conn = rusqlite::Connection::open(&self.path)?;
+        let mut stmt = conn.prepare(sql)?;
+        let rows = stmt.query_map([], mapper)?;
+        rows.collect()
+    }
+    
+    pub fn execute_insert(&self, sql: &str) -> Result<usize, rusqlite::Error> {
+        let conn = rusqlite::Connection::open(&self.path)?;
+        conn.execute(sql, [])
+    }
+}

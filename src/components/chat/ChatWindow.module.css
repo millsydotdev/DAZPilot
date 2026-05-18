@@ -1,0 +1,282 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg-primary);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.modeSelector {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.modeButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(255, 255, 255, 0.01);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.modeButton:hover {
+  border-color: rgba(0, 212, 255, 0.3);
+  color: var(--color-primary);
+  background: rgba(0, 212, 255, 0.02);
+}
+
+.modeButton.active {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.08);
+}
+
+.aiStatus {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.messagesList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  scroll-behavior: smooth;
+}
+
+.message {
+  display: flex;
+  max-width: 80%;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+@keyframes slideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.user {
+  align-self: flex-end;
+}
+
+.message.assistant {
+  align-self: flex-start;
+}
+
+.message.system {
+  align-self: flex-start;
+}
+
+.messageContent {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  line-height: 1.6;
+  font-size: var(--font-size-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.message.user .messageContent {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+  color: #ffffff;
+  border-bottom-right-radius: var(--radius-sm);
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.15);
+}
+
+.message.assistant .messageContent {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+  border-bottom-left-radius: var(--radius-sm);
+  backdrop-filter: blur(8px);
+}
+
+.message.system .messageContent {
+  background: var(--color-error-bg);
+  border: 1px solid rgba(255, 85, 85, 0.15);
+  color: var(--color-error-text);
+  font-size: var(--font-size-sm);
+}
+
+.processing {
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.inputArea {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.input {
+  flex: 1;
+}
+
+.sendButton {
+  flex-shrink: 0;
+}
+
+/* Premium Macro & Action Cards Styles */
+.macroContainer {
+  margin-top: var(--spacing-sm);
+  background: #09090d;
+  border: 1px solid var(--color-border-subtle);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.macroHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.macroTitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  font-family: monospace;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.macroActions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.macroCode {
+  margin: 0;
+  padding: var(--spacing-sm);
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: #a5f3fc;
+  line-height: 1.5;
+  background: #060608;
+}
+
+.macroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 6px 12px var(--spacing-xs) 12px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.macroBadge.success {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid rgba(0, 255, 136, 0.15);
+}
+
+.actionCard {
+  margin-top: var(--spacing-sm);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(19, 19, 27, 0.8) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  animation: borderGlow 3s infinite ease-in-out;
+}
+
+.actionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-warning-text);
+}
+
+.actionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.actionDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.actionParamsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-size: var(--font-size-xs);
+  font-family: monospace;
+}
+
+.actionParamsTable th, .actionParamsTable td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.actionParamsTable th {
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.actionParamsTable td {
+  color: var(--color-text-primary);
+}
+
+.actionButtons {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+.statusContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: 4px var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  width: fit-content;
+}

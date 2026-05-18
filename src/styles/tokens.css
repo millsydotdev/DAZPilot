@@ -1,0 +1,128 @@
+/* Design Tokens - CSS Custom Properties */
+/* These are the base design decisions the app follows */
+
+:root {
+  /* ==================== COLORS ==================== */
+  
+  /* Primary */
+  --color-primary: #00d4ff;
+  --color-primary-hover: #00b8e6;
+  --color-primary-foreground: #000000;
+  
+  /* Backgrounds */
+  --color-background: #1a1a1a;
+  --color-surface: #252525;
+  --color-surface-elevated: #2a2a2a;
+  
+  /* Borders */
+  --color-border: #333333;
+  --color-border-hover: #444444;
+  
+  /* Text */
+  --color-text: #e0e0e0;
+  --color-text-muted: #666666;
+  --color-text-disabled: #444444;
+  
+  /* Semantic */
+  --color-success: #00ff88;
+  --color-warning: #ffaa00;
+  --color-error: #ff4444;
+  --color-info: #00d4ff;
+
+  /* ==================== UNIFIED APP-WIDE CSS MODULE TOKENS ==================== */
+  /* These map directly to the custom properties used in DazPilot CSS Modules */
+  --color-bg-primary: #0b0b0f;            /* Obsidian workspace background */
+  --color-bg-elevated: #13131b;           /* Card, panel and tab backgrounds */
+  --color-bg-subtle: #0f0f14;             /* Sidebar and list item backgrounds */
+  --color-border-subtle: rgba(255, 255, 255, 0.08); /* Clean glassy border dividers */
+  --color-primary-bg: rgba(0, 212, 255, 0.12); /* Translucent glow highlight for active states */
+  --color-primary-glow: rgba(0, 212, 255, 0.4);
+  --color-primary-contrast: #000000;      /* Dark contrast text on top of cyan button */
+  --color-accent: #a855f7;                /* Neon purple accent */
+  --color-accent-bg: rgba(168, 85, 247, 0.12);
+  --color-accent-glow: rgba(168, 85, 247, 0.4);
+  --color-text-primary: #f8fafc;          /* Ultra-clean Slate-50 primary text */
+  --color-text-secondary: #cbd5e1;        /* Soft Slate-300 secondary text */
+  
+  /* Glassmorphism primitives */
+  --color-glass-bg: rgba(19, 19, 27, 0.75);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-blur: blur(16px);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  --gradient-card: linear-gradient(145deg, rgba(25, 25, 35, 0.6) 0%, rgba(15, 15, 22, 0.8) 100%);
+  
+  /* Semantic Glow Colors */
+  --color-success-bg: rgba(0, 255, 136, 0.1);
+  --color-success-text: #00ff88;
+  --color-warning-bg: rgba(255, 170, 0, 0.1);
+  --color-warning-text: #ffaa00;
+  --color-error-bg: rgba(255, 68, 68, 0.1);
+  --color-error-text: #ff5555;
+  --color-info-bg: rgba(0, 212, 255, 0.1);
+  --color-info-text: #00d4ff;
+  
+  /* ==================== SPACING ==================== */
+  
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  /* ==================== BORDER RADIUS ==================== */
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  
+  /* ==================== TYPOGRAPHY ==================== */
+  
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'source-code-pro', Menlo, Monaco, Consolas, monospace;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* ==================== SHADOWS ==================== */
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+  
+  /* ==================== TRANSITIONS ==================== */
+  
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+  
+  /* ==================== Z-INDEX ==================== */
+  
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 300;
+  --z-popover: 400;
+  --z-tooltip: 500;
+}
+
+/* Dark mode is the default */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Already set above for dark mode */
+  }
+}
