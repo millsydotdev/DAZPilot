@@ -96,7 +96,7 @@ impl AiService {
         if !local_ai::is_local_server_running() {
             let model_path = local_ai::first_local_model_path()
                 .ok_or_else(|| "No local GGUF model found. Use first launch setup to download a GGUF model.".to_string())?;
-            local_ai::start_local_server(&model_path.to_string_lossy(), 8080)?;
+            local_ai::start_local_server(&model_path.to_string_lossy(), local_ai::get_local_ai_port())?;
         }
 
         let prompt = request
@@ -137,12 +137,14 @@ impl AiService {
             })
             .collect();
 
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        let response = runtime.block_on(ollama_service::ollama_chat(
-            request.model,
-            msgs,
-            request.temperature
-        )).map_err(|e| format!("Ollama error: {}", e))?;
+        // Use current runtime handle to avoid creating nested runtimes
+        let response = tokio::task::block_in_place(|| {
+            tokio::runtime::Handle::current().block_on(ollama_service::ollama_chat(
+                request.model,
+                msgs,
+                request.temperature
+            ))
+        }).map_err(|e| format!("Ollama error: {}", e))?;
 
         Ok(ChatResponse {
             content: response.message.content,

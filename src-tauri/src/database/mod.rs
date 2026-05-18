@@ -273,6 +273,13 @@ impl SqliteDatabase {
             
             -- Default preferences
             INSERT OR IGNORE INTO user_preferences (user_id) VALUES ('default');
+
+            -- App Settings Table
+            CREATE TABLE IF NOT EXISTS app_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );
             "#
         )?;
         
@@ -302,4 +309,44 @@ impl SqliteDatabase {
         let conn = rusqlite::Connection::open(&self.path)?;
         conn.execute(sql, [])
     }
+
+    pub fn get_setting(&self, key: &str) -> Result<Option<String>, rusqlite::Error> {
+        let conn = rusqlite::Connection::open(&self.path)?;
+        let mut stmt = conn.prepare("SELECT value FROM app_settings WHERE key = ?1")?;
+        let mut rows = stmt.query([key])?;
+        if let Some(row) = rows.next()? {
+            let val: String = row.get(0)?;
+            Ok(Some(val))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn save_setting(&self, key: &str, value: &str) -> Result<(), rusqlite::Error> {
+        let conn = rusqlite::Connection::open(&self.path)?;
+        conn.execute(
+            "INSERT OR REPLACE INTO app_settings (key, value) VALUES (?1, ?2)",
+            rusqlite::params![key, value],
+        )?;
+        Ok(())
+    }
 }
+
+pub fn get_setting(key: &str) -> Result<Option<String>, String> {
+    let db_guard = get_db()?;
+    if let Some(ref db) = *db_guard {
+        db.get_setting(key).map_err(|e| e.to_string())
+    } else {
+        Err("Database not initialized".to_string())
+    }
+}
+
+pub fn save_setting(key: &str, value: &str) -> Result<(), String> {
+    let db_guard = get_db()?;
+    if let Some(ref db) = *db_guard {
+        db.save_setting(key, value).map_err(|e| e.to_string())
+    } else {
+        Err("Database not initialized".to_string())
+    }
+}
+

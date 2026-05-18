@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import { useToastStore } from './toastStore';
 
 export interface PluginState {
   status: 'installed' | 'not_installed' | 'checking' | 'downloading' | 'error';
@@ -60,24 +61,31 @@ export const usePluginStore = create<PluginState & PluginActions>((set, get) => 
   },
 
   downloadAndInstall: async () => {
+    const toast = useToastStore.getState();
     set({ status: 'downloading', downloadProgress: 0, downloadedBytes: 0, error: null });
+    toast.info('Downloading bridge plugin from GitHub Releases...', 0, 'Plugin Download');
     try {
       const path = get().customPath;
       await invoke('download_and_install_plugin', { customPath: path || null });
       set({ status: 'installed', downloadProgress: 100 });
+      toast.success('Bridge plugin installed successfully!', 5000, 'Plugin Installed');
     } catch (e) {
       set({ status: 'error', error: String(e) });
+      toast.error(`Failed to download plugin: ${e}`, 8000, 'Download Failed');
     }
   },
 
   installLocal: async () => {
+    const toast = useToastStore.getState();
     set({ status: 'checking', error: null });
     try {
       const path = get().customPath;
       await invoke('install_daz3d_plugin', { customPath: path || null });
       set({ status: 'installed' });
+      toast.success('Local bridge plugin linked successfully!', 5000, 'Plugin Linked');
     } catch (e) {
       set({ status: 'error', error: String(e) });
+      toast.error(`Failed to link local plugin: ${e}`, 8000, 'Link Failed');
     }
   },
 

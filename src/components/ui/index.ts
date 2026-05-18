@@ -43,3 +43,5 @@ export type { AspectRatioProps, AspectRatioRatio } from './AspectRatio';
 
 export { Container } from './Container';
 export type { ContainerProps, ContainerSize } from './Container';
+
+export { Toast, ToastContainer } from './Toast';

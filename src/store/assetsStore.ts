@@ -23,6 +23,7 @@ export interface ContentPath {
   name: string;
   path: string;
   enabled: boolean;
+  isDefault?: boolean;
 }
 
 export interface ScanProgress {
@@ -95,6 +96,8 @@ export interface AssetsActions {
   setSelectedFile: (file: AssetFile | null) => void;
   setError: (error: string | null) => void;
   loadContentPaths: () => Promise<void>;
+  addCustomPath: (path: string, name: string) => Promise<void>;
+  removeCustomPath: (id: string) => Promise<void>;
   scanLibrary: () => Promise<void>;
   searchAssets: (query: string, category: string) => Promise<void>;
   selectFile: (file: AssetFile) => void;
@@ -146,8 +149,41 @@ export const useAssetsStore = create<AssetsState & AssetsActions>((set, get) => 
     set({ isLoading: true, error: null });
     try {
       const { invoke } = await import('@tauri-apps/api/core');
-      const paths = await invoke<ContentPath[]>('get_content_paths');
-      set({ contentPaths: paths });
+      const paths = await invoke<any[]>('get_content_paths');
+      const mapped = paths.map((p) => ({
+        id: p.id !== null && p.id !== undefined ? String(p.id) : p.path,
+        name: p.name,
+        path: p.path,
+        enabled: true,
+        isDefault: p.is_default,
+      }));
+      set({ contentPaths: mapped });
+    } catch (e) {
+      set({ error: String(e) });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  addCustomPath: async (path: string, name: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('add_custom_content_path', { path, name });
+      await get().loadContentPaths();
+    } catch (e) {
+      set({ error: String(e) });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  removeCustomPath: async (id: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('remove_custom_content_path', { id: parseInt(id, 10) });
+      await get().loadContentPaths();
     } catch (e) {
       set({ error: String(e) });
     } finally {

@@ -120,9 +120,4 @@
   --z-tooltip: 500;
 }
 
-/* Dark mode is the default */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Already set above for dark mode */
-  }
-}
+/* Dark mode is the default (already set above in :root) */

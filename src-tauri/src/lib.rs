@@ -16,8 +16,13 @@ pub mod local_ai_cmd;
 pub mod model_download;
 pub mod vision_service;
 pub mod viewport_sync;
+pub mod ai_providers;
+pub mod asset_fixer;
 
 use ollama_service::{check_ollama_status, get_ollama_models, pull_ollama_model, ollama_chat};
+use asset_fixer::{
+    ConflictScanResult, AssetFixResult, ShellInfo
+};
 
 use tauri::Manager;
 use log::info;
@@ -31,6 +36,8 @@ pub fn run() {
         .plugin(tauri_plugin_log::Builder::default()
             .level(log::LevelFilter::Info)
             .build())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(std::sync::Arc::new(viewport_sync::ViewportSyncState {
             enabled: std::sync::Mutex::new(false),
             fps: std::sync::Mutex::new(2),
@@ -59,9 +66,10 @@ pub fn run() {
                 window.set_title("DazPilot").ok();
             }
 
-            ai_service::init_ai_service(ai_service::AiBackend::LocalLlamaCpp)
-                .expect("Failed to initialize AI service");
-            info!("AI service initialized with local GGUF backend");
+            match ai_service::init_ai_service(ai_service::AiBackend::LocalLlamaCpp) {
+                Ok(_) => info!("AI service initialized with local GGUF backend"),
+                Err(e) => log::warn!("AI service init failed (non-fatal, first launch?): {}", e),
+            }
             
             animation::init_animation_system();
             info!("Animation system initialized");
@@ -86,10 +94,15 @@ pub fn run() {
             get_ai_status,
             install_daz3d_plugin,
             get_plugin_status,
+            get_app_setting,
+            save_app_setting,
+            select_directory,
             select_plugins_directory,
             download_and_install_plugin,
             execute_agent,
             get_content_paths,
+            add_custom_content_path,
+            remove_custom_content_path,
             scan_library,
             get_assets_by_category,
             search_assets,
@@ -146,6 +159,8 @@ pub fn run() {
             pull_ollama_model,
             ollama_chat,
             process_chat_message,
+            get_provider_models,
+            test_ai_connection,
             sdk_indexer::get_deep_sdk_index,
             sdk_indexer::get_sdk_class_deep,
             sdk_indexer::search_sdk_deep,
@@ -165,7 +180,14 @@ pub fn run() {
             local_ai_cmd::get_models_dir,
             model_download::download_gguf_model,
             set_viewport_sync,
-            set_viewport_fps
+            set_viewport_fps,
+            scan_conflicts,
+            fix_shell_zones,
+            auto_fix_all_conflicts,
+            analyze_shell_file,
+            ai_ask_question,
+            get_asset_conflicts,
+            execute_approved_script
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -332,6 +354,50 @@ fn get_plugin_status(custom_path: Option<String>) -> Result<String, String> {
 }
 
 #[tauri::command]
+fn get_app_setting(key: String) -> Result<Option<String>, String> {
+    database::get_setting(&key)
+}
+
+#[tauri::command]
+fn save_app_setting(app: tauri::AppHandle, key: String, value: String) -> Result<(), String> {
+    database::save_setting(&key, &value)?;
+    
+    if key == "daz_bridge_port" || key == "daz_bridge_host" {
+        let port_str = database::get_setting("daz_bridge_port")?
+            .unwrap_or_else(|| "8765".to_string());
+        let host_str = database::get_setting("daz_bridge_host")?
+            .unwrap_or_else(|| "127.0.0.1".to_string());
+            
+        if let Ok(app_data) = app.path().app_data_dir() {
+            std::fs::create_dir_all(&app_data).ok();
+            let config_path = app_data.join("bridge_config.json");
+            let config_json = serde_json::json!({
+                "host": host_str,
+                "port": port_str.parse::<u16>().unwrap_or(8765)
+            });
+            if let Ok(config_str) = serde_json::to_string_pretty(&config_json) {
+                if let Err(e) = std::fs::write(&config_path, config_str) {
+                    log::error!("Failed to write bridge_config.json: {}", e);
+                } else {
+                    log::info!("Successfully synchronized connection config with C++ plugin at {:?}", config_path);
+                }
+            }
+        }
+    }
+    
+    Ok(())
+}
+
+#[tauri::command]
+fn select_directory(title: String) -> Result<Option<String>, String> {
+    let folder = rfd::FileDialog::new()
+        .set_title(&title)
+        .pick_folder();
+    
+    Ok(folder.map(|p| p.to_string_lossy().to_string()))
+}
+
+#[tauri::command]
 fn select_plugins_directory() -> Result<Option<String>, String> {
     let folder = rfd::FileDialog::new()
         .set_title("Select Daz Studio Plugins Directory")
@@ -400,8 +466,63 @@ fn list_nodes() -> Result<Vec<serde_json::Value>, String> {
 }
 
 #[tauri::command]
-fn get_content_paths() -> Vec<library_scanner::ContentPath> {
-    library_scanner::get_default_content_paths()
+fn get_content_paths() -> Result<Vec<library_scanner::ContentPath>, String> {
+    let mut paths = library_scanner::get_default_content_paths();
+    
+    let db_guard = database::get_db()?;
+    if let Some(ref db) = *db_guard {
+        let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+        let mut stmt = conn.prepare("SELECT id, source_path, source_name FROM content_sources WHERE source_type = 'custom'")
+            .map_err(|e| e.to_string())?;
+        
+        let custom_rows = stmt.query_map([], |row| {
+            let id: i64 = row.get(0)?;
+            let path: String = row.get(1)?;
+            let name: String = row.get(2).unwrap_or_else(|_| "".to_string());
+            
+            Ok(library_scanner::ContentPath {
+                id: Some(id),
+                path,
+                name: if name.is_empty() { "Custom Library".to_string() } else { name },
+                is_default: false,
+            })
+        }).map_err(|e| e.to_string())?;
+        
+        for row in custom_rows.flatten() {
+            paths.push(row);
+        }
+    }
+    
+    Ok(paths)
+}
+
+#[tauri::command]
+fn add_custom_content_path(path: String, name: String) -> Result<i64, String> {
+    let db_guard = database::get_db()?;
+    if let Some(ref db) = *db_guard {
+        let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+        conn.execute(
+            "INSERT INTO content_sources (user_id, source_path, source_type, source_name) VALUES ('default', ?1, 'custom', ?2)",
+            rusqlite::params![path, name],
+        ).map_err(|e| e.to_string())?;
+        let row_id = conn.last_insert_rowid();
+        Ok(row_id)
+    } else {
+        Err("Database not initialized".to_string())
+    }
+}
+
+#[tauri::command]
+fn remove_custom_content_path(id: i64) -> Result<(), String> {
+    let db_guard = database::get_db()?;
+    if let Some(ref db) = *db_guard {
+        let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+        let _ = conn.execute("DELETE FROM user_assets WHERE source_id = ?1", rusqlite::params![id]);
+        conn.execute("DELETE FROM content_sources WHERE id = ?1", rusqlite::params![id]).map_err(|e| e.to_string())?;
+        Ok(())
+    } else {
+        Err("Database not initialized".to_string())
+    }
 }
 
 #[tauri::command]
@@ -901,10 +1022,51 @@ fn build_sdk_context_for_message(message: &str) -> String {
 }
 
 #[tauri::command]
-async fn process_chat_message(message: String) -> Result<String, String> {
+async fn get_provider_models(provider: String) -> Result<Vec<String>, String> {
+    let api_key = match provider.as_str() {
+        "openai" | "custom-openai" => database::get_setting("openai_api_key")?,
+        "gemini" => database::get_setting("gemini_api_key")?,
+        "anthropic" => database::get_setting("anthropic_api_key")?,
+        _ => None,
+    };
+    let base_url = match provider.as_str() {
+        "ollama" => database::get_setting("ollama_host")?,
+        "openai" | "custom-openai" => database::get_setting("openai_base_url")?,
+        _ => None,
+    };
+    ai_providers::fetch_models(&provider, api_key, base_url).await
+}
+
+#[tauri::command]
+async fn test_ai_connection(provider: String, api_key: String, base_url: Option<String>) -> Result<bool, String> {
+    let key = if api_key.is_empty() { None } else { Some(api_key) };
+    let models = ai_providers::fetch_models(&provider, key, base_url).await?;
+    Ok(!models.is_empty())
+}
+
+#[tauri::command]
+async fn process_chat_message(
+    app_handle: tauri::AppHandle,
+    message: String,
+    images: Option<Vec<String>>,
+    provider: Option<String>,
+    model: Option<String>,
+) -> Result<String, String> {
     let action = ai_action::plan_validated_action(&message);
     let sdk_context = build_sdk_context_for_message(&message);
     
+    let cleaned_images: Option<Vec<String>> = images.map(|imgs| {
+        imgs.into_iter()
+            .map(|img| {
+                if let Some(pos) = img.find("base64,") {
+                    img[pos + 7..].to_string()
+                } else {
+                    img
+                }
+            })
+            .collect()
+    });
+
     let mut vision_context = String::new();
     if message.to_lowercase().contains("look") || message.to_lowercase().contains("see") || message.to_lowercase().contains("describe") {
         if let Ok(analysis) = vision_service::analyze_current_viewport().await {
@@ -970,55 +1132,64 @@ async fn process_chat_message(message: String) -> Result<String, String> {
         execution_summary
     );
 
-    if std::env::var("DAZPILOT_AI_BACKEND").ok().as_deref() == Some("ollama") {
-        use ollama_service::{ChatMessage, OllamaService};
-        let service = OllamaService::new();
-        if !service.is_running().await {
-            return Err("Ollama backend selected, but Ollama is not running.".to_string());
-        }
-        let model_name = service
-            .list_models()
-            .await
-            .map_err(|e| format!("Failed to list Ollama models: {}", e))?
-            .first()
-            .ok_or_else(|| "Ollama backend selected, but no Ollama models are installed.".to_string())?
-            .name
-            .clone();
-        let response = service
-            .chat(
-                &model_name,
-                vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: prompt,
-                    images: None,
-                }],
-                0.3,
-            )
-            .await
-            .map_err(|e| format!("Ollama chat failed: {}", e))?;
-        let response_text = response.message.content;
-        
-        // Extract and run Javascript macro if present
-        if let Some(script) = extract_javascript_macro(&response_text) {
-            let _ = mcp_client::send_mcp_request("run_script", serde_json::json!({ "script": script, "args": {} }));
-            crate::ai_system::enqueue_summary_event(format!("Executed LLM generated DazScript macro for user request: {}", message));
-        }
-        
-        return Ok(response_text);
-    }
+    let active_provider = match provider {
+        Some(p) => p,
+        None => database::get_setting("ai_provider")?
+            .unwrap_or_else(|| {
+                std::env::var("DAZPILOT_AI_BACKEND")
+                    .unwrap_or_else(|_| "local-gguf".to_string())
+            }),
+    };
 
-    if !local_ai::is_local_server_running() {
-        let model_path = local_ai::first_local_model_path()
-            .ok_or_else(|| "No local GGUF model found. Use first launch setup to download a GGUF model.".to_string())?;
-        local_ai::start_local_server(&model_path.to_string_lossy(), 8080)?;
-    }
+    let active_model = match model {
+        Some(m) => m,
+        None => database::get_setting("ai_model")?
+            .unwrap_or_else(|| "phi-2-q4".to_string()),
+    };
 
-    let response_text = local_ai::chat_with_local(prompt, "local-gguf".to_string())?;
+    let api_key = match active_provider.as_str() {
+        "openai" | "custom-openai" => database::get_setting("openai_api_key")?,
+        "gemini" => database::get_setting("gemini_api_key")?,
+        "anthropic" => database::get_setting("anthropic_api_key")?,
+        _ => None,
+    };
+
+    let base_url = match active_provider.as_str() {
+        "ollama" => database::get_setting("ollama_host")?,
+        "openai" | "custom-openai" => database::get_setting("openai_base_url")?,
+        _ => None,
+    };
+
+    let temp_str = database::get_setting("ai_temperature")?.unwrap_or_else(|| "0.7".to_string());
+    let temperature = temp_str.parse::<f32>().unwrap_or(0.7);
+
+    let max_tok_str = database::get_setting("ai_max_tokens")?.unwrap_or_else(|| "2048".to_string());
+    let max_tokens = max_tok_str.parse::<u32>().unwrap_or(2048);
+
+    let response_text = ai_providers::run_chat(
+        &active_provider,
+        &active_model,
+        prompt,
+        api_key,
+        base_url,
+        temperature,
+        max_tokens,
+        cleaned_images,
+    ).await?;
     
-    // Extract and run Javascript macro if present
+    // Extract Javascript macro if present - emit for user approval instead of auto-executing
     if let Some(script) = extract_javascript_macro(&response_text) {
-        let _ = mcp_client::send_mcp_request("run_script", serde_json::json!({ "script": script, "args": {} }));
-        crate::ai_system::enqueue_summary_event(format!("Executed LLM generated DazScript macro for user request: {}", message));
+        let script_id = format!("script-{}", chrono::Utc::now().timestamp_millis());
+        let _ = app_handle.emit("script-suggestion", serde_json::json!({
+            "id": script_id,
+            "script": script,
+            "context": message,
+            "timestamp": chrono::Utc::now().to_rfc3339()
+        }));
+        return Ok(format!(
+            "AI suggested a DazScript macro. Please review and approve it in the Script Approval panel.\n\nScript ID: {}\n\n{}",
+            script_id, response_text
+        ));
     }
     
     Ok(response_text)
@@ -1039,6 +1210,16 @@ fn extract_javascript_macro(text: &str) -> Option<String> {
 }
 
 #[tauri::command]
+fn execute_approved_script(script: String) -> Result<String, String> {
+    info!("User approved script execution");
+    mcp_client::send_mcp_request("run_script", serde_json::json!({
+        "script": script,
+        "args": {}
+    }))
+    .map(|r| r.result.unwrap_or_else(|| "Script executed successfully".to_string()))
+}
+
+#[tauri::command]
 fn set_viewport_sync(enabled: bool, state: tauri::State<'_, std::sync::Arc<viewport_sync::ViewportSyncState>>) {
     *state.enabled.lock().unwrap() = enabled;
 }
@@ -1046,4 +1227,36 @@ fn set_viewport_sync(enabled: bool, state: tauri::State<'_, std::sync::Arc<viewp
 #[tauri::command]
 fn set_viewport_fps(fps: u32, state: tauri::State<'_, std::sync::Arc<viewport_sync::ViewportSyncState>>) {
     *state.fps.lock().unwrap() = fps.clamp(1, 10);
+}
+
+#[tauri::command]
+fn scan_conflicts(root_path: String) -> ConflictScanResult {
+    asset_fixer::scan_asset_conflicts(&root_path)
+}
+
+#[tauri::command]
+fn fix_shell_zones(shell_path: String, prefix: String) -> AssetFixResult {
+    asset_fixer::fix_shell_material_zones(&shell_path, &prefix)
+}
+
+#[tauri::command]
+fn auto_fix_all_conflicts(root_path: String, output_dir: String) -> AssetFixResult {
+    asset_fixer::auto_fix_conflicts(&root_path, &output_dir)
+}
+
+#[tauri::command]
+fn analyze_shell_file(path: String) -> Option<ShellInfo> {
+    asset_fixer::analyze_shell(&path)
+}
+
+#[tauri::command]
+fn ai_ask_question(question: String, options: Vec<String>, allow_custom: bool) -> String {
+    let question_id = format!("q-{}", chrono::Utc::now().timestamp_millis());
+    log::info!("AI question asked: {} - Options: {:?}, Custom: {}", question, options, allow_custom);
+    question_id
+}
+
+#[tauri::command]
+fn get_asset_conflicts() -> vision_service::AssetConflictReport {
+    vision_service::detect_asset_conflicts_from_scene()
 }

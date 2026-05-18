@@ -1,6 +1,16 @@
-import { useState } from 'react';
-import { MessageSquare, FolderOpen, View, Layers, StickyNote, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useAppStore } from './store';
+import { useState, useEffect } from 'react';
+import {
+  MessageSquare,
+  FolderOpen,
+  View,
+  Layers,
+  StickyNote,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
+import { useAppStore, useConnectionStore, useLocalAiStore, useAssetsStore } from './store';
+import { ToastContainer } from './components/ui';
 import ChatWindow from './components/chat/ChatWindow';
 import AssetBrowser from './components/assets/AssetBrowser';
 import ViewportCanvas from './components/viewport/ViewportCanvas';
@@ -8,6 +18,7 @@ import ScenePanel from './components/scene/ScenePanel';
 import ScratchpadPanel from './components/scratchpad/ScratchpadPanel';
 import SettingsPanel from './components/settings/SettingsPanel';
 import { FirstLaunchWizard } from './components/FirstLaunchWizard';
+import { ScriptApprovalPanel } from './components/ScriptApprovalPanel';
 
 type Tab = 'chat' | 'assets' | 'viewport' | 'scene' | 'scratchpad' | 'settings';
 
@@ -28,15 +39,30 @@ const tabs: TabInfo[] = [
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
-  const { 
-    wizardCompleted: storeWizardCompleted, 
+  const {
+    wizardCompleted: storeWizardCompleted,
     setWizardCompleted,
     sidebarCollapsed,
-    toggleSidebar
+    toggleSidebar,
+    loadAiSettings,
   } = useAppStore();
 
-  const wizardCompleted = storeWizardCompleted || 
-    (typeof window !== 'undefined' && (window.location.search.includes('skipModel') || !(window as unknown as { __TAURI__?: unknown }).__TAURI__));
+  const loadSettings = useConnectionStore((state) => state.loadSettings);
+  const getModelsDir = useLocalAiStore((state) => state.getModelsDir);
+  const loadContentPaths = useAssetsStore((state) => state.loadContentPaths);
+
+  useEffect(() => {
+    loadSettings().catch(console.error);
+    getModelsDir().catch(console.error);
+    loadContentPaths().catch(console.error);
+    loadAiSettings().catch(console.error);
+  }, [loadSettings, getModelsDir, loadContentPaths, loadAiSettings]);
+
+  const wizardCompleted =
+    storeWizardCompleted ||
+    (typeof window !== 'undefined' &&
+      (window.location.search.includes('skipModel') ||
+        !(window as unknown as { __TAURI__?: unknown }).__TAURI__));
 
   const handleWizardComplete = () => {
     setWizardCompleted(true);
@@ -65,42 +91,44 @@ function App() {
     <>
       {!wizardCompleted && <FirstLaunchWizard onComplete={handleWizardComplete} />}
       <div className="app-container">
-      {/* Sidebar */}
-      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          {sidebarCollapsed ? (
-            <div className="app-logo-compact">DP</div>
-          ) : (
-            <h1 className="app-title">DAZPilot</h1>
-          )}
-        </div>
-        <nav className="sidebar-nav">
-          {tabs.map((tab) => (
+        {/* Sidebar */}
+        <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+          <div className="sidebar-header">
+            {sidebarCollapsed ? (
+              <div className="app-logo-compact">DP</div>
+            ) : (
+              <h1 className="app-title">DAZPilot</h1>
+            )}
+          </div>
+          <nav className="sidebar-nav">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+                title={sidebarCollapsed ? tab.label : undefined}
+              >
+                {tab.icon}
+                <span className="nav-label">{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="sidebar-footer">
             <button
-              key={tab.id}
-              className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-              title={sidebarCollapsed ? tab.label : undefined}
+              className="sidebar-toggle"
+              onClick={toggleSidebar}
+              title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
-              {tab.icon}
-              <span className="nav-label">{tab.label}</span>
+              {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
             </button>
-          ))}
-        </nav>
-        <div className="sidebar-footer">
-          <button 
-            className="sidebar-toggle" 
-            onClick={toggleSidebar}
-            title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          </button>
-        </div>
-      </aside>
+          </div>
+        </aside>
 
-      {/* Main Content */}
-      <main className="main-content">{renderContent()}</main>
-    </div>
+        {/* Main Content */}
+        <main className="main-content">{renderContent()}</main>
+      </div>
+      <ToastContainer />
+      <ScriptApprovalPanel />
     </>
   );
 }

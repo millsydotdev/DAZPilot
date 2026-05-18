@@ -9,7 +9,9 @@ import styles from './LiveLinkPanel.module.css';
 const pushFacsToDaz = async (aus: Record<string, number>, scale: number = 1.0) => {
   const targets: Record<string, number> = {};
   for (const [key, [label, auScale]] of Object.entries(FACS_MAP)) {
-    targets[label] = Number(Math.max(0, Math.min(1.0, (aus[key] || 0) * auScale * scale)).toFixed(4));
+    targets[label] = Number(
+      Math.max(0, Math.min(1.0, (aus[key] || 0) * auScale * scale)).toFixed(4)
+    );
   }
 
   const script = `(function(){
@@ -30,7 +32,7 @@ const pushFacsToDaz = async (aus: Record<string, number>, scale: number = 1.0) =
 
   await invoke('send_daz3d_command', {
     command: 'run_script',
-    args: { script, args: {} }
+    args: { script, args: {} },
   });
 };
 
@@ -61,20 +63,21 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
     async function loadModel() {
       try {
         const vision = await FilesetResolver.forVisionTasks(
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
         );
         faceLandmarkerRef.current = await FaceLandmarker.createFromOptions(vision, {
           baseOptions: {
-            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-            delegate: "GPU"
+            modelAssetPath:
+              'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+            delegate: 'GPU',
           },
           outputFaceBlendshapes: false,
-          runningMode: "VIDEO",
+          runningMode: 'VIDEO',
           numFaces: 1,
         });
         setIsModelLoading(false);
       } catch (err) {
-        console.error("Failed to load MediaPipe model:", err);
+        console.error('Failed to load MediaPipe model:', err);
       }
     }
     loadModel();
@@ -92,17 +95,17 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
   function stopCamera() {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(t => t.stop());
+      stream.getTracks().forEach((t) => t.stop());
       videoRef.current.srcObject = null;
     }
   }
 
   const startLiveLink = async () => {
     if (!faceLandmarkerRef.current) return;
-    
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480, facingMode: 'user' } 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480, facingMode: 'user' },
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -110,7 +113,7 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
         setIsActive(true);
       }
     } catch (err) {
-      console.error("Failed to access camera", err);
+      console.error('Failed to access camera', err);
     }
   };
 
@@ -129,7 +132,7 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
       const video = videoRef.current;
       if (video.currentTime !== lastUpdateRef.current) {
         lastUpdateRef.current = video.currentTime;
-        
+
         const startTimeMs = performance.now();
         const results = faceLandmarkerRef.current.detectForVideo(video, startTimeMs);
 
@@ -138,21 +141,27 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
           if (ctx) {
             ctx.save();
             ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-            
+
             if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-              const lms = results.faceLandmarks[0].map(lm => ({ x: lm.x, y: lm.y }));
-              
+              const lms = results.faceLandmarks[0].map((lm) => ({ x: lm.x, y: lm.y }));
+
               // Draw simple debug dots
               ctx.fillStyle = '#00ff00';
               for (const lm of lms) {
                 ctx.beginPath();
-                ctx.arc(lm.x * canvasRef.current.width, lm.y * canvasRef.current.height, 1.5, 0, 2 * Math.PI);
+                ctx.arc(
+                  lm.x * canvasRef.current.width,
+                  lm.y * canvasRef.current.height,
+                  1.5,
+                  0,
+                  2 * Math.PI
+                );
                 ctx.fill();
               }
 
               // Compute AUs
               const rawAus = computeAUs(lms);
-              
+
               // EMA Smoothing
               const alpha = 0.5; // smoothing factor
               const emaAus = emaAusRef.current;
@@ -200,18 +209,18 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
 
       <div className={styles.content}>
         <div className={styles.previewContainer}>
-          <video 
-            ref={videoRef} 
-            className={styles.video} 
-            autoPlay 
-            playsInline 
+          <video
+            ref={videoRef}
+            className={styles.video}
+            autoPlay
+            playsInline
             muted
             style={{ transform: 'scaleX(-1)' }} // Mirror view
           />
-          <canvas 
-            ref={canvasRef} 
-            className={styles.canvas} 
-            width={640} 
+          <canvas
+            ref={canvasRef}
+            className={styles.canvas}
+            width={640}
             height={480}
             style={{ transform: 'scaleX(-1)' }} // Mirror canvas
           />
@@ -237,7 +246,7 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
         </div>
 
         <div className={styles.controls}>
-          <Button 
+          <Button
             onClick={isActive ? stopLiveLink : startLiveLink}
             disabled={isModelLoading}
             variant={isActive ? 'secondary' : 'primary'}
@@ -245,9 +254,7 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
           >
             {isActive ? 'Stop Live Link' : 'Start Live Link'}
           </Button>
-          <p className={styles.hint}>
-            {"Mirrors your webcam to \"Genesis 9\" in the active scene."}
-          </p>
+          <p className={styles.hint}>{'Mirrors your webcam to "Genesis 9" in the active scene.'}</p>
         </div>
       </div>
     </div>

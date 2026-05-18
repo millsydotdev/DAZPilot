@@ -102,9 +102,22 @@ jobs:
           tagName: ${{ github.event.inputs.tag || github.ref_name }}
           releaseName: DazPilot ${{ github.event.inputs.tag || github.ref_name }}
           releaseBody: |
-            DazPilot desktop app release.
+            DazPilot - AI Co-Pilot for Daz Studio
 
-            The Daz Studio bridge plugin is published by the separate Plugin Release workflow and may also be attached to this release.
+            ## Installation
+            1. Install this application
+            2. The bridge plugin will be auto-installed to Daz Studio's plugins folder
+            3. For AI SDK indexing, install the DAZStudio 4.5+ SDK via Daz Install Manager
+
+            ## Auto-Update
+            This release includes signed update artifacts. The app will check for updates automatically.
+
+            ## Bridge Plugin
+            Download `DazPilotBridge.dll` from this release if you need to manually install it.
+
+            ## Requirements
+            - Daz Studio 4.5+
+            - DAZStudio 4.5+ SDK (optional, for AI scripting intelligence)
           releaseDraft: true
           prerelease: ${{ contains(github.event.inputs.tag || github.ref_name, '-') }}
           args: --bundles ${{ matrix.platform.bundles }}

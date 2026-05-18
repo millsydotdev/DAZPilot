@@ -169,13 +169,6 @@ const COMMAND_SCHEMAS: &[CommandSchema] = &[
         high_risk: true,
     },
     CommandSchema {
-        name: "capture_viewport",
-        description: "Capture the Daz Studio viewport to a file",
-        category: "Viewport",
-        parameters: &["path"],
-        high_risk: false,
-    },
-    CommandSchema {
         name: "get_geoshells",
         description: "Get all Geometry Shells in the scene",
         category: "Scene",
@@ -252,6 +245,13 @@ const COMMAND_SCHEMAS: &[CommandSchema] = &[
         category: "Scripting",
         parameters: &["script", "args"],
         high_risk: true,
+    },
+    CommandSchema {
+        name: "get_scene_assets",
+        description: "Get list of loaded assets in the current scene",
+        category: "Scene",
+        parameters: &[],
+        high_risk: false,
     },
 ];
 

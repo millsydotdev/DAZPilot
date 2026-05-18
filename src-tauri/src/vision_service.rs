@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use crate::mcp_client;
+use crate::asset_fixer;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,14 +30,24 @@ pub async fn analyze_current_viewport() -> Result<SceneAnalysis, String> {
         images: Some(vec![base64_image]),
     }];
     
+    let vision_model = if let Ok(Some(model)) = crate::database::get_setting("ollama_vision_model") {
+        if !model.is_empty() {
+            model
+        } else {
+            "llava".to_string()
+        }
+    } else {
+        "llava".to_string()
+    };
+
     let ollama = crate::ollama_service::OllamaService::new();
-    let response_result = ollama.chat("llava", messages, 0.7).await;
+    let response_result = ollama.chat(&vision_model, messages, 0.7).await;
     
     let response = match response_result {
         Ok(res) => res,
         Err(_) => {
             return Ok(SceneAnalysis {
-                description: "Vision backend (Ollama) is not running or the 'llava' model is not available. Please ensure Ollama is installed and running with the llava model to enable AI eyes.".to_string(),
+                description: format!("Vision backend (Ollama) is not running or the '{}' model is not available. Please ensure Ollama is installed and running with the {} model to enable AI eyes.", vision_model, vision_model),
                 detected_nodes: vec![],
                 lighting_style: "Unknown".to_string(),
                 primary_subject: None,
@@ -172,6 +183,91 @@ pub fn fetch_spatial_context() -> String {
     }
     
     ctx
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetConflictReport {
+    pub has_conflicts: bool,
+    pub conflicts: Vec<AssetConflictInfo>,
+    pub suggestions: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetConflictInfo {
+    pub conflict_type: String,
+    pub assets: Vec<String>,
+    pub severity: String,
+    pub fix_suggestion: String,
+}
+
+pub fn detect_asset_conflicts_from_scene() -> AssetConflictReport {
+    let mut conflicts = Vec::new();
+    let mut suggestions = Vec::new();
+    
+    // Get list of loaded assets from DAZ via MCP
+    let loaded_assets: Vec<String> = match mcp_client::send_mcp_request("get_scene_assets", serde_json::json!({})) {
+        Ok(resp) => resp.data.and_then(|d| serde_json::from_value(d).ok()).unwrap_or_default(),
+        Err(_) => vec![],
+    };
+    
+    // Generic pattern: detect duplicate asset types in scene
+    let mut asset_type_counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    for asset in &loaded_assets {
+        let lower = asset.to_lowercase();
+        // Group by generic category (figure, clothing, hair, shell, material)
+        let category = if lower.contains("figure") || lower.contains("genesis") {
+            "figure".to_string()
+        } else if lower.contains("shell") || lower.contains("geoshell") {
+            "shell".to_string()
+        } else if lower.contains("clothes") || lower.contains("clothing") || lower.contains("outfit") {
+            "clothing".to_string()
+        } else if lower.contains("hair") || lower.contains(" wig") {
+            "hair".to_string()
+        } else if lower.contains("material") || lower.contains("texture") {
+            "material".to_string()
+        } else {
+            "other".to_string()
+        };
+        *asset_type_counts.entry(category).or_insert(0) += 1;
+    }
+    
+    // Generic conflict: multiple shells suggest potential material zone conflicts
+    if let Some(&shell_count) = asset_type_counts.get("shell") {
+        if shell_count > 1 {
+            conflicts.push(AssetConflictInfo {
+                conflict_type: "Multiple_Shells_Detected".to_string(),
+                assets: loaded_assets.iter().filter(|a| a.to_lowercase().contains("shell")).cloned().collect(),
+                severity: "medium".to_string(),
+                fix_suggestion: "Multiple geoshells in scene. Use scan_conflicts to check for material zone conflicts, fix_shell_zones to apply prefix workaround.".to_string(),
+            });
+        }
+    }
+    
+    // Run generic asset scanner on content paths to detect actual conflicts
+    if let Ok(Some(content_path)) = crate::database::get_setting("daz_content_path") {
+        let scan_result = asset_fixer::scan_asset_conflicts(&content_path);
+        
+        for conflict in scan_result.conflicts {
+            conflicts.push(AssetConflictInfo {
+                conflict_type: conflict.conflict_type.name(),
+                assets: conflict.files,
+                severity: conflict.severity,
+                fix_suggestion: format!("Use fix_shell_zones or auto_fix_all_conflicts to resolve this conflict.",),
+            });
+        }
+        
+        if !scan_result.warnings.is_empty() {
+            for warning in scan_result.warnings {
+                suggestions.push(warning);
+            }
+        }
+    }
+    
+    AssetConflictReport {
+        has_conflicts: !conflicts.is_empty(),
+        conflicts,
+        suggestions,
+    }
 }
 
 #[cfg(test)]

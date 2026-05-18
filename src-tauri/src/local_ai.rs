@@ -118,10 +118,29 @@ fn llama_server_binary_name() -> &'static str {
 }
 
 pub fn get_models_dir() -> std::path::PathBuf {
+    if let Ok(Some(path)) = crate::database::get_setting("local_ai_models_dir") {
+        if !path.is_empty() {
+            let path_buf = std::path::PathBuf::from(path);
+            if path_buf.exists() {
+                return path_buf;
+            }
+        }
+    }
+
     bundled_resource_dir()
         .unwrap_or_default()
         .join("models")
 }
+
+pub fn get_local_ai_port() -> u16 {
+    if let Ok(Some(port_str)) = crate::database::get_setting("local_ai_port") {
+        if let Ok(port) = port_str.parse::<u16>() {
+            return port;
+        }
+    }
+    8080
+}
+
 
 pub fn list_local_models() -> Vec<LocalModelInfo> {
     let models_dir = get_models_dir();

@@ -53,12 +53,22 @@ pub struct OllamaService {
 
 impl OllamaService {
     pub fn new() -> Self {
+        let base_url = if let Ok(Some(host)) = crate::database::get_setting("ollama_host") {
+            if !host.is_empty() {
+                host
+            } else {
+                OLLAMA_HOST.to_string()
+            }
+        } else {
+            OLLAMA_HOST.to_string()
+        };
+
         Self {
             client: reqwest::Client::builder()
                 .timeout(Duration::from_secs(60))
                 .build()
                 .unwrap_or_default(),
-            base_url: OLLAMA_HOST.to_string(),
+            base_url,
         }
     }
 

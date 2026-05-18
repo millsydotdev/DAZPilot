@@ -36,7 +36,7 @@ export default function ViewportCanvas() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [showLiveLink, setShowLiveLink] = useState(false);
   const loadStateRef = useRef(loadState);
- 
+
   useEffect(() => {
     loadStateRef.current();
 
@@ -70,25 +70,25 @@ export default function ViewportCanvas() {
 
   const handleImageClick = async (e: React.MouseEvent<HTMLImageElement>) => {
     if (activeTool !== 'select') return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     // Convert to actual image coordinates if it's scaled
     const scaleX = e.currentTarget.naturalWidth / rect.width;
     const scaleY = e.currentTarget.naturalHeight / rect.height;
-    
+
     const imageX = Math.round(x * scaleX);
     const imageY = Math.round(y * scaleY);
-    
+
     try {
-      await invoke('send_daz3d_command', { 
-        command: 'viewport_click', 
-        args: { x: imageX.toString(), y: imageY.toString() } 
+      await invoke('send_daz3d_command', {
+        command: 'viewport_click',
+        args: { x: imageX.toString(), y: imageY.toString() },
       });
     } catch (err) {
-      console.error("Viewport click failed:", err);
+      console.error('Viewport click failed:', err);
     }
   };
 
@@ -159,7 +159,10 @@ export default function ViewportCanvas() {
           <img
             src={viewportImage}
             className={styles.viewportImage}
-            style={{ transform: `scale(${zoom / 100})`, cursor: activeTool === 'select' ? 'crosshair' : 'default' }}
+            style={{
+              transform: `scale(${zoom / 100})`,
+              cursor: activeTool === 'select' ? 'crosshair' : 'default',
+            }}
             alt="Daz Viewport"
             onClick={handleImageClick}
           />
@@ -170,11 +173,15 @@ export default function ViewportCanvas() {
               <FolderOpen size={36} className={styles.radarIcon} />
             </div>
             <h3 className={styles.hudTitle}>Viewport Streaming Offline</h3>
-            <p className={styles.hudSubtitle}>Parity sync between Daz Studio and DazPilot is currently inactive.</p>
+            <p className={styles.hudSubtitle}>
+              Parity sync between Daz Studio and DazPilot is currently inactive.
+            </p>
             <div className={styles.hudSteps}>
               <div className={styles.hudStep}>
                 <span className={styles.hudStepNum}>1</span>
-                <span>Load <strong>VibeBridgePlugin</strong> inside Daz Studio</span>
+                <span>
+                  Load <strong>VibeBridgePlugin</strong> inside Daz Studio
+                </span>
               </div>
               <div className={styles.hudStep}>
                 <span className={styles.hudStepNum}>2</span>
@@ -182,12 +189,14 @@ export default function ViewportCanvas() {
               </div>
               <div className={styles.hudStep}>
                 <span className={styles.hudStepNum}>3</span>
-                <span>Click the <strong>Sync Viewport</strong> overlay button below</span>
+                <span>
+                  Click the <strong>Sync Viewport</strong> overlay button below
+                </span>
               </div>
             </div>
           </div>
         )}
- 
+
         <div className={styles.syncOverlay}>
           <Button
             size="sm"
@@ -207,9 +216,7 @@ export default function ViewportCanvas() {
             </div>
             <div className={styles.poseList}>
               {poses.length === 0 ? (
-                <p className={styles.emptyState}>
-                  No poses loaded
-                </p>
+                <p className={styles.emptyState}>No poses loaded</p>
               ) : (
                 poses.map((pose) => (
                   <div key={pose.id} className={styles.poseItem}>
@@ -222,9 +229,7 @@ export default function ViewportCanvas() {
           </div>
         )}
 
-        {showLiveLink && (
-          <LiveLinkPanel onClose={() => setShowLiveLink(false)} />
-        )}
+        {showLiveLink && <LiveLinkPanel onClose={() => setShowLiveLink(false)} />}
       </div>
 
       <div className={styles.timeline}>

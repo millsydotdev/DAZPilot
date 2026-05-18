@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Cpu, Check, AlertCircle, RefreshCw, Download } from 'lucide-react';
+import { Loader2, Cpu, Check, AlertCircle, RefreshCw, Download, FolderOpen } from 'lucide-react';
 import { useLocalAiStore, type LocalModelInfo } from '../store/localAiStore';
 import { usePluginStore } from '../store';
 import { Button, Card, VStack, Text } from './ui';
 import { listen } from '@tauri-apps/api/event';
+import { invoke } from '@tauri-apps/api/core';
 import styles from './FirstLaunchWizard.module.css';
 
 interface FirstLaunchWizardProps {
   onComplete: () => void;
 }
 
-type WizardStep = 
+type WizardStep =
   | 'checking'
   | 'no_model'
   | 'downloading'
   | 'ready'
   | 'plugin_setup'
   | 'plugin_downloading'
+  | 'sdk_setup'
   | 'starting'
   | 'error';
 
@@ -53,7 +55,7 @@ const MODEL_PRESETS: ModelPreset[] = [
     url: 'https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct.Q4_K_M.gguf',
     filename: 'Meta-Llama-3-8B-Instruct.Q4_K_M.gguf',
     sizeDesc: '~4.9GB',
-  }
+  },
 ];
 
 interface DownloadProgressPayload {
@@ -69,18 +71,22 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
   const [selectedPreset, setSelectedPreset] = useState<ModelPreset>(MODEL_PRESETS[0]);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadedBytes, setDownloadedBytes] = useState(0);
-  
-  const { 
-    isRunning, 
-    checkServerStatus, 
-    startServer, 
+  const [customGgufUrl, setCustomGgufUrl] = useState('');
+  const [customGgufFilename, setCustomGgufFilename] = useState('');
+  const [sdkPath, setSdkPath] = useState<string | null>(null);
+  const [sdkChecking, setSdkChecking] = useState(false);
+
+  const {
+    isRunning,
+    checkServerStatus,
+    startServer,
     loadModels,
     models,
     getModelsDir,
     modelsDir,
     error,
     isLoading,
-    downloadModel
+    downloadModel,
   } = useLocalAiStore();
 
   const {
@@ -90,7 +96,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     browseCustomPath,
     downloadAndInstall: downloadAndInstallPlugin,
     installLocal: installLocalPlugin,
-    error: pluginError
+    error: pluginError,
   } = usePluginStore();
 
   useEffect(() => {
@@ -119,14 +125,14 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
-    
+
     const setupListener = async () => {
       unlisten = await listen<DownloadProgressPayload>('download-progress', (event) => {
         setDownloadProgress(event.payload.progress);
         setDownloadedBytes(event.payload.downloaded);
       });
     };
-    
+
     setupListener();
     return () => {
       if (unlisten) unlisten();
@@ -137,13 +143,59 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     setStep('downloading');
     setDownloadProgress(0);
     setDownloadedBytes(0);
-    
+
     try {
       await downloadModel(selectedPreset.url, selectedPreset.filename);
       setDownloadProgress(100);
       await loadModels();
       await checkServerStatus();
-      
+
+      if (models.length > 0) {
+        setSelectedLocalModel(models[0]);
+        setStep('ready');
+      }
+    } catch (e) {
+      console.error('Download failed:', e);
+      setStep('error');
+    }
+  };
+
+  const handleDownloadCustomModel = async () => {
+    const url = customGgufUrl.trim();
+    if (!url) return;
+
+    let filename = customGgufFilename.trim();
+    if (!filename) {
+      try {
+        const parts = url.split('/');
+        filename = parts[parts.length - 1] || 'custom-model.gguf';
+        if (!filename.endsWith('.gguf')) {
+          filename += '.gguf';
+        }
+      } catch {
+        filename = 'custom-model.gguf';
+      }
+    }
+
+    setStep('downloading');
+    setDownloadProgress(0);
+    setDownloadedBytes(0);
+
+    setSelectedPreset({
+      id: 'custom',
+      name: filename,
+      description: 'Custom GGUF Model weights',
+      url: url,
+      filename: filename,
+      sizeDesc: 'Custom Size',
+    });
+
+    try {
+      await downloadModel(url, filename);
+      setDownloadProgress(100);
+      await loadModels();
+      await checkServerStatus();
+
       if (models.length > 0) {
         setSelectedLocalModel(models[0]);
         setStep('ready');
@@ -158,7 +210,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     setStep('plugin_downloading');
     setDownloadProgress(0);
     setDownloadedBytes(0);
-    
+
     try {
       await downloadAndInstallPlugin();
       setDownloadProgress(100);
@@ -186,6 +238,38 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
   const handleProceedToPlugin = () => {
     setStage('plugin');
     setStep('plugin_setup');
+  };
+
+  const handleProceedToSdk = async () => {
+    setStep('sdk_setup');
+    setSdkChecking(true);
+    try {
+      // Check if SDK is already configured
+      const configuredPath = await invoke<string | null>('get_app_setting', {
+        key: 'daz_sdk_path',
+      });
+      if (configuredPath) {
+        setSdkPath(configuredPath);
+      }
+    } catch (e) {
+      console.error('Failed to check SDK path:', e);
+    } finally {
+      setSdkChecking(false);
+    }
+  };
+
+  const handleBrowseSdk = async () => {
+    try {
+      const folder = await invoke<string | null>('select_directory', {
+        title: 'Select DAZStudio 4.5+ SDK Include Folder',
+      });
+      if (folder) {
+        setSdkPath(folder);
+        await invoke('save_app_setting', { key: 'daz_sdk_path', value: folder });
+      }
+    } catch (e) {
+      console.error('Failed to browse for SDK:', e);
+    }
   };
 
   const handleFinishSetup = async () => {
@@ -232,18 +316,19 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
       <Cpu size={64} className="text-cyan-400 animate-pulse mb-2" />
       <Text variant="heading1">Welcome to DazPilot</Text>
       <Text variant="body" className={styles.description}>
-        DazPilot is your AI co-pilot for Daz Studio — describe what you want and AI controls the scene for you.
+        DazPilot is your AI co-pilot for Daz Studio — describe what you want and AI controls the
+        scene for you.
       </Text>
-      
+
       <div className={styles.modelCard}>
         <Text variant="heading3" className={styles.downloadTitle}>
           <Download size={20} />
           Download AI Model
         </Text>
-        
+
         <VStack gap="sm" className={styles.presetsList}>
-          {MODEL_PRESETS.map(preset => (
-            <div 
+          {MODEL_PRESETS.map((preset) => (
+            <div
               key={preset.id}
               onClick={() => setSelectedPreset(preset)}
               className={`${styles.presetItem} ${selectedPreset.id === preset.id ? styles.selected : ''}`}
@@ -256,30 +341,94 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
             </div>
           ))}
         </VStack>
-        <Button 
-          onClick={handleDownloadModel} 
-          variant="primary" 
+        <Button
+          onClick={handleDownloadModel}
+          variant="primary"
           className={styles.actionButton}
           disabled={isLoading}
         >
           {isLoading ? <Loader2 className={styles.spinner} size={20} /> : <Download size={18} />}
           Download & Setup
         </Button>
-        
-        <div className={styles.pathSection}>
-          <span className={styles.pathLabel}>
-            Or manually place a .gguf file in:
-          </span>
-          <code className={styles.pathCode}>
-            {modelsDir}
-          </code>
-          <Button 
-            onClick={handleRefresh} 
-            variant="ghost" 
-            className="w-full mt-3"
+
+        <div
+          style={{
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+            paddingTop: '16px',
+            marginTop: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              color: 'var(--color-text-secondary)',
+              display: 'block',
+              marginBottom: '4px',
+            }}
           >
-            <RefreshCw size={16} />
-            I Added a Model - Refresh
+            Or Download from Direct Hugging Face GGUF URL
+          </span>
+          <input
+            type="text"
+            placeholder="https://huggingface.co/username/repo/resolve/main/model.gguf"
+            value={customGgufUrl}
+            onChange={(e) => setCustomGgufUrl(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              fontSize: '12px',
+              background: 'rgba(0,0,0,0.2)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 'var(--radius-sm)',
+              color: '#fff',
+              outline: 'none',
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Custom Filename (e.g. my-model.gguf - optional)"
+            value={customGgufFilename}
+            onChange={(e) => setCustomGgufFilename(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              fontSize: '12px',
+              background: 'rgba(0,0,0,0.2)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 'var(--radius-sm)',
+              color: '#fff',
+              outline: 'none',
+            }}
+          />
+          <Button
+            onClick={handleDownloadCustomModel}
+            variant="ghost"
+            style={{
+              border: '1px solid rgba(16,185,129,0.3)',
+              color: '#10b981',
+              display: 'flex',
+              gap: '6px',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            disabled={!customGgufUrl.trim() || isLoading}
+          >
+            <Download size={14} />
+            Download Custom GGUF
+          </Button>
+        </div>
+
+        <div className={styles.pathSection}>
+          <span className={styles.pathLabel}>Or manually place a .gguf file in:</span>
+          <code className={styles.pathCode}>{modelsDir}</code>
+          <Button onClick={handleRefresh} variant="ghost" className="w-full mt-3">
+            <RefreshCw size={16} />I Added a Model - Refresh
           </Button>
         </div>
       </div>
@@ -301,7 +450,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           />
         </div>
         <span className={styles.progressText}>
-          {downloadProgress === 0 && downloadedBytes > 0 
+          {downloadProgress === 0 && downloadedBytes > 0
             ? `${formatBytes(downloadedBytes)} downloaded...`
             : `${Math.round(downloadProgress)}% complete`}
         </span>
@@ -314,12 +463,15 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
 
   const renderReady = () => (
     <VStack gap="lg" className={styles.centered}>
-      <Check size={48} className="text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 rounded-full p-2.5 mb-2" />
+      <Check
+        size={48}
+        className="text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 rounded-full p-2.5 mb-2"
+      />
       <Text variant="heading1">Ready to Start</Text>
       <Text variant="body" className={styles.description}>
         Found {models.length} model(s). Select one for the AI backend.
       </Text>
-      
+
       <VStack gap="sm" className={styles.readyList}>
         {models.map((model) => (
           <div
@@ -328,27 +480,21 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
             className={`${styles.readyItem} ${selectedLocalModel?.name === model.name ? styles.selected : ''}`}
           >
             <span className={styles.readyName}>{model.name}</span>
-            <span className={styles.readySize}>
-              {Math.round(model.size_mb)}MB
-            </span>
+            <span className={styles.readySize}>{Math.round(model.size_mb)}MB</span>
           </div>
         ))}
       </VStack>
 
-      <Button 
-        onClick={handleProceedToPlugin} 
-        variant="primary" 
+      <Button
+        onClick={handleProceedToPlugin}
+        variant="primary"
         className={styles.actionButton}
         disabled={!selectedLocalModel || isLoading}
       >
         Next: Daz Plugin Setup
       </Button>
 
-      <Button 
-        onClick={handleRefresh} 
-        variant="ghost" 
-        className="w-full"
-      >
+      <Button onClick={handleRefresh} variant="ghost" className="w-full">
         <RefreshCw size={16} />
         Scan for More Models
       </Button>
@@ -359,25 +505,45 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     const isInstalled = pluginStatus === 'installed';
     const isChecking = pluginStatus === 'checking';
     const isDownloading = pluginStatus === 'downloading';
-    
+
     return (
       <VStack gap="lg" className={styles.centered}>
         <Cpu size={64} className="text-cyan-400 animate-pulse mb-2" />
         <Text variant="heading2">Daz Studio C++ Bridge</Text>
         <Text variant="body" className={styles.description}>
-          DazPilot needs a C++ Bridge Plugin in Daz Studio to synchronize the viewport and execute commands.
+          DazPilot needs a C++ Bridge Plugin in Daz Studio to synchronize the viewport and execute
+          commands.
         </Text>
 
         <div className={styles.modelCard}>
           <div className={styles.downloadTitle}>
             <span>Daz Studio Plugins Folder</span>
           </div>
-          
+
           <div style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'center' }}>
-            <code className={styles.pathCode} style={{ flexGrow: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <code
+              className={styles.pathCode}
+              style={{
+                flexGrow: 1,
+                textAlign: 'left',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {pluginCustomPath || 'Default plugins directory...'}
             </code>
-            <Button onClick={browseCustomPath} variant="ghost" size="sm" style={{ flexShrink: 0, padding: '4px 8px', height: 'auto', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <Button
+              onClick={browseCustomPath}
+              variant="ghost"
+              size="sm"
+              style={{
+                flexShrink: 0,
+                padding: '4px 8px',
+                height: 'auto',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
               Browse...
             </Button>
           </div>
@@ -385,15 +551,42 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           <div style={{ marginTop: '8px' }}>
             <span className={styles.pathLabel}>Status:</span>
             {isChecking ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', fontSize: '13px', fontWeight: 600 }}>
+              <span
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#fbbf24',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                }}
+              >
                 <Loader2 className={styles.spinner} size={14} /> Checking plugins folder...
               </span>
             ) : isInstalled ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34d399', fontSize: '13px', fontWeight: 600 }}>
+              <span
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#34d399',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                }}
+              >
                 <Check size={14} /> DazPilotBridge.dll linked successfully!
               </span>
             ) : (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f87171', fontSize: '13px', fontWeight: 600 }}>
+              <span
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#f87171',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                }}
+              >
                 <AlertCircle size={14} /> DazPilotBridge.dll not found.
               </span>
             )}
@@ -401,18 +594,18 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
 
           {!isInstalled && !isChecking && (
             <VStack gap="xs" style={{ marginTop: '12px', width: '100%' }}>
-              <Button 
-                onClick={handleDownloadPlugin} 
-                variant="primary" 
+              <Button
+                onClick={handleDownloadPlugin}
+                variant="primary"
                 className={styles.actionButton}
                 disabled={isDownloading}
               >
                 <Download size={16} />
                 Download & Install from Releases
               </Button>
-              <Button 
-                onClick={handleInstallLocalPlugin} 
-                variant="ghost" 
+              <Button
+                onClick={handleInstallLocalPlugin}
+                variant="ghost"
                 className={styles.actionButton}
                 style={{ border: '1px solid rgba(255,255,255,0.05)' }}
                 disabled={isDownloading}
@@ -423,19 +616,36 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           )}
 
           {isInstalled && (
-            <div style={{ width: '100%', textAlign: 'center', padding: '6px 0', color: '#94a3b8', fontSize: '11px' }}>
+            <div
+              style={{
+                width: '100%',
+                textAlign: 'center',
+                padding: '6px 0',
+                color: '#94a3b8',
+                fontSize: '11px',
+              }}
+            >
               Bridge plugin linked successfully! Setup is fully complete.
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '12px', width: '100%' }}>
-            <Button 
-              onClick={handleFinishSetup} 
-              variant="primary" 
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              borderTop: '1px solid rgba(255,255,255,0.05)',
+              paddingTop: '12px',
+              marginTop: '12px',
+              width: '100%',
+            }}
+          >
+            <Button
+              onClick={handleProceedToSdk}
+              variant="primary"
               className={styles.actionButton}
               disabled={isChecking}
             >
-              {isInstalled ? 'Finish & Start AI Server' : 'Skip & Start AI Server'}
+              {isInstalled ? 'Next: SDK Setup' : 'Skip & Continue to SDK'}
             </Button>
           </div>
         </div>
@@ -458,7 +668,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           />
         </div>
         <span className={styles.progressText}>
-          {downloadProgress === 0 && downloadedBytes > 0 
+          {downloadProgress === 0 && downloadedBytes > 0
             ? `${formatBytes(downloadedBytes)} downloaded...`
             : `${Math.round(downloadProgress)}% complete`}
         </span>
@@ -466,6 +676,114 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
       <Text variant="small" className="text-slate-500 font-semibold mt-2">
         {formatBytes(downloadedBytes)} downloaded
       </Text>
+    </VStack>
+  );
+
+  const renderSdkSetup = () => (
+    <VStack gap="lg" className={styles.centered}>
+      <Cpu size={64} className="text-cyan-400 animate-pulse mb-2" />
+      <Text variant="heading2">DAZStudio SDK Setup (Optional)</Text>
+      <Text variant="body" className={styles.description}>
+        For enhanced AI scripting intelligence, install the DAZStudio 4.5+ SDK via Daz Install
+        Manager. This enables the AI to understand Daz Studio internal API and generate more
+        accurate scripts.
+      </Text>
+
+      <div className={styles.modelCard}>
+        <div className={styles.downloadTitle}>
+          <FolderOpen size={20} />
+          <span>SDK Location</span>
+        </div>
+
+        {sdkChecking ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}>
+            <Loader2 className={styles.spinner} size={16} />
+            <Text variant="body">Searching for SDK...</Text>
+          </div>
+        ) : sdkPath ? (
+          <div style={{ padding: '8px 0' }}>
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                color: '#34d399',
+                fontSize: '13px',
+                fontWeight: 600,
+              }}
+            >
+              <Check size={14} /> SDK found!
+            </span>
+            <code
+              style={{
+                display: 'block',
+                marginTop: '8px',
+                padding: '8px 12px',
+                fontSize: '11px',
+                background: 'rgba(0,0,0,0.2)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 'var(--radius-sm)',
+                color: '#38bdf8',
+                fontFamily: 'monospace',
+                wordBreak: 'break-all',
+              }}
+            >
+              {sdkPath}
+            </code>
+          </div>
+        ) : (
+          <div style={{ padding: '8px 0' }}>
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                color: '#fbbf24',
+                fontSize: '13px',
+                fontWeight: 600,
+              }}
+            >
+              <AlertCircle size={14} /> SDK not found
+            </span>
+            <Text variant="small" className="text-slate-500" style={{ marginTop: '4px' }}>
+              The AI will use basic scripting knowledge without the SDK.
+            </Text>
+          </div>
+        )}
+
+        <Button
+          onClick={handleBrowseSdk}
+          variant="ghost"
+          style={{ width: '100%', marginTop: '8px', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          <FolderOpen size={16} />
+          Browse for SDK Include Folder...
+        </Button>
+
+        <div
+          style={{
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+            paddingTop: '12px',
+            marginTop: '12px',
+            fontSize: '11px',
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          <strong>How to get the SDK:</strong>
+          <ol style={{ margin: '8px 0 0 20px', lineHeight: '1.6' }}>
+            <li>Open Daz Install Manager (DIM)</li>
+            <li>Search for DAZStudio 4.5+ SDK</li>
+            <li>Install to the default location</li>
+            <li>Click Browse above to select the SDK folder</li>
+          </ol>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+        <Button onClick={handleFinishSetup} variant="primary" className={styles.actionButton}>
+          {sdkPath ? 'Finish & Start AI Server' : 'Skip SDK & Start AI Server'}
+        </Button>
+      </div>
     </VStack>
   );
 
@@ -485,7 +803,11 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
       <Text variant="body" className={styles.description}>
         {error || pluginError || 'An error occurred. Please try again.'}
       </Text>
-      <Button onClick={() => setStep('no_model')} variant="primary" className="w-full max-w-[200px]">
+      <Button
+        onClick={() => setStep('no_model')}
+        variant="primary"
+        className="w-full max-w-[200px]"
+      >
         Try Again
       </Button>
     </VStack>
@@ -500,6 +822,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
         {step === 'ready' && renderReady()}
         {step === 'plugin_setup' && renderPluginSetup()}
         {step === 'plugin_downloading' && renderPluginDownloading()}
+        {step === 'sdk_setup' && renderSdkSetup()}
         {step === 'starting' && renderStarting()}
         {step === 'error' && renderError()}
       </Card>

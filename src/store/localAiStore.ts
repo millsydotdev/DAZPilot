@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import { useToastStore } from './toastStore';
 
 export interface LocalModelInfo {
   name: string;
@@ -19,6 +20,7 @@ interface LocalAiState {
   stopServer: () => Promise<void>;
   loadModels: () => Promise<void>;
   getModelsDir: () => Promise<void>;
+  setModelsDir: (path: string) => Promise<void>;
   downloadModel: (url: string, filename: string) => Promise<void>;
   chat: (prompt: string, model?: string) => Promise<string | null>;
 }
@@ -37,6 +39,16 @@ export const useLocalAiStore = create<LocalAiState>((set, get) => ({
     try {
       const dir = await invoke<string>('get_models_dir');
       set({ modelsDir: dir });
+    } catch (e) {
+      set({ error: String(e) });
+    }
+  },
+
+  setModelsDir: async (path: string) => {
+    try {
+      await invoke('save_app_setting', { key: 'local_ai_models_dir', value: path });
+      set({ modelsDir: path });
+      await get().loadModels();
     } catch (e) {
       set({ error: String(e) });
     }
@@ -81,12 +93,16 @@ export const useLocalAiStore = create<LocalAiState>((set, get) => ({
   },
 
   downloadModel: async (url: string, filename: string) => {
+    const toast = useToastStore.getState();
     set({ isLoading: true, error: null });
+    toast.info('Downloading AI model weights...', 0, 'Model Download');
     try {
       await invoke<string>('download_gguf_model', { url, filename });
       await get().loadModels();
+      toast.success('AI model downloaded successfully!', 5000, 'Download Complete');
     } catch (e) {
       set({ error: String(e), isLoading: false });
+      toast.error(`Failed to download model: ${e}`, 8000, 'Download Failed');
     }
   },
 

@@ -10,6 +10,7 @@ use flate2::read::GzDecoder;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContentPath {
+    pub id: Option<i64>,
     pub path: String,
     pub name: String,
     pub is_default: bool,
@@ -54,10 +55,10 @@ const SUPPORTED_EXTENSIONS: &[&str] = &[
 
 const CATEGORY_PATTERNS: &[(&str, &[&str])] = &[
     ("figures", &["figure", "genesis", "victoria", "michael", "david", "youth", "person"]),
-    ("clothing", &["clothing", "outfit", "shirt", "pants", "dress", "jacket", "top", "bottom", " skirt", "wear"]),
-    ("hair", &["hair", " hairstyle", "ponytail", "braid"]),
+    ("clothing", &["clothing", "outfit", "shirt", "pants", "dress", "jacket", "top", "bottom", "skirt", "wear"]),
+    ("hair", &["hair", "hairstyle", "ponytail", "braid"]),
     ("poses", &["pose", "poseable"]),
-    ("materials", &["material", "shader", "texture", "skin", " makeup"]),
+    ("materials", &["material", "shader", "texture", "skin", "makeup"]),
     ("morphs", &["morph", "shape", "modifier", "jcm"]),
     ("environments", &["environment", "scene", "hdri", "sky", "backdrop"]),
     ("lights", &["light", "illumination"]),
@@ -114,6 +115,7 @@ pub fn get_default_content_paths() -> Vec<ContentPath> {
                 };
 
                 paths.push(ContentPath {
+                    id: None,
                     path: dir_path.clone(),
                     name,
                     is_default: true,
@@ -128,6 +130,7 @@ pub fn get_default_content_paths() -> Vec<ContentPath> {
             let daz3d_path = documents.join("DAZ 3D");
             if daz3d_path.exists() {
                 paths.push(ContentPath {
+                    id: None,
                     path: daz3d_path.to_string_lossy().to_string(),
                     name: "DAZ 3D".to_string(),
                     is_default: true,
@@ -139,6 +142,7 @@ pub fn get_default_content_paths() -> Vec<ContentPath> {
             let daz3d_path = PathBuf::from(program_data).join("DAZ 3D");
             if daz3d_path.exists() {
                 paths.push(ContentPath {
+                    id: None,
                     path: daz3d_path.to_string_lossy().to_string(),
                     name: "ProgramData DAZ".to_string(),
                     is_default: true,
@@ -150,6 +154,7 @@ pub fn get_default_content_paths() -> Vec<ContentPath> {
         let public_docs = PathBuf::from(r"C:\Users\Public\Documents\My DAZ 3D Library");
         if public_docs.exists() {
             paths.push(ContentPath {
+                id: None,
                 path: public_docs.to_string_lossy().to_string(),
                 name: "Public Daz Library".to_string(),
                 is_default: true,

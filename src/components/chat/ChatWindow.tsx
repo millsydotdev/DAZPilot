@@ -1,8 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Play, Wrench, Lightbulb, AlertCircle, Check, X, Code, Copy, Plus, GitBranch, ChevronUp, Brain, Zap, Database } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import {
+  Send,
+  Sparkles,
+  Play,
+  Wrench,
+  Lightbulb,
+  AlertCircle,
+  Check,
+  X,
+  Code,
+  Copy,
+  Plus,
+  GitBranch,
+  ChevronUp,
+  Brain,
+  Zap,
+  Database,
+  Cpu,
+  RefreshCw,
+} from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
-import { useChatStore, useConnectionStore } from '../../store';
+import { useChatStore, useConnectionStore, useAppStore, useToastStore } from '../../store';
 import styles from './ChatWindow.module.css';
 
 type AIMode = 'create' | 'plan' | 'fix' | 'query';
@@ -29,23 +47,22 @@ const contexts: ContextOption[] = [
   { id: 'workspace-root', label: 'Worktree', desc: 'Scope to Daz project directory' },
 ];
 
-type ModelId = 'gemini-3-flash' | 'gemini-3-pro' | 'claude-3-5-sonnet' | 'gpt-4o' | 'local-gguf';
-
-interface ModelOption {
-  id: ModelId;
-  label: string;
-  desc: string;
-  icon: LucideIcon;
-  color: string;
-}
-
-const models: ModelOption[] = [
-  { id: 'gemini-3-flash', label: 'Gemini 3 Flash', desc: 'Fast, multimodal reasoning', icon: Sparkles, color: '#a855f7' },
-  { id: 'gemini-3-pro', label: 'Gemini 3 Pro', desc: 'High-quality analytical reasoning', icon: Sparkles, color: '#8b5cf6' },
-  { id: 'claude-3-5-sonnet', label: 'Claude 3.5 Sonnet', desc: 'Expert scripting & logic', icon: Brain, color: '#f97316' },
-  { id: 'gpt-4o', label: 'GPT-4o', desc: 'Versatile problem solver', icon: Zap, color: '#10b981' },
-  { id: 'local-gguf', label: 'Local GGUF (phi-2)', desc: 'Offline private LLM', icon: Database, color: '#06b6d4' },
-];
+const getProviderInfo = (provider: string) => {
+  switch (provider) {
+    case 'openai':
+      return { label: 'OpenAI Cloud', icon: Zap, color: '#10b981' };
+    case 'gemini':
+      return { label: 'Google Gemini', icon: Sparkles, color: '#a855f7' };
+    case 'anthropic':
+      return { label: 'Anthropic Claude', icon: Brain, color: '#f97316' };
+    case 'ollama':
+      return { label: 'Ollama', icon: Database, color: '#06b6d4' };
+    case 'custom-openai':
+      return { label: 'Custom OpenAI', icon: Zap, color: '#ec4899' };
+    default:
+      return { label: 'Local GGUF', icon: Cpu, color: '#64748b' };
+  }
+};
 
 // Subcomponent to render DazScript Macros beautifully
 function MacroCodeBlock({ code, language }: { code: string; language: string }) {
@@ -55,6 +72,7 @@ function MacroCodeBlock({ code, language }: { code: string; language: string }) 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
+    useToastStore.getState().success('DazScript Macro copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -66,13 +84,13 @@ function MacroCodeBlock({ code, language }: { code: string; language: string }) 
           <span>{language.toUpperCase()} MACRO</span>
         </div>
         <div className={styles.macroActions}>
-          <button 
+          <button
             onClick={() => setCollapsed(!collapsed)}
             className="text-xs px-2 py-1 text-slate-400 hover:text-slate-200 bg-transparent border-none cursor-pointer"
           >
             {collapsed ? 'Expand' : 'Collapse'}
           </button>
-          <button 
+          <button
             onClick={handleCopy}
             className="text-xs px-2 py-1 text-slate-400 hover:text-slate-200 bg-transparent border-none cursor-pointer flex items-center gap-1"
           >
@@ -115,7 +133,10 @@ function InteractiveActionCard({
 }) {
   const [action, setAction] = useState<StructuredAction | null>(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<{ type: 'success' | 'error' | 'rejected'; msg: string } | null>(null);
+  const [status, setStatus] = useState<{
+    type: 'success' | 'error' | 'rejected';
+    msg: string;
+  } | null>(null);
 
   useEffect(() => {
     async function loadAction() {
@@ -127,9 +148,7 @@ function InteractiveActionCard({
           setAction({
             command: commandName,
             target: 'Genesis 8',
-            parameters: [
-              { key: 'details', value: userQuery }
-            ],
+            parameters: [{ key: 'details', value: userQuery }],
             confidence: 0.9,
           });
         }
@@ -150,7 +169,9 @@ function InteractiveActionCard({
     if (!action) return;
     setLoading(true);
     try {
-      const res = await invoke<{ success: boolean; message?: string }>('execute_ai_action', { action });
+      const res = await invoke<{ success: boolean; message?: string }>('execute_ai_action', {
+        action,
+      });
       if (res && res.success) {
         setStatus({ type: 'success', msg: res.message || 'Action executed successfully!' });
       } else {
@@ -180,7 +201,9 @@ function InteractiveActionCard({
   }
 
   if (!action) {
-    return <div className="text-xs text-slate-500 animate-pulse mt-2">Loading action details...</div>;
+    return (
+      <div className="text-xs text-slate-500 animate-pulse mt-2">Loading action details...</div>
+    );
   }
 
   return (
@@ -202,22 +225,25 @@ function InteractiveActionCard({
         <tbody>
           <tr>
             <td>Command</td>
-            <td><span className="text-cyan-400 font-bold">{action.command}</span></td>
+            <td>
+              <span className="text-cyan-400 font-bold">{action.command}</span>
+            </td>
           </tr>
           <tr>
             <td>Target</td>
             <td>{action.target || 'selected'}</td>
           </tr>
-          {action.parameters && action.parameters.map((p: ActionParam, idx: number) => (
-            <tr key={idx}>
-              <td>{p.key}</td>
-              <td className="text-purple-300">{p.value}</td>
-            </tr>
-          ))}
+          {action.parameters &&
+            action.parameters.map((p: ActionParam, idx: number) => (
+              <tr key={idx}>
+                <td>{p.key}</td>
+                <td className="text-purple-300">{p.value}</td>
+              </tr>
+            ))}
         </tbody>
       </table>
       <div className={styles.actionButtons}>
-        <button 
+        <button
           onClick={handleReject}
           disabled={loading}
           className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 bg-transparent border border-transparent rounded cursor-pointer transition-all"
@@ -239,12 +265,51 @@ function InteractiveActionCard({
 export default function ChatWindow() {
   const { messages, input, isLoading, setInput, sendMessage } = useChatStore();
   const { status } = useConnectionStore();
+  const {
+    aiProvider,
+    setAiProvider,
+    aiModel: activeModel,
+    setAiModel,
+    openaiApiKey,
+    openaiBaseUrl,
+    geminiApiKey,
+    anthropicApiKey,
+    ollamaHost,
+  } = useAppStore();
 
   const [mode, setMode] = useState<AIMode>('plan');
-  const [selectedModel, setSelectedModel] = useState<ModelId>('gemini-3-flash');
   const [selectedContext, setSelectedContext] = useState<ContextScope>('full-scene');
   const [attachedImages, setAttachedImages] = useState<string[]>([]);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+
+  const refreshModels = async () => {
+    setIsLoadingModels(true);
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const models = await invoke<string[]>('get_provider_models', { provider: aiProvider });
+      setAvailableModels(models);
+
+      // Auto-select first model if active model is unselected or not in retrieved list
+      if (models.length > 0) {
+        if (!activeModel || !models.includes(activeModel)) {
+          setAiModel(models[0]);
+        }
+      }
+      useToastStore.getState().success('AI models list updated successfully.');
+    } catch (e) {
+      console.error('Failed to fetch models for chat window:', e);
+      useToastStore.getState().error(`Failed to load models list: ${String(e)}`);
+    } finally {
+      setIsLoadingModels(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshModels();
+  }, [aiProvider, openaiApiKey, openaiBaseUrl, geminiApiKey, anthropicApiKey, ollamaHost]);
 
   // Dropdown visibility states
   const [showModelDropdown, setShowModelDropdown] = useState(false);
@@ -297,7 +362,7 @@ export default function ChatWindow() {
 
   const handleSend = () => {
     if ((!input.trim() && attachedImages.length === 0) || isLoading) return;
-    sendMessage(input, attachedImages);
+    sendMessage(input, attachedImages, aiProvider, activeModel);
     setInput('');
     setAttachedImages([]);
     if (textareaRef.current) {
@@ -367,29 +432,29 @@ export default function ChatWindow() {
     return '';
   };
 
-  const getThemeClass = (modelId: ModelId) => {
-    switch (modelId) {
-      case 'gemini-3-flash':
-      case 'gemini-3-pro':
+  const getThemeClass = (provider: string) => {
+    switch (provider) {
+      case 'gemini':
         return styles.themeGemini;
-      case 'claude-3-5-sonnet':
+      case 'anthropic':
         return styles.themeClaude;
-      case 'gpt-4o':
+      case 'openai':
+      case 'custom-openai':
         return styles.themeGpt;
       default:
         return styles.themeLocal;
     }
   };
 
-  const activeModelInfo = models.find((m) => m.id === selectedModel) || models[0];
   const activeContextInfo = contexts.find((c) => c.id === selectedContext) || contexts[0];
   const activeModeInfo = modes.find((m) => m.id === mode) || modes[0];
 
-  const ModelIcon = activeModelInfo.icon;
+  const providerInfo = getProviderInfo(aiProvider);
+  const ModelIcon = providerInfo.icon;
   const ModeIcon = activeModeInfo.icon;
 
   return (
-    <div className={`${styles.container} ${getThemeClass(selectedModel)}`}>
+    <div className={`${styles.container} ${getThemeClass(aiProvider)}`}>
       {/* Lightbox for visual attachments */}
       {lightboxImage && (
         <div className={styles.lightbox} onClick={() => setLightboxImage(null)}>
@@ -417,10 +482,13 @@ export default function ChatWindow() {
 
       <div className={styles.messagesList}>
         {messages.map((msg, index) => {
-          const isConfirmation = msg.role === 'assistant' && msg.content.includes('needs confirmation before execution');
+          const isConfirmation =
+            msg.role === 'assistant' && msg.content.includes('needs confirmation before execution');
           let commandName = '';
           if (isConfirmation) {
-            const commandMatch = /Planned action '([a-zA-Z0-9_]+)' needs confirmation/.exec(msg.content);
+            const commandMatch = /Planned action '([a-zA-Z0-9_]+)' needs confirmation/.exec(
+              msg.content
+            );
             commandName = commandMatch ? commandMatch[1] : '';
           }
 
@@ -489,7 +557,11 @@ export default function ChatWindow() {
             <div className={styles.attachmentsPreviewContainer}>
               {attachedImages.map((img, idx) => (
                 <div key={idx} className={styles.previewImageChip}>
-                  <img src={img} alt={`upload-preview-${idx}`} className={styles.previewThumbnail} />
+                  <img
+                    src={img}
+                    alt={`upload-preview-${idx}`}
+                    className={styles.previewThumbnail}
+                  />
                   <button
                     className={styles.removePreviewBtn}
                     onClick={() => removeAttachedImage(idx)}
@@ -510,7 +582,7 @@ export default function ChatWindow() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             className={styles.inputPromptTextarea}
-            placeholder={`Ask ${activeModelInfo.label} in ${activeModeInfo.label} mode... (e.g., 'Rotate figure by 45deg')`}
+            placeholder={`Ask ${activeModel || 'assistant'} in ${activeModeInfo.label} mode... (e.g., 'Rotate figure by 45deg')`}
             disabled={isLoading}
           />
 
@@ -580,36 +652,164 @@ export default function ChatWindow() {
                   disabled={isLoading}
                 >
                   <ModelIcon size={13} className={styles.widgetIcon} />
-                  <span>{activeModelInfo.label}</span>
-                  <ChevronUp size={12} className={`${styles.chevron} ${showModelDropdown ? styles.open : ''}`} />
+                  <span>{activeModel || 'Select Model'}</span>
+                  <ChevronUp
+                    size={12}
+                    className={`${styles.chevron} ${showModelDropdown ? styles.open : ''}`}
+                  />
                 </button>
 
                 {showModelDropdown && (
-                  <div className={styles.floatingMenuCard}>
-                    <div className={styles.menuHeader}>Select AI Engine</div>
-                    <div className={styles.menuOptionsList}>
-                      {models.map((mod) => {
-                        const ItemIcon = mod.icon;
-                        return (
-                          <button
-                            key={mod.id}
-                            style={{ '--accent-color': mod.color } as React.CSSProperties}
-                            className={`${styles.menuOptionRow} ${styles.modelOption} ${
-                              selectedModel === mod.id ? styles.active : ''
-                            }`}
-                            onClick={() => {
-                              setSelectedModel(mod.id);
-                              setShowModelDropdown(false);
-                            }}
-                          >
-                            <div className={styles.optionRowHeader}>
-                              <ItemIcon size={14} className={styles.modelIcon} />
-                              <div className={styles.optionLabel}>{mod.label}</div>
-                            </div>
-                            <div className={styles.optionDesc}>{mod.desc}</div>
-                          </button>
-                        );
-                      })}
+                  <div
+                    className={styles.floatingMenuCard}
+                    style={{ width: '280px', maxHeight: '400px', overflowY: 'auto' }}
+                  >
+                    <div className={styles.menuHeader}>Active AI Provider</div>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: '6px',
+                        padding: '8px',
+                      }}
+                    >
+                      {[
+                        { id: 'local-gguf', label: 'Local GGUF' },
+                        { id: 'ollama', label: 'Ollama' },
+                        { id: 'openai', label: 'OpenAI' },
+                        { id: 'gemini', label: 'Gemini' },
+                        { id: 'anthropic', label: 'Anthropic' },
+                        { id: 'custom-openai', label: 'Custom' },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            setAiProvider(p.id);
+                            setAiModel(''); // Clear active model to force re-selection
+                            useToastStore.getState().info(`AI Provider switched to ${p.label}`);
+                          }}
+                          style={{
+                            padding: '6px 8px',
+                            background:
+                              aiProvider === p.id
+                                ? 'var(--color-primary-bg)'
+                                : 'rgba(255,255,255,0.02)',
+                            color:
+                              aiProvider === p.id
+                                ? 'var(--color-primary)'
+                                : 'var(--color-text-secondary)',
+                            border:
+                              '1px solid ' +
+                              (aiProvider === p.id
+                                ? 'var(--color-primary)'
+                                : 'rgba(255,255,255,0.05)'),
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div
+                      className={styles.menuHeader}
+                      style={{
+                        borderTop: '1px solid rgba(255,255,255,0.05)',
+                        paddingTop: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span>Select Model ({providerInfo.label})</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          refreshModels();
+                        }}
+                        disabled={isLoadingModels}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--color-text-secondary)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '2px',
+                          borderRadius: '3px',
+                          transition: 'all 0.15s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.color = 'var(--color-text-secondary)')
+                        }
+                        title="Force reload models from API"
+                      >
+                        <RefreshCw size={12} className={isLoadingModels ? styles.spin : ''} />
+                      </button>
+                    </div>
+
+                    <div
+                      className={styles.menuOptionsList}
+                      style={{ maxHeight: '200px', overflowY: 'auto' }}
+                    >
+                      {isLoadingModels ? (
+                        <div
+                          style={{
+                            padding: '16px',
+                            textAlign: 'center',
+                            fontSize: '12px',
+                            color: 'var(--color-text-muted)',
+                          }}
+                        >
+                          <RefreshCw
+                            size={14}
+                            className={styles.spin}
+                            style={{ marginRight: '6px' }}
+                          />
+                          Fetching models...
+                        </div>
+                      ) : availableModels.length === 0 ? (
+                        <div
+                          style={{
+                            padding: '16px',
+                            textAlign: 'center',
+                            fontSize: '11px',
+                            color: 'var(--color-text-muted)',
+                          }}
+                        >
+                          No models found. Check keys in Settings.
+                        </div>
+                      ) : (
+                        availableModels.map((m) => {
+                          const info = getProviderInfo(aiProvider);
+                          const ItemIcon = info.icon;
+                          return (
+                            <button
+                              key={m}
+                              style={{ '--accent-color': info.color } as React.CSSProperties}
+                              className={`${styles.menuOptionRow} ${styles.modelOption} ${
+                                activeModel === m ? styles.active : ''
+                              }`}
+                              onClick={() => {
+                                setAiModel(m);
+                                setShowModelDropdown(false);
+                                useToastStore.getState().success(`Active AI model set to: ${m}`);
+                              }}
+                            >
+                              <div className={styles.optionRowHeader}>
+                                <ItemIcon size={14} className={styles.modelIcon} />
+                                <div className={styles.optionLabel}>{m}</div>
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 )}
@@ -629,7 +829,10 @@ export default function ChatWindow() {
                 >
                   <ModeIcon size={13} className={styles.widgetIcon} />
                   <span>{activeModeInfo.label}</span>
-                  <ChevronUp size={12} className={`${styles.chevron} ${showModeDropdown ? styles.open : ''}`} />
+                  <ChevronUp
+                    size={12}
+                    className={`${styles.chevron} ${showModeDropdown ? styles.open : ''}`}
+                  />
                 </button>
 
                 {showModeDropdown && (

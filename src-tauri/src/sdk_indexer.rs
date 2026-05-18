@@ -51,10 +51,72 @@ pub struct SdkIndex {
 }
 
 pub fn get_sdk_include_path() -> String {
-    let base = std::env::var("DAZ_SDK_PATH")
-        .ok()
-        .unwrap_or_else(|| "E:\\DazAI\\DAZStudio4.5+ SDK\\include".to_string());
-    base
+    // 1. Try DB first
+    if let Ok(Some(path)) = crate::database::get_setting("daz_sdk_path") {
+        if !path.is_empty() {
+            return path;
+        }
+    }
+    
+    // 2. Try environment variable
+    if let Ok(path) = std::env::var("DAZ_SDK_PATH") {
+        if !path.is_empty() {
+            return path;
+        }
+    }
+    
+    // 3. Try DIM (Daz Install Manager) common paths
+    if let Some(dim_path) = discover_sdk_from_dim() {
+        return dim_path;
+    }
+    
+    // 4. Dynamic search: look for SDK directory relative to current executable
+    if let Ok(exe_path) = std::env::current_exe() {
+        let mut dir = exe_path.parent();
+        while let Some(d) = dir {
+            let candidate = d.join("DAZStudio4.5+ SDK").join("include");
+            if candidate.exists() {
+                return candidate.to_string_lossy().to_string();
+            }
+            // Also check if we are inside the SDK folder
+            let candidate_workspace = d.join("include");
+            if d.file_name().and_then(|n| n.to_str()).unwrap_or("").contains("DAZStudio4.5+ SDK") && candidate_workspace.exists() {
+                return candidate_workspace.to_string_lossy().to_string();
+            }
+            dir = d.parent();
+        }
+    }
+    
+    // 5. Default fallback - return empty, user must configure via settings or DIM
+    String::new()
+}
+
+fn discover_sdk_from_dim() -> Option<String> {
+    // Common DIM install locations for DAZStudio SDK
+    let candidates = vec![
+        // Windows DIM default content locations
+        dirs::home_dir()?.join("Documents/DAZ 3D/DAZStudio4.5+ SDK"),
+        dirs::home_dir()?.join("My DAZ 3D Library/DAZStudio4.5+ SDK"),
+        dirs::home_dir()?.join("Documents/DAZStudio4.5+ SDK"),
+        // Public documents (Windows)
+        dirs::document_dir()?.join("DAZ 3D/DAZStudio4.5+ SDK"),
+        // ProgramData (Windows)
+        PathBuf::from("C:/ProgramData/DAZ 3D/DAZStudio4.5+ SDK"),
+        // macOS
+        dirs::home_dir()?.join("Library/Application Support/DAZ 3D/DAZStudio4.5+ SDK"),
+        // Linux
+        dirs::home_dir()?.join(".local/share/DAZ 3D/DAZStudio4.5+ SDK"),
+    ];
+    
+    for candidate in candidates {
+        let include_path = candidate.join("include");
+        if include_path.exists() {
+            log::info!("Found Daz SDK via DIM discovery: {}", include_path.display());
+            return Some(include_path.to_string_lossy().to_string());
+        }
+    }
+    
+    None
 }
 
 pub fn parse_all_headers() -> SdkIndex {
@@ -557,6 +619,7 @@ pub fn get_sdk_indexer_status() -> SdkIndexerStatus {
 
 #[tauri::command]
 pub fn set_sdk_indexer_path(path: String) -> Result<String, String> {
+    crate::database::save_setting("daz_sdk_path", &path)?;
     std::env::set_var("DAZ_SDK_PATH", &path);
     
     let mut guard = SDK_INDEX.lock().unwrap();

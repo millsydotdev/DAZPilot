@@ -11,6 +11,10 @@
 #include "DazPilotPhyModifier.h"
 #include <QtCore/QBuffer>
 #include <QtCore/QByteArray>
+#include <QtCore/QFile>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
+#include <cstdlib>
 
 #include <atomic>
 #include <iostream>
@@ -974,11 +978,11 @@ static void BridgeServerLoop() {
 
     sockaddr_in service;
     service.sin_family = AF_INET;
-    service.sin_addr.s_addr = inet_addr("127.0.0.1");
+    service.sin_addr.s_addr = inet_addr(g_state.host.toUtf8().constData());
     service.sin_port = htons(static_cast<unsigned short>(g_state.port));
 
     if (bind(g_listenSocket, reinterpret_cast<sockaddr*>(&service), sizeof(service)) < 0) {
-        std::cout << "[DazPilotBridge] Failed to bind 127.0.0.1:" << g_state.port << std::endl;
+        std::cout << "[DazPilotBridge] Failed to bind " << g_state.host.toStdString() << ":" << g_state.port << std::endl;
         CloseBridgeSocket(g_listenSocket);
         g_listenSocket = INVALID_BRIDGE_SOCKET;
 #ifdef _WIN32
@@ -988,7 +992,7 @@ static void BridgeServerLoop() {
     }
 
     listen(g_listenSocket, SOMAXCONN);
-    std::cout << "[DazPilotBridge] Listening on 127.0.0.1:" << g_state.port << std::endl;
+    std::cout << "[DazPilotBridge] Listening on " << g_state.host.toStdString() << ":" << g_state.port << std::endl;
 
     while (g_serverRunning.load()) {
         BridgeSocket client = accept(g_listenSocket, nullptr, nullptr);
@@ -1026,9 +1030,43 @@ int GetPluginType() { return 1; }
 
 bool PluginInitialize() {
     g_scriptExecutor = new ScriptExecutor();
+    
+    // Resolve bridge_config.json path dynamically from shared OS AppData
+    QString configPath;
+#ifdef _WIN32
+    char* appdata = getenv("APPDATA");
+    if (appdata) {
+        configPath = QString(appdata) + "/com.dazpilot.app/bridge_config.json";
+    }
+#else
+    char* home = getenv("HOME");
+    if (home) {
+        configPath = QString(home) + "/Library/Application Support/com.dazpilot.app/bridge_config.json";
+    }
+#endif
+
+    if (!configPath.isEmpty()) {
+        QFile file(configPath);
+        if (file.open(QIODevice::ReadOnly)) {
+            QByteArray data = file.readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            if (!doc.isNull() && doc.isObject()) {
+                QJsonObject obj = doc.object();
+                if (obj.contains("port")) {
+                    g_state.port = obj.value("port").toInt(8765);
+                }
+                if (obj.contains("host")) {
+                    g_state.host = obj.value("host").toString("127.0.0.1");
+                }
+            }
+            file.close();
+        }
+    }
+    
     g_serverRunning = true;
     g_serverThread = std::thread(BridgeServerLoop);
-    std::cout << "[DazPilotBridge] Plugin initialized" << std::endl;
+    std::cout << "[DazPilotBridge] Plugin initialized. Listening on "
+              << g_state.host.toStdString() << ":" << g_state.port << std::endl;
     return true;
 }
 

@@ -131,17 +131,23 @@ export const useLogStore = create<LogState & LogActions>((set, get) => {
   };
 });
 
+declare global {
+  interface Window {
+    __console_intercepted?: boolean;
+  }
+}
+
 // Graceful console interception to route logs directly into our store
 export const initializeConsoleInterceptor = () => {
-  if ((window as any).__console_intercepted) return;
-  (window as any).__console_intercepted = true;
+  if (window.__console_intercepted) return;
+  window.__console_intercepted = true;
 
   const originalLog = console.log;
   const originalWarn = console.warn;
   const originalError = console.error;
   const originalDebug = console.debug;
 
-  const logToStore = (level: LogEntry['level'], args: any[]) => {
+  const logToStore = (level: LogEntry['level'], args: unknown[]) => {
     try {
       const message = args
         .map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg)))
@@ -154,22 +160,22 @@ export const initializeConsoleInterceptor = () => {
     }
   };
 
-  console.log = (...args) => {
+  console.log = (...args: unknown[]) => {
     originalLog.apply(console, args);
     logToStore('info', args);
   };
 
-  console.warn = (...args) => {
+  console.warn = (...args: unknown[]) => {
     originalWarn.apply(console, args);
     logToStore('warn', args);
   };
 
-  console.error = (...args) => {
+  console.error = (...args: unknown[]) => {
     originalError.apply(console, args);
     logToStore('error', args);
   };
 
-  console.debug = (...args) => {
+  console.debug = (...args: unknown[]) => {
     originalDebug.apply(console, args);
     logToStore('debug', args);
   };

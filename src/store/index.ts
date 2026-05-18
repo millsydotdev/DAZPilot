@@ -73,3 +73,10 @@ export {
   initializeConsoleInterceptor,
 } from './logStore';
 export { usePluginStore, type PluginState, type PluginActions } from './pluginStore';
+export { useToastStore, type ToastItem, type ToastState, type ToastType } from './toastStore';
+export {
+  useScriptApprovalStore,
+  type ScriptSuggestion,
+  type ScriptApprovalState,
+  type ScriptApprovalActions,
+} from './scriptApprovalStore';

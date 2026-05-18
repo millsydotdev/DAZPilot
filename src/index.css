@@ -64,6 +64,7 @@
   letter-spacing: -0.025em;
   background: linear-gradient(135deg, var(--color-primary) 0%, #a855f7 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
   text-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
@@ -81,6 +82,7 @@
   letter-spacing: -0.025em;
   background: linear-gradient(135deg, var(--color-primary) 0%, #a855f7 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
   position: relative;

@@ -26,13 +26,21 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
-    "resources": ["resources/llama/*", "resources/models/*", "resources/*DazPilotBridge.*"],
+    "resources": ["resources/llama/*", "resources/models/*", "resources/DazPilotBridge.dll", "resources/libDazPilotBridge.dylib", "resources/libDazPilotBridge.so"],
     "windows": {
       "nsis": {
         "installMode": "currentUser"
       }
     }
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE4NzI5MTJBQjQ0RkNFNUMKUldSY3prKzBLcEZ5R0UzTU50VGwwbWVzVHpCT3ZVczhzUjRZdzNFc0ZTa3B2ckt1bmxxNXB3RmkK",
+      "endpoints": [
+        "https://github.com/millsydotdev/DazPilot/releases/latest/download/latest.json"
+      ]
+    }
+  }
 }

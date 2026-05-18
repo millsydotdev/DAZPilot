@@ -34,7 +34,12 @@ export interface ChatActions {
   clearMessages: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  sendMessage: (content: string, images?: string[]) => Promise<void>;
+  sendMessage: (
+    content: string,
+    images?: string[],
+    provider?: string,
+    model?: string
+  ) => Promise<void>;
   createHistory: (title: string) => string;
   loadHistory: (id: string) => void;
   deleteHistory: (id: string) => void;
@@ -81,7 +86,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 
-  sendMessage: async (content, images) => {
+  sendMessage: async (content, images, provider, model) => {
     const { addMessage, setLoading, setError } = get();
 
     addMessage({ role: 'user', content, images, loading: false });
@@ -90,7 +95,12 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
     try {
       const { invoke } = await import('@tauri-apps/api/core');
-      const response = await invoke<string>('process_chat_message', { message: content });
+      const response = await invoke<string>('process_chat_message', {
+        message: content,
+        images,
+        provider: provider || null,
+        model: model || null,
+      });
 
       addMessage({ role: 'assistant', content: response, loading: false });
     } catch (e) {
