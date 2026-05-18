@@ -1,22 +1,31 @@
-# DazPilot Vibe Bridge Plugin
+# DazPilot Bridge Plugin
 
 C++ Daz Studio bridge plugin. The plugin owns the live TCP server on `127.0.0.1:8765`; the Tauri app connects as a client.
 
 ## Build
 
+From the repository root:
+
 ```powershell
-cmake --build plugins\daz3d-bridge\build2 --config Release
+npm run plugin:rebuild
+```
+
+Or directly with CMake:
+
+```powershell
+cmake -S plugins\daz3d-bridge -B plugins\daz3d-bridge\build
+cmake --build plugins\daz3d-bridge\build --config Release
 ```
 
 Output:
 
 ```text
-plugins\daz3d-bridge\dist\Release\VibeBridgePlugin.dll
+plugins\daz3d-bridge\dist\Release\
 ```
 
 ## Install
 
-Copy `VibeBridgePlugin.dll` into the Daz Studio plugin directory, then restart Daz Studio.
+Copy the release DLL into the Daz Studio plugin directory, then restart Daz Studio.
 
 Common path:
 
@@ -48,20 +57,22 @@ Failure:
 
 ## Implemented Commands
 
-- `get_commands`
-- `get_scene_info`
-- `list_nodes`
-- `get_selected_nodes`
-- `select_node`
-- `get_cameras`
-- `render_preview`
-- `load_asset` via `DzContentMgr::openFile`
-- `apply_pose` via `DzContentMgr::openFile`
-- `capture_viewport` via active `Dz3DViewport::captureImage`
-- `import_model` via `DzContentMgr::importFile`
+| Command | Notes |
+| --- | --- |
+| `get_commands` | Lists registered bridge commands |
+| `get_scene_info` | Reads scene summary information |
+| `list_nodes` | Lists scene nodes |
+| `get_selected_nodes` | Reads selected scene nodes |
+| `select_node` | Selects a scene node |
+| `get_cameras` | Lists cameras |
+| `render_preview` | Runs preview render path |
+| `load_asset` | Uses `DzContentMgr::openFile` |
+| `apply_pose` | Uses `DzContentMgr::openFile` |
+| `capture_viewport` | Uses active `Dz3DViewport::captureImage` |
+| `import_model` | Uses `DzContentMgr::importFile` |
 
-## Honest Unsupported Commands
+## Unsupported Commands
 
-These commands are registered but currently return explicit errors until the real Daz SDK operation is implemented:
+These commands are registered but return explicit errors until the real Daz SDK operation is implemented:
 
 - `export_scene`

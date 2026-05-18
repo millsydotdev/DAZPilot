@@ -1,38 +1,37 @@
-# Permission System Documentation
+# Permission System
+
+Updated: May 2026
 
 ## Overview
 
-The DazPilot uses a comprehensive, database-driven permission system that controls access to all features and operations. All permissions are configurable with no hardcoded values.
+DazPilot uses a database-driven permission model for feature access, AI actions, Daz operations, and sensitive runtime prompts. The intent is to keep powerful scene actions explicit, auditable, and configurable.
 
----
+## Principles
 
-## Permission Architecture
+| Principle | Meaning |
+| --- | --- |
+| Dynamic discovery | Permissions are loaded from storage, not scattered as hardcoded checks |
+| Role-based access | Users receive permissions through roles |
+| Runtime prompts | Sensitive actions can require explicit confirmation |
+| Audit logging | Permission checks and changes are recorded for review |
+| Least privilege | Unknown or sensitive operations should default to prompt or deny |
 
-### Core Principles
-
-1. **Dynamic Discovery** - All permissions stored in database, not hardcoded
-2. **Role-Based Access** - Users assigned to roles with specific permissions
-3. **Runtime Prompts** - Sensitive operations require user confirmation
-4. **Audit Logging** - All permission actions logged for review
-
-### Permission Categories
+## Permission Categories
 
 | Category | Description |
-|----------|-------------|
-| SYSTEM | Core application functionality |
-| FEATURE | Feature access and usage |
-| ASSET | Asset library access |
-| OPERATION | Import/export operations |
-| AI | AI behavior and learning |
-| DAZ3D | Daz3D plugin interaction |
-| NETWORK | Network/cloud features |
-| RUNTIME | Session-based permissions |
-
----
+| --- | --- |
+| `SYSTEM` | Core application settings and administration |
+| `FEATURE` | UI features and workflow access |
+| `ASSET` | Asset library scan, browse, and usage |
+| `OPERATION` | Import, export, render, and scene mutation |
+| `AI` | AI planning, auto-apply, and learning behavior |
+| `DAZ3D` | Daz Studio bridge and plugin interaction |
+| `NETWORK` | Cloud or external network features |
+| `RUNTIME` | Session-scoped decisions |
 
 ## Database Schema
 
-### Permission Definitions Table
+### Permission Definitions
 
 ```sql
 CREATE TABLE permissions (
@@ -46,7 +45,7 @@ CREATE TABLE permissions (
 );
 ```
 
-### User Roles Table
+### User Roles
 
 ```sql
 CREATE TABLE user_roles (
@@ -59,19 +58,21 @@ CREATE TABLE user_roles (
 );
 ```
 
-### Role Permissions Table
+### Role Permissions
 
 ```sql
 CREATE TABLE role_permissions (
     role_id TEXT NOT NULL,
     permission_id TEXT NOT NULL,
-    state TEXT NOT NULL,  -- granted, denied, prompt
+    state TEXT NOT NULL,
     conditions TEXT,
     PRIMARY KEY (role_id, permission_id)
 );
 ```
 
-### User Role Assignments Table
+Allowed `state` values are `granted`, `denied`, and `prompt`.
+
+### Role Assignments
 
 ```sql
 CREATE TABLE user_role_assignments (
@@ -82,78 +83,100 @@ CREATE TABLE user_role_assignments (
 );
 ```
 
----
+### Audit Log
 
-## Default Permission Groups
+```sql
+CREATE TABLE permission_audit (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    permission_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    result TEXT NOT NULL,
+    ip_address TEXT,
+    context TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-### 1. Basic User Role
+## Default Roles
 
-| Permission | Default State | Notes |
-|------------|---------------|-------|
-| feature.scene.create | granted | Can create scenes |
-| feature.scene.save | granted | Can save scenes |
-| feature.library.scan | granted | Can scan library |
-| feature.library.browse | granted | Can browse assets |
-| feature.animation.view | granted | Can view animations |
-| feature.animation.create | granted | Can create animations |
-| feature.render.preview | granted | Can preview render |
-| feature.render.full | granted | Can full render |
-| ai.auto_apply | prompt | Needs confirmation |
-| ai.learn_patterns | granted | Can learn patterns |
-| ai.view_analytics | denied | Not for basic users |
-| daz3d.load_assets | granted | Can load assets |
-| daz3d.modify_scene | granted | Can modify scenes |
-| daz3d.execute_scripts | denied | Security restriction |
-| network.cloud_sync | denied | Not enabled |
-| network.download | denied | Not enabled |
+### Basic User
 
-### 2. Admin Role
+| Permission | Default | Notes |
+| --- | --- | --- |
+| `feature.scene.create` | `granted` | Can create scenes |
+| `feature.scene.save` | `granted` | Can save scenes |
+| `feature.library.scan` | `granted` | Can scan the local library |
+| `feature.library.browse` | `granted` | Can browse indexed assets |
+| `feature.animation.view` | `granted` | Can view animation data |
+| `feature.animation.create` | `granted` | Can create animation data |
+| `feature.render.preview` | `granted` | Can run previews |
+| `feature.render.full` | `granted` | Can run full renders |
+| `ai.auto_apply` | `prompt` | Requires confirmation |
+| `ai.learn_patterns` | `granted` | Allows local learning behavior |
+| `ai.view_analytics` | `denied` | Reserved for elevated users |
+| `daz3d.load_assets` | `granted` | Can load Daz assets |
+| `daz3d.modify_scene` | `granted` | Can modify scenes |
+| `daz3d.execute_scripts` | `denied` | Restricted for safety |
+| `network.cloud_sync` | `denied` | Disabled by default |
+| `network.download` | `denied` | Disabled by default |
 
-| Permission | Default State | Notes |
-|------------|---------------|-------|
-| system.settings | granted | Full settings access |
-| system.manage_users | granted | User management |
-| system.view_audit | granted | View audit logs |
-| feature.* | granted | All features |
-| ai.* | granted | Full AI access |
-| daz3d.* | granted | Full Daz3D access |
-| network.* | granted | Full network access |
+### Admin
 
----
+| Permission | Default | Notes |
+| --- | --- | --- |
+| `system.settings` | `granted` | Full settings access |
+| `system.manage_users` | `granted` | User and role management |
+| `system.view_audit` | `granted` | Can view audit logs |
+| `feature.*` | `granted` | All feature permissions |
+| `ai.*` | `granted` | All AI permissions |
+| `daz3d.*` | `granted` | All Daz bridge permissions |
+| `network.*` | `granted` | All network permissions |
 
 ## Permission Check Flow
 
+```mermaid
+flowchart TD
+  Start["Permission requested"] --> Roles["Load user roles"]
+  Roles --> Check["Check role permission states"]
+  Check --> Denied{"Any denied?"}
+  Denied -->|Yes| Block["Block action"]
+  Denied -->|No| Granted{"Any granted?"}
+  Granted -->|Yes| Allow["Allow action"]
+  Granted -->|No| Prompt{"Prompt allowed?"}
+  Prompt -->|Yes| Ask["Ask user"]
+  Prompt -->|No| Block
+  Ask --> Choice{"User allows?"}
+  Choice -->|Yes| Allow
+  Choice -->|No| Block
+```
+
+Example check:
+
 ```typescript
 async function checkPermission(permissionId: string, userId: string): Promise<boolean> {
-    // 1. Get user's roles
-    const roles = await getUserRoles(userId);
+  const roles = await getUserRoles(userId);
 
-    // 2. Check each role's permission
-    for (const role of roles) {
-        const state = await getRolePermissionState(role.id, permissionId);
+  for (const role of roles) {
+    const state = await getRolePermissionState(role.id, permissionId);
 
-        if (state === 'denied') return false;
-        if (state === 'granted') return true;
-        if (state === 'prompt') return await promptUser(permissionId);
-    }
+    if (state === "denied") return false;
+    if (state === "granted") return true;
+    if (state === "prompt") return promptUser(permissionId);
+  }
 
-    // 3. Default to prompt if no roles have permission
-    return await promptUser(permissionId);
+  return promptUser(permissionId);
 }
 ```
 
----
-
-## Runtime Permission Prompts
-
-When a permission requires user confirmation:
+## Runtime Prompt Shape
 
 ```json
 {
   "type": "permission_prompt",
   "title": "Permission Required",
-  "message": "The AI wants to automatically apply your preferred shell. Allow?",
-  "permission_id": "ai.auto_apply_shell",
+  "message": "The AI wants to automatically apply a scene change. Allow?",
+  "permission_id": "ai.auto_apply",
   "options": {
     "allow_once": true,
     "allow_always": true,
@@ -163,105 +186,34 @@ When a permission requires user confirmation:
 }
 ```
 
----
+## Admin Operations
 
-## Permission Audit Logging
+Grant a permission:
 
-All permission actions are logged:
-
-```sql
-CREATE TABLE permission_audit (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT NOT NULL,
-    permission_id TEXT NOT NULL,
-    action TEXT NOT NULL,  -- check, grant, deny, request, update
-    result TEXT NOT NULL,   -- allowed, denied, error
-    ip_address TEXT,
-    context TEXT,          -- JSON with additional context
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-
----
-
-## Managing Permissions (Admin Functions)
-
-### Grant Permission to Role
 ```sql
 INSERT INTO role_permissions (role_id, permission_id, state)
 VALUES ('admin', 'system.settings', 'granted');
 ```
 
-### Deny Permission to Role
+Deny a permission:
+
 ```sql
 INSERT INTO role_permissions (role_id, permission_id, state)
 VALUES ('basic', 'daz3d.execute_scripts', 'denied');
 ```
 
-### Update Default Permission
+Update a default permission:
+
 ```sql
 UPDATE permissions
 SET default_state = 'granted'
 WHERE id = 'feature.library.scan';
 ```
 
----
+## Verification Checklist
 
-## User-Facing Permission UI
-
-### Settings Page
-- View current permissions
-- Request elevated access
-- See permission history
-
-### Permission Prompts
-- Clear explanation of what's being requested
-- One-time vs always options
-- Easy to understand language
-
----
-
-## Best Practices
-
-1. **Least Privilege** - Default to prompt, grant as needed
-2. **Audit Regularly** - Review permission usage
-3. **Clear Prompts** - Explain why permission is needed
-4. **Document Exceptions** - Note any permission workarounds
-
----
-
-## Dynamic Permission Discovery
-
-All permissions are loaded from database at startup:
-
-```rust
-fn load_permissions() -> Vec<Permission> {
-    let conn = Database::connect();
-    let mut stmt = conn.prepare("SELECT * FROM permissions").unwrap();
-
-    stmt.query_map([], |row| {
-        Ok(Permission {
-            id: row.get(0)?,
-            name: row.get(1)?,
-            description: row.get(2)?,
-            category: row.get(3)?,
-            default_state: row.get(4)?,
-            requires_prompt: row.get(5)?,
-        })
-    }).collect()
-}
-```
-
----
-
-## No Hardcoding Verification
-
-To verify no permissions are hardcoded in code:
-
-1. Search codebase for permission strings in code
-2. Ensure all permission checks use database lookup
-3. Verify permission constants come from config
-
----
-
-Last Updated: May 2026
+- Search for raw permission strings in application code.
+- Confirm checks go through the permission service.
+- Confirm defaults are loaded from storage or configuration.
+- Confirm sensitive actions prompt before execution.
+- Confirm audit rows are written for checks, grants, denials, and updates.

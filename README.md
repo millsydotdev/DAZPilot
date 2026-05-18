@@ -1,19 +1,42 @@
 # DazPilot
 
-AI-assisted Daz Studio scene control through a Tauri desktop app, a local GGUF model, a Daz SDK header index, and a C++ Daz bridge plugin.
+AI-assisted Daz Studio scene control through a Tauri desktop app, a local GGUF model, a Daz SDK knowledge index, and a C++ bridge plugin.
 
-## Current Runtime Shape
+## At A Glance
 
-- Daz Studio plugin owns the bridge server on `127.0.0.1:8765`.
-- Tauri connects as a TCP client and sends newline-delimited JSON.
-- Production runtime has no silent bridge mock. Dev bridge mock requires `DazPilot_DEV_MOCK_BRIDGE=1`.
-- Default AI path is bundled local GGUF through `llama-server.exe`.
-- Ollama is optional with `DazPilot_AI_BACKEND=ollama`.
-- Mock AI is dev-only with `DazPilot_DEV_MOCK_AI=1`.
+| Area | Current shape |
+| --- | --- |
+| Desktop app | React, TypeScript, Vite, and Tauri |
+| Daz bridge | C++ plugin TCP server on `127.0.0.1:8765` |
+| App bridge role | Tauri connects as a TCP client |
+| Protocol | Newline-delimited JSON |
+| Default AI | Bundled local GGUF through `llama-server.exe` |
+| Optional AI | Ollama via `DazPilot_AI_BACKEND=ollama` |
+| Knowledge store | Recursive SDK and asset metadata indexes persisted to SQLite |
+
+## Runtime Shape
+
+```mermaid
+flowchart LR
+  User["User"] --> UI["React / Tauri UI"]
+  UI --> Rust["Rust backend commands"]
+  Rust --> AI["Local GGUF AI"]
+  Rust --> Index["SQLite SDK and asset indexes"]
+  Rust --> Bridge["TCP client"]
+  Bridge --> Plugin["Daz plugin TCP server"]
+  Plugin --> SDK["Daz Studio SDK"]
+  SDK --> Scene["Live Daz scene"]
+```
+
+DazPilot does not silently fake a production bridge. The Daz Studio plugin owns the bridge server, and the app connects to it. Development mocks are explicit:
+
+- `DazPilot_DEV_MOCK_BRIDGE=1` enables the bridge mock.
+- `DazPilot_DEV_MOCK_AI=1` enables the AI mock.
+- `DazPilot_AI_BACKEND=ollama` selects Ollama instead of the bundled local GGUF path.
 
 ## Bridge Protocol
 
-Request:
+Requests and responses are newline-delimited JSON.
 
 ```json
 { "id": "request-id", "command": "list_nodes", "args": {} }
@@ -31,56 +54,69 @@ Failure:
 { "id": "request-id", "status": "error", "error": "message" }
 ```
 
-Registered commands include `get_scene_info`, `list_nodes`, `get_selected_nodes`, `select_node`, `get_cameras`, `load_asset`, `apply_pose`, `render_preview`, `capture_viewport`, `import_model`, and `export_scene`.
+Registered bridge commands include `get_scene_info`, `list_nodes`, `get_selected_nodes`, `select_node`, `get_cameras`, `load_asset`, `apply_pose`, `render_preview`, `capture_viewport`, `import_model`, and `export_scene`.
+
+`export_scene` currently returns an explicit unsupported response until a real Daz SDK exporter is prioritized.
 
 ## Build And Run
 
-### 1. Daz Studio SDK Setup (Required)
-The Daz Studio C++ SDK is proprietary and **cannot be hosted on GitHub**. To compile the bridge plugin, you must install the SDK locally:
-1. Open the **Daz Install Manager (DIM)**.
-2. Search for "Daz Studio SDK" and install it.
-3. The SDK will typically be installed to a folder like `C:\Users\Public\Documents\My DAZ 3D Library\DAZStudio4.5+ SDK` or inside your default content library.
-4. Copy or link the `DAZStudio4.5+ SDK` folder directly into the root of this repository (i.e., `E:\DazPilot\DAZStudio4.5+ SDK\`). 
-   *Note: Our `.gitignore` is configured to ensure these files are never accidentally committed to git.*
+### 1. Install The Daz Studio SDK
 
-### 2. Compiling the C++ Bridge Plugin
-Once the SDK is in place, build the Daz Studio bridge plugin:
-```powershell
-cd plugins\daz3d-bridge
-cmake -B build -S .
-cmake --build build --config Release
-cd ..\..
-```
+The Daz Studio C++ SDK is proprietary and cannot be hosted on GitHub.
 
-The plugin DLL is produced at:
+1. Open Daz Install Manager.
+2. Search for `Daz Studio SDK` and install it.
+3. Place the `DAZStudio4.5+ SDK` folder in the repository root, or set `DAZ_SDK_PATH` to the SDK include path.
+4. Keep the SDK out of git. The repository ignore rules are configured for the local SDK folder.
+
+Common local SDK include path:
+
 ```text
-E:\DazPilot\plugins\daz3d-bridge\dist\Release\DazPilotBridge.dll
+E:\DazAI\DAZStudio4.5+ SDK\include
 ```
-Install that DLL into your Daz Studio plugin folder (e.g., `C:\Program Files\DAZ 3D\DAZStudio4\plugins\`), start Daz Studio, and enable the Vibe Bridge.
 
-### 3. Compiling the Tauri App
-Ensure you have Node.js and Rust installed, then run:
+### 2. Build The Daz Bridge Plugin
+
+```powershell
+npm run plugin:rebuild
+```
+
+The release DLL is produced under:
+
+```text
+plugins\daz3d-bridge\dist\Release\
+```
+
+Copy the bridge DLL into the Daz Studio plugin folder, then restart Daz Studio.
+
+Common plugin folder:
+
+```text
+C:\Program Files\DAZ 3D\DAZStudio4\plugins\
+```
+
+### 3. Build The Tauri App
+
 ```powershell
 npm install
 npm run check
 npm run tauri build
 ```
 
-The plugin DLL is produced at:
+After Daz Studio is running with the plugin enabled, connect from the app Settings panel to `127.0.0.1:8765`.
 
-```text
-E:\DazPilot\plugins\daz3d-bridge\dist\Release\DazPilotBridge.dll
-```
+## Documentation
 
-Install that DLL into the Daz Studio plugin folder, start Daz Studio, then connect from the app Settings panel to `127.0.0.1:8765`.
+| Guide | Purpose |
+| --- | --- |
+| [Current State](docs/CURRENT_STATE.md) | What is real now, what is verified, and what still needs live acceptance |
+| [Architecture](docs/ARCHITECTURE.md) | Runtime flow, bridge ownership, AI flow, and knowledge sources |
+| [Implementation](docs/IMPLEMENTATION.md) | Completed phase list and remaining validation work |
+| [Release Guide](docs/RELEASE_GUIDE.md) | Tagging, GitHub Actions releases, signing, and bundled DLL handling |
+| [Publishing](docs/PUBLISHING.md) | GitHub and Daz 3D Marketplace publishing notes |
+| [Permissions](docs/PERMISSIONS.md) | Permission model and audit approach |
+| [Agents](docs/AGENTS.md) | AI agent responsibilities and message flow |
 
-## SDK And Asset Knowledge
+## Acceptance Notes
 
-- `src-tauri/src/sdk_indexer.rs` is the source of truth for SDK knowledge.
-- It recursively scans the configured SDK include path, defaulting to `E:\DazPilot\DAZStudio4.5+ SDK\include`.
-- SDK class, method, enum, parent, file, and line metadata are persisted to SQLite.
-- Asset scanning reads Daz file metadata where available and falls back to content-path/name classification.
-
-## Known Limitations
-
-Scene export is still an intentionally honest unsupported error until the Daz SDK export implementation is completed in the plugin. It no longer fakes success.
+All planned implementation phases are complete, but live Daz Studio acceptance still needs to verify plugin installation, asset loading, pose application, import coverage, viewport capture, and real-scene behavior.

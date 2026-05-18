@@ -1,87 +1,109 @@
-# DazPilot Release Guide
+# Release Guide
 
-DazPilot uses a highly optimized GitHub Actions workflow to automate the building, packaging, and publishing of Windows desktop installers (`.msi` and `.exe`) directly to GitHub Releases.
+DazPilot uses GitHub Actions to build, package, and publish Windows desktop installers for GitHub Releases.
 
-This guide explains how the release pipeline works, how to trigger it, and how to configure GitHub settings to support code signing and publishing.
+## Release Flow
 
----
+```mermaid
+flowchart LR
+  Version["Update versions"] --> Commit["Commit release prep"]
+  Commit --> Tag["Create vX.Y.Z tag"]
+  Tag --> Push["Push branch and tag"]
+  Push --> Actions["GitHub Actions"]
+  Actions --> Build["Build Tauri installer"]
+  Build --> Draft["Upload draft release"]
+```
 
-## 🚀 How to Trigger a Release
+## Before Tagging
 
-The release pipeline is completely automated and triggers based on **Git Version Tags**.
+Update the application version in both files:
 
-### Step 1: Update App Version
-Before tagging, ensure you increment the version number in both:
-1. [package.json](file:///e:/DazAI/package.json) (line 4): `"version": "0.1.0"`
-2. [src-tauri/tauri.conf.json](file:///e:/DazAI/src-tauri/tauri.conf.json) (line 5): `"version": "0.1.0"`
+| File | Field |
+| --- | --- |
+| `package.json` | `version` |
+| `src-tauri/tauri.conf.json` | `version` |
 
-### Step 2: Push a Version Tag
-To trigger the build, tag your main commit with the version number (prefixed with `v`) and push it to GitHub:
+Run the local checks:
 
-```bash
-# 1. Commit all your changes (including package version updates)
-git add .
+```powershell
+npm run check
+```
+
+If you have Rust or bridge changes, also run:
+
+```powershell
+cargo test
+npm run plugin:rebuild
+```
+
+## Tag A Release
+
+This repository currently uses `master` as the primary branch.
+
+```powershell
+git add package.json src-tauri/tauri.conf.json
 git commit -m "chore: bump version to v0.1.0"
-
-# 2. Add the Git tag
 git tag v0.1.0
-
-# 3. Push the commit and the tag to GitHub
-git push origin main
+git push origin master
 git push origin v0.1.0
 ```
 
-Once pushed, GitHub Actions will automatically start the **Publish Release** job.
+After the tag is pushed, GitHub Actions starts the release job.
 
----
+## Required GitHub Settings
 
-## ⚙️ Required GitHub Repository Configuration
+### Workflow Permissions
 
-To enable the release pipeline to run successfully, you need to configure two things in your GitHub repository:
+GitHub Actions needs permission to create releases and upload installer assets.
 
-### 1. Enable Workflow Write Permissions
-By default, GitHub Action tokens have read-only permissions, which will prevent the action from creating a release and uploading assets.
+1. Open the repository on GitHub.
+2. Go to Settings -> Actions -> General.
+3. Find Workflow permissions.
+4. Select Read and write permissions.
+5. Save the setting.
 
-1. Go to your repository on GitHub.
-2. Click on **Settings** (top tab) -> **Actions** -> **General** (left sidebar).
-3. Scroll down to the **Workflow permissions** section.
-4. Select **Read and write permissions**.
-5. Click **Save**.
+### Installer Signing Secrets
 
-### 2. Configure Action Secrets (For Installer Signing)
-Windows displays a "SmartScreen" warning if installers are unsigned. To sign your Tauri application for production releases, you must add your code-signing certificate credentials to GitHub.
+Unsigned Windows installers can trigger SmartScreen warnings. For production releases, add the Tauri signing secrets in GitHub:
 
-1. In your repository on GitHub, navigate to **Settings** -> **Secrets and variables** -> **Actions**.
-2. Create a new **Repository Secret** named `TAURI_SIGNING_PRIVATE_KEY` containing your Tauri private key.
-3. Create a second secret named `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` containing the key's password.
-4. Ensure the environment variables are uncommented in [.github/workflows/release.yml](file:///e:/DazAI/.github/workflows/release.yml).
+| Secret | Purpose |
+| --- | --- |
+| `TAURI_SIGNING_PRIVATE_KEY` | Tauri private signing key |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Password for the private key |
 
----
+Then confirm the signing environment variables are enabled in `.github/workflows/release.yml`.
 
-## 🛠️ Managing Pre-Built C++ Bridge DLLs
+## Prebuilt Bridge DLLs
 
-Because the **DAZ Studio 4.5+ SDK** is proprietary and has licensing restrictions, **it cannot be committed to Git or compiled directly in the GitHub runner**. 
+The Daz Studio SDK is proprietary, so the GitHub runner cannot download it or build the bridge plugin from source. Release builds rely on locally compiled DLLs bundled into `src-tauri/resources/`.
 
-To build Tauri installers, we rely on pre-compiled DLLs placed inside [src-tauri/resources/](file:///e:/DazAI/src-tauri/resources/).
+To update them:
 
-### How to update the pre-built DLLs:
-1. Make your C++ changes in the [plugins/daz3d-bridge/](file:///e:/DazAI/plugins/daz3d-bridge/) folder.
-2. Build the plugin locally using the CMake release profile:
-   ```bash
-   npm run plugin:rebuild
-   ```
-3. The build script automatically copies the newly compiled DLLs into the Tauri resources folder:
-   - `src-tauri/resources/DazPilotBridge.dll`
-   - `src-tauri/resources/VibeBridgePlugin.dll`
-4. Stage, commit, and push these pre-built DLL files. The `.gitignore` has been custom-tailored to allow tracking of DLLs specifically under the `src-tauri/resources` directory!
+1. Make C++ changes in `plugins/daz3d-bridge/`.
+2. Build locally:
 
----
+```powershell
+npm run plugin:rebuild
+```
 
-## 📦 What the Pipeline Does
-Every time a version tag is pushed, the runner:
-1. Verifies that all required DLLs and the `llama-server.exe` are present.
-2. Caches and installs npm & Rust packages for lightning-fast subsequent builds.
+3. Confirm the expected resource DLLs were updated:
+
+```text
+src-tauri/resources/DazPilotBridge.dll
+src-tauri/resources/VibeBridgePlugin.dll
+```
+
+4. Stage, commit, and push those resource DLLs with the release prep.
+
+The repository ignore rules are configured to keep normal build DLLs out of git while allowing the release resources that Tauri needs.
+
+## What The Pipeline Does
+
+On every `v*` tag, the release workflow:
+
+1. Verifies required DLL and runtime resources are present.
+2. Installs Node and Rust dependencies.
 3. Compiles the TypeScript/Vite frontend.
-4. Bundles all resources into the compiled Rust binary using Tauri CLI.
-5. Generates the final Windows MSI installer.
-6. Uploads the MSI to a new **draft release** on GitHub, ready for you to publish to the public!
+4. Bundles resources through Tauri.
+5. Produces the Windows installer.
+6. Uploads the installer to a draft GitHub Release.
