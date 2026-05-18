@@ -141,9 +141,56 @@ export const useViewportStore = create<ViewportState & ViewportActions>((set, ge
     loadState: async () => {
       try {
         const { invoke } = await import('@tauri-apps/api/core');
-        const timeline = await invoke<TimelineState>('get_timeline_state');
-        const playback = await invoke<PlaybackState>('get_playback_state');
-        const poses = await invoke<Pose[]>('get_pose_library');
+
+        // Define intermediate interfaces for snake_case Rust payload
+        interface RustTimelineState {
+          current_frame: number;
+          total_frames: number;
+          fps: number;
+          is_playing: boolean;
+          active_figure: string | null;
+        }
+
+        interface RustPlaybackState {
+          playing: boolean;
+          current_time: number;
+          duration: number;
+          loop_enabled: boolean;
+          speed: number;
+        }
+
+        interface RustPose {
+          name: string;
+          file_path: string;
+          compatible_figures: string[];
+          category: string;
+        }
+
+        const rustTimeline = await invoke<RustTimelineState>('get_timeline_state');
+        const rustPlayback = await invoke<RustPlaybackState>('get_playback_state');
+        const rustPoses = await invoke<RustPose[]>('get_pose_library');
+
+        const timeline: TimelineState = {
+          currentFrame: rustTimeline.current_frame,
+          totalFrames: rustTimeline.total_frames,
+          fps: rustTimeline.fps,
+          duration: rustPlayback.duration,
+        };
+
+        const playback: PlaybackState = {
+          isPlaying: rustPlayback.playing,
+          isPaused: !rustPlayback.playing && rustTimeline.current_frame > 0,
+          isLooping: rustPlayback.loop_enabled,
+          playbackSpeed: rustPlayback.speed,
+        };
+
+        const poses: Pose[] = rustPoses.map((p) => ({
+          id: p.name.toLowerCase().replace(/\s+/g, '-'),
+          name: p.name,
+          category: p.category,
+          keyframes: [],
+        }));
+
         set({ timeline, playback, poses });
       } catch (e) {
         set({ error: String(e) });

@@ -8,6 +8,7 @@ export type StackJustify = 'start' | 'center' | 'end' | 'between' | 'around';
 export type StackWrap = 'wrap' | 'nowrap';
 
 export interface StackProps extends HTMLAttributes<HTMLDivElement> {
+  direction?: 'row' | 'column';
   gap?: StackGap;
   align?: StackAlign;
   justify?: StackJustify;
@@ -16,12 +17,13 @@ export interface StackProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const Stack = forwardRef<HTMLDivElement, StackProps>(
-  ({ gap = 'md', align, justify, wrap, className, children, ...props }, ref) => {
+  ({ direction = 'row', gap = 'md', align, justify, wrap, className, children, ...props }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
           styles.stack,
+          styles[`direction-${direction}`],
           styles[`gap-${gap}`],
           align && styles[`align-${align}`],
           justify && styles[`justify-${justify}`],
@@ -43,7 +45,7 @@ export interface HStackProps extends Omit<StackProps, 'direction'> {
 }
 
 export const HStack = forwardRef<HTMLDivElement, HStackProps>((props, ref) => {
-  return <Stack ref={ref} {...props} />;
+  return <Stack ref={ref} direction="row" {...props} />;
 });
 
 HStack.displayName = 'HStack';
@@ -53,7 +55,7 @@ export interface VStackProps extends Omit<StackProps, 'direction'> {
 }
 
 export const VStack = forwardRef<HTMLDivElement, VStackProps>((props, ref) => {
-  return <Stack ref={ref} {...props} />;
+  return <Stack ref={ref} direction="column" {...props} />;
 });
 
 VStack.displayName = 'VStack';

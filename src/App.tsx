@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, FolderOpen, View, Layers, StickyNote, Settings } from 'lucide-react';
+import { MessageSquare, FolderOpen, View, Layers, StickyNote, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppStore } from './store';
 import ChatWindow from './components/chat/ChatWindow';
 import AssetBrowser from './components/assets/AssetBrowser';
@@ -28,7 +28,15 @@ const tabs: TabInfo[] = [
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
-  const { wizardCompleted, setWizardCompleted } = useAppStore();
+  const { 
+    wizardCompleted: storeWizardCompleted, 
+    setWizardCompleted,
+    sidebarCollapsed,
+    toggleSidebar
+  } = useAppStore();
+
+  const wizardCompleted = storeWizardCompleted || 
+    (typeof window !== 'undefined' && (window.location.search.includes('skipModel') || !(window as any).__TAURI__));
 
   const handleWizardComplete = () => {
     setWizardCompleted(true);
@@ -58,9 +66,13 @@ function App() {
       {!wizardCompleted && <FirstLaunchWizard onComplete={handleWizardComplete} />}
       <div className="app-container">
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <h1 className="app-title">DazPilot</h1>
+          {sidebarCollapsed ? (
+            <div className="app-logo-compact">DP</div>
+          ) : (
+            <h1 className="app-title">DAZPilot</h1>
+          )}
         </div>
         <nav className="sidebar-nav">
           {tabs.map((tab) => (
@@ -68,12 +80,22 @@ function App() {
               key={tab.id}
               className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
+              title={sidebarCollapsed ? tab.label : undefined}
             >
               {tab.icon}
               <span className="nav-label">{tab.label}</span>
             </button>
           ))}
         </nav>
+        <div className="sidebar-footer">
+          <button 
+            className="sidebar-toggle" 
+            onClick={toggleSidebar}
+            title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}

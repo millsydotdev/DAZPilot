@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Play, Wrench, Lightbulb, AlertCircle, Check, X, Code, Copy } from 'lucide-react';
+import { Send, Sparkles, Play, Wrench, Lightbulb, AlertCircle, Check, X, Code, Copy, Plus, GitBranch, ChevronUp, Brain, Zap, Database } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
-import { useChatStore } from '../../store';
-import { Button, Input } from '../ui';
+import { useChatStore, useConnectionStore } from '../../store';
 import styles from './ChatWindow.module.css';
 
 type AIMode = 'create' | 'plan' | 'fix' | 'query';
@@ -12,6 +12,39 @@ const modes = [
   { id: 'plan', label: 'Plan', icon: Play, desc: 'Propose plan first' },
   { id: 'fix', label: 'Fix', icon: Wrench, desc: 'Find and fix issues' },
   { id: 'query', label: 'Query', icon: Lightbulb, desc: 'Answer questions' },
+];
+
+type ContextScope = 'full-scene' | 'selected-only' | 'active-figure' | 'workspace-root';
+
+interface ContextOption {
+  id: ContextScope;
+  label: string;
+  desc: string;
+}
+
+const contexts: ContextOption[] = [
+  { id: 'full-scene', label: 'Full Scene', desc: 'Analyze the entire scene hierarchy' },
+  { id: 'selected-only', label: 'Selected Only', desc: 'Focus on active selection details' },
+  { id: 'active-figure', label: 'Active Figure', desc: 'Target active Genesis skeleton' },
+  { id: 'workspace-root', label: 'Worktree', desc: 'Scope to Daz project directory' },
+];
+
+type ModelId = 'gemini-3-flash' | 'gemini-3-pro' | 'claude-3-5-sonnet' | 'gpt-4o' | 'local-gguf';
+
+interface ModelOption {
+  id: ModelId;
+  label: string;
+  desc: string;
+  icon: LucideIcon;
+  color: string;
+}
+
+const models: ModelOption[] = [
+  { id: 'gemini-3-flash', label: 'Gemini 3 Flash', desc: 'Fast, multimodal reasoning', icon: Sparkles, color: '#a855f7' },
+  { id: 'gemini-3-pro', label: 'Gemini 3 Pro', desc: 'High-quality analytical reasoning', icon: Sparkles, color: '#8b5cf6' },
+  { id: 'claude-3-5-sonnet', label: 'Claude 3.5 Sonnet', desc: 'Expert scripting & logic', icon: Brain, color: '#f97316' },
+  { id: 'gpt-4o', label: 'GPT-4o', desc: 'Versatile problem solver', icon: Zap, color: '#10b981' },
+  { id: 'local-gguf', label: 'Local GGUF (phi-2)', desc: 'Offline private LLM', icon: Database, color: '#06b6d4' },
 ];
 
 // Subcomponent to render DazScript Macros beautifully
@@ -205,10 +238,23 @@ function InteractiveActionCard({
 
 export default function ChatWindow() {
   const { messages, input, isLoading, setInput, sendMessage } = useChatStore();
+  const { status } = useConnectionStore();
 
-  const [mode, setMode] = useState<AIMode>('create');
+  const [mode, setMode] = useState<AIMode>('plan');
+  const [selectedModel, setSelectedModel] = useState<ModelId>('gemini-3-flash');
+  const [selectedContext, setSelectedContext] = useState<ContextScope>('full-scene');
+  const [attachedImages, setAttachedImages] = useState<string[]>([]);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  // Dropdown visibility states
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
+  const [showContextDropdown, setShowContextDropdown] = useState(false);
+  const [showModeDropdown, setShowModeDropdown] = useState(false);
+
   const initialized = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!initialized.current && messages.length === 0) {
@@ -216,7 +262,7 @@ export default function ChatWindow() {
       useChatStore.getState().addMessage({
         role: 'assistant',
         content:
-          "Hello! I'm your DazPilot assistant. I can help you create 3D scenes, manage assets, and work with Genesis 8/9 figures. Just describe what you want to do!",
+          "Hello! I'm your DAZPilot assistant. I can help you create 3D scenes, manage assets, and work with Genesis 8/9 figures. Just describe what you want to do!",
         loading: false,
       });
     }
@@ -227,10 +273,66 @@ export default function ChatWindow() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  // Click outside listener to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(`.${styles.dropdownContainer}`)) {
+        setShowModelDropdown(false);
+        setShowContextDropdown(false);
+        setShowModeDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Auto-grow textarea height on value change
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
+    }
+  }, [input]);
+
   const handleSend = () => {
-    if (!input.trim() || isLoading) return;
-    sendMessage(input);
+    if ((!input.trim() && attachedImages.length === 0) || isLoading) return;
+    sendMessage(input, attachedImages);
     setInput('');
+    setAttachedImages([]);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setAttachedImages((prev) => [...prev, reader.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachedImage = (idxToRemove: number) => {
+    setAttachedImages((prev) => prev.filter((_, idx) => idx !== idxToRemove));
   };
 
   const parseMessageContent = (content: string) => {
@@ -265,20 +367,51 @@ export default function ChatWindow() {
     return '';
   };
 
+  const getThemeClass = (modelId: ModelId) => {
+    switch (modelId) {
+      case 'gemini-3-flash':
+      case 'gemini-3-pro':
+        return styles.themeGemini;
+      case 'claude-3-5-sonnet':
+        return styles.themeClaude;
+      case 'gpt-4o':
+        return styles.themeGpt;
+      default:
+        return styles.themeLocal;
+    }
+  };
+
+  const activeModelInfo = models.find((m) => m.id === selectedModel) || models[0];
+  const activeContextInfo = contexts.find((c) => c.id === selectedContext) || contexts[0];
+  const activeModeInfo = modes.find((m) => m.id === mode) || modes[0];
+
+  const ModelIcon = activeModelInfo.icon;
+  const ModeIcon = activeModeInfo.icon;
+
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.modeSelector}>
-          {modes.map((m) => (
-            <button
-              key={m.id}
-              className={`${styles.modeButton} ${mode === m.id ? styles.active : ''}`}
-              onClick={() => setMode(m.id as AIMode)}
-            >
-              <m.icon size={16} />
-              <span>{m.label}</span>
+    <div className={`${styles.container} ${getThemeClass(selectedModel)}`}>
+      {/* Lightbox for visual attachments */}
+      {lightboxImage && (
+        <div className={styles.lightbox} onClick={() => setLightboxImage(null)}>
+          <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
+            <img src={lightboxImage} alt="lightbox-preview" className={styles.lightboxImg} />
+            <button className={styles.lightboxClose} onClick={() => setLightboxImage(null)}>
+              <X size={20} />
             </button>
-          ))}
+          </div>
+        </div>
+      )}
+
+      <div className={styles.header}>
+        <div className={styles.headerTitleContainer}>
+          <Sparkles className={styles.sparklesHeaderIcon} size={18} />
+          <h2 className={styles.headerTitle}>AI Co-Pilot Console</h2>
+        </div>
+        <div className={styles.headerRight}>
+          <div className={`${styles.statusBadge} ${styles[status]}`}>
+            <div className={styles.statusDot} />
+            <span>{status === 'connected' ? 'Daz Active' : 'Disconnected'}</span>
+          </div>
         </div>
       </div>
 
@@ -298,6 +431,21 @@ export default function ChatWindow() {
                   <span className={styles.processing}>Processing...</span>
                 ) : (
                   <>
+                    {/* Render message attachments */}
+                    {msg.images && msg.images.length > 0 && (
+                      <div className={styles.msgAttachedImagesGrid}>
+                        {msg.images.map((imgUrl, i) => (
+                          <div
+                            key={i}
+                            className={styles.msgImageWrapper}
+                            onClick={() => setLightboxImage(imgUrl)}
+                            title="Click to enlarge"
+                          >
+                            <img src={imgUrl} alt={`attached-${i}`} className={styles.msgImage} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div className="whitespace-pre-wrap">{parseMessageContent(msg.content)}</div>
                     {isConfirmation && (
                       <InteractiveActionCard
@@ -314,30 +462,216 @@ export default function ChatWindow() {
         {isLoading && (
           <div className={`${styles.message} ${styles.assistant}`}>
             <div className={styles.messageContent}>
-              <span className={styles.processing}>Thinking...</span>
+              <span className={styles.processing}>
+                <span className={styles.spinner} />
+                Thinking...
+              </span>
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Modern custom input container with embedded widgets */}
       <div className={styles.inputArea}>
-        <Input
-          className={styles.input}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Describe what you want to create... (e.g., 'Select my Genesis 8 figure')"
-          disabled={isLoading}
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          ref={fileInputRef}
+          className={styles.hiddenFileInput}
+          onChange={handleFileAttach}
         />
-        <Button
-          className={styles.sendButton}
-          onClick={handleSend}
-          disabled={isLoading || !input.trim()}
-          icon={<Send size={20} />}
-        >
-          Send
-        </Button>
+
+        <div className={styles.inputContainerCard}>
+          {/* Thumbnails preview bar inside prompt card */}
+          {attachedImages.length > 0 && (
+            <div className={styles.attachmentsPreviewContainer}>
+              {attachedImages.map((img, idx) => (
+                <div key={idx} className={styles.previewImageChip}>
+                  <img src={img} alt={`upload-preview-${idx}`} className={styles.previewThumbnail} />
+                  <button
+                    className={styles.removePreviewBtn}
+                    onClick={() => removeAttachedImage(idx)}
+                    title="Remove attachment"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Autogrow Prompt input */}
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className={styles.inputPromptTextarea}
+            placeholder={`Ask ${activeModelInfo.label} in ${activeModeInfo.label} mode... (e.g., 'Rotate figure by 45deg')`}
+            disabled={isLoading}
+          />
+
+          {/* Advanced Bottom Toolbar containing widgets */}
+          <div className={styles.inputToolbar}>
+            <div className={styles.toolbarLeft}>
+              {/* Attach Plus Button */}
+              <button
+                className={styles.toolbarActionBtn}
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach images (Vision)"
+                disabled={isLoading}
+              >
+                <Plus size={16} />
+              </button>
+
+              {/* Context Dropdown Widget */}
+              <div className={styles.dropdownContainer}>
+                <button
+                  className={`${styles.toolbarDropdownTrigger} ${showContextDropdown ? styles.active : ''}`}
+                  onClick={() => {
+                    setShowContextDropdown(!showContextDropdown);
+                    setShowModelDropdown(false);
+                    setShowModeDropdown(false);
+                  }}
+                  title="Workspace context scope"
+                  disabled={isLoading}
+                >
+                  <GitBranch size={13} className={styles.widgetIcon} />
+                  <span>{activeContextInfo.label}</span>
+                </button>
+
+                {showContextDropdown && (
+                  <div className={styles.floatingMenuCard}>
+                    <div className={styles.menuHeader}>Workspace Scope</div>
+                    <div className={styles.menuOptionsList}>
+                      {contexts.map((ctx) => (
+                        <button
+                          key={ctx.id}
+                          className={`${styles.menuOptionRow} ${selectedContext === ctx.id ? styles.active : ''}`}
+                          onClick={() => {
+                            setSelectedContext(ctx.id);
+                            setShowContextDropdown(false);
+                          }}
+                        >
+                          <div className={styles.optionLabel}>{ctx.label}</div>
+                          <div className={styles.optionDesc}>{ctx.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.toolbarRight}>
+              {/* Model Selector Dropdown Widget */}
+              <div className={styles.dropdownContainer}>
+                <button
+                  className={`${styles.toolbarDropdownTrigger} ${showModelDropdown ? styles.active : ''}`}
+                  onClick={() => {
+                    setShowModelDropdown(!showModelDropdown);
+                    setShowContextDropdown(false);
+                    setShowModeDropdown(false);
+                  }}
+                  title="Change AI model"
+                  disabled={isLoading}
+                >
+                  <ModelIcon size={13} className={styles.widgetIcon} />
+                  <span>{activeModelInfo.label}</span>
+                  <ChevronUp size={12} className={`${styles.chevron} ${showModelDropdown ? styles.open : ''}`} />
+                </button>
+
+                {showModelDropdown && (
+                  <div className={styles.floatingMenuCard}>
+                    <div className={styles.menuHeader}>Select AI Engine</div>
+                    <div className={styles.menuOptionsList}>
+                      {models.map((mod) => {
+                        const ItemIcon = mod.icon;
+                        return (
+                          <button
+                            key={mod.id}
+                            style={{ '--accent-color': mod.color } as React.CSSProperties}
+                            className={`${styles.menuOptionRow} ${styles.modelOption} ${
+                              selectedModel === mod.id ? styles.active : ''
+                            }`}
+                            onClick={() => {
+                              setSelectedModel(mod.id);
+                              setShowModelDropdown(false);
+                            }}
+                          >
+                            <div className={styles.optionRowHeader}>
+                              <ItemIcon size={14} className={styles.modelIcon} />
+                              <div className={styles.optionLabel}>{mod.label}</div>
+                            </div>
+                            <div className={styles.optionDesc}>{mod.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Mode Dropdown Widget */}
+              <div className={styles.dropdownContainer}>
+                <button
+                  className={`${styles.toolbarDropdownTrigger} ${showModeDropdown ? styles.active : ''}`}
+                  onClick={() => {
+                    setShowModeDropdown(!showModeDropdown);
+                    setShowContextDropdown(false);
+                    setShowModelDropdown(false);
+                  }}
+                  title="Change assistant execution mode"
+                  disabled={isLoading}
+                >
+                  <ModeIcon size={13} className={styles.widgetIcon} />
+                  <span>{activeModeInfo.label}</span>
+                  <ChevronUp size={12} className={`${styles.chevron} ${showModeDropdown ? styles.open : ''}`} />
+                </button>
+
+                {showModeDropdown && (
+                  <div className={styles.floatingMenuCard}>
+                    <div className={styles.menuHeader}>Execution Mode</div>
+                    <div className={styles.menuOptionsList}>
+                      {modes.map((m) => {
+                        const ItemIcon = m.icon;
+                        return (
+                          <button
+                            key={m.id}
+                            className={`${styles.menuOptionRow} ${mode === m.id ? styles.active : ''}`}
+                            onClick={() => {
+                              setMode(m.id as AIMode);
+                              setShowModeDropdown(false);
+                            }}
+                          >
+                            <div className={styles.optionRowHeader}>
+                              <ItemIcon size={14} className={styles.modeIcon} />
+                              <div className={styles.optionLabel}>{m.label}</div>
+                            </div>
+                            <div className={styles.optionDesc}>{m.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Send Button */}
+              <button
+                className={styles.promptSendBtn}
+                onClick={handleSend}
+                disabled={isLoading || (!input.trim() && attachedImages.length === 0)}
+                title="Send query"
+              >
+                <Send size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

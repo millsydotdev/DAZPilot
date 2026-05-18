@@ -65,39 +65,96 @@ const CATEGORY_PATTERNS: &[(&str, &[&str])] = &[
     ("animations", &["animation", "anim", "walk", "run", "bounce"]),
 ];
 
+fn get_daz_content_dirs_from_registry() -> Vec<String> {
+    let mut dirs = vec![];
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(output) = std::process::Command::new("reg")
+            .args(&["query", "HKCU\\Software\\DAZ\\Studio4"])
+            .output()
+        {
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                for line in stdout.lines() {
+                    let trimmed = line.trim();
+                    if trimmed.starts_with("ContentDir") {
+                        let parts: Vec<&str> = trimmed.split_whitespace().collect();
+                        if parts.len() >= 3 && parts[1] == "REG_SZ" {
+                            let path = parts[2..].join(" ");
+                            let normalized = path.replace("\\", "/");
+                            if !dirs.contains(&normalized) {
+                                dirs.push(normalized);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    dirs
+}
+
 pub fn get_default_content_paths() -> Vec<ContentPath> {
     let mut paths = vec![];
 
-    if let Some(documents) = dirs::document_dir() {
-        let daz3d_path = documents.join("DAZ 3D");
-        if daz3d_path.exists() {
-            paths.push(ContentPath {
-                path: daz3d_path.to_string_lossy().to_string(),
-                name: "DAZ 3D".to_string(),
-                is_default: true,
-            });
+    // Try registry first
+    let reg_dirs = get_daz_content_dirs_from_registry();
+    if !reg_dirs.is_empty() {
+        for (i, dir_path) in reg_dirs.iter().enumerate() {
+            let path_buf = PathBuf::from(dir_path);
+            if path_buf.exists() {
+                let name = if dir_path.contains("My Library") {
+                    "DAZ 3D".to_string()
+                } else if dir_path.contains("My DAZ 3D Library") {
+                    "Public Daz Library".to_string()
+                } else {
+                    path_buf.file_name()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_else(|| format!("Daz Library {}", i))
+                };
+
+                paths.push(ContentPath {
+                    path: dir_path.clone(),
+                    name,
+                    is_default: true,
+                });
+            }
         }
     }
 
-    if let Ok(program_data) = std::env::var("PROGRAMDATA") {
-        let daz3d_path = PathBuf::from(program_data).join("DAZ 3D");
-        if daz3d_path.exists() {
+    // Fallback to hardcoded defaults if registry is empty or fails
+    if paths.is_empty() {
+        if let Some(documents) = dirs::document_dir() {
+            let daz3d_path = documents.join("DAZ 3D");
+            if daz3d_path.exists() {
+                paths.push(ContentPath {
+                    path: daz3d_path.to_string_lossy().to_string(),
+                    name: "DAZ 3D".to_string(),
+                    is_default: true,
+                });
+            }
+        }
+
+        if let Ok(program_data) = std::env::var("PROGRAMDATA") {
+            let daz3d_path = PathBuf::from(program_data).join("DAZ 3D");
+            if daz3d_path.exists() {
+                paths.push(ContentPath {
+                    path: daz3d_path.to_string_lossy().to_string(),
+                    name: "ProgramData DAZ".to_string(),
+                    is_default: true,
+                });
+            }
+        }
+
+        // Common Public Documents path for Daz Install Manager
+        let public_docs = PathBuf::from(r"C:\Users\Public\Documents\My DAZ 3D Library");
+        if public_docs.exists() {
             paths.push(ContentPath {
-                path: daz3d_path.to_string_lossy().to_string(),
-                name: "ProgramData DAZ".to_string(),
+                path: public_docs.to_string_lossy().to_string(),
+                name: "Public Daz Library".to_string(),
                 is_default: true,
             });
         }
-    }
-
-    // Common Public Documents path for Daz Install Manager
-    let public_docs = PathBuf::from(r"C:\Users\Public\Documents\My DAZ 3D Library");
-    if public_docs.exists() {
-        paths.push(ContentPath {
-            path: public_docs.to_string_lossy().to_string(),
-            name: "Public Daz Library".to_string(),
-            is_default: true,
-        });
     }
 
     paths
@@ -135,6 +192,11 @@ pub fn scan_directory(path: &str) -> ScanResult {
             .and_then(|n| n.to_str())
             .unwrap_or("unknown")
             .to_string();
+
+        let lower_name = file_name.to_lowercase();
+        if lower_name == "daz_host" || lower_name == "vibebridge" || lower_name == "dazai_bridge" || lower_name == "dazpilotbridge" {
+            continue;
+        }
 
         let file_size = entry.metadata().map(|m| m.len()).unwrap_or(0);
         

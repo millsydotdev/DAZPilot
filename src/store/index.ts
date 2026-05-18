@@ -65,3 +65,11 @@ export {
 
 export { useOllamaStore, type OllamaModel } from './ollamaStore';
 export { useLocalAiStore, type LocalModelInfo } from './localAiStore';
+export {
+  useLogStore,
+  type LogEntry,
+  type LogState,
+  type LogActions,
+  initializeConsoleInterceptor,
+} from './logStore';
+export { usePluginStore, type PluginState, type PluginActions } from './pluginStore';

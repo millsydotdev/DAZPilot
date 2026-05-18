@@ -6,6 +6,7 @@ export interface ChatMessage {
   content: string;
   timestamp: number;
   loading?: boolean;
+  images?: string[];
 }
 
 export interface ChatHistory {
@@ -33,7 +34,7 @@ export interface ChatActions {
   clearMessages: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, images?: string[]) => Promise<void>;
   createHistory: (title: string) => string;
   loadHistory: (id: string) => void;
   deleteHistory: (id: string) => void;
@@ -80,10 +81,10 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 
-  sendMessage: async (content) => {
+  sendMessage: async (content, images) => {
     const { addMessage, setLoading, setError } = get();
 
-    addMessage({ role: 'user', content, loading: false });
+    addMessage({ role: 'user', content, images, loading: false });
     setLoading(true);
     setError(null);
 

@@ -2,6 +2,14 @@
   display: flex;
 }
 
+.direction-row {
+  flex-direction: row;
+}
+
+.direction-column {
+  flex-direction: column;
+}
+
 .gap-none {
   gap: 0;
 }

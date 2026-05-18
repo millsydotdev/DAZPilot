@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Cpu, Check, AlertCircle, RefreshCw, Download } from 'lucide-react';
 import { useLocalAiStore, type LocalModelInfo } from '../store/localAiStore';
+import { usePluginStore } from '../store';
 import { Button, Card, VStack, Text } from './ui';
 import { listen } from '@tauri-apps/api/event';
 import styles from './FirstLaunchWizard.module.css';
@@ -14,6 +15,8 @@ type WizardStep =
   | 'no_model'
   | 'downloading'
   | 'ready'
+  | 'plugin_setup'
+  | 'plugin_downloading'
   | 'starting'
   | 'error';
 
@@ -60,6 +63,7 @@ interface DownloadProgressPayload {
 }
 
 export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
+  const [stage, setStage] = useState<'model' | 'plugin'>('model');
   const [step, setStep] = useState<WizardStep>('checking');
   const [selectedLocalModel, setSelectedLocalModel] = useState<LocalModelInfo | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<ModelPreset>(MODEL_PRESETS[0]);
@@ -79,25 +83,39 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     downloadModel
   } = useLocalAiStore();
 
+  const {
+    status: pluginStatus,
+    customPath: pluginCustomPath,
+    checkPluginStatus,
+    browseCustomPath,
+    downloadAndInstall: downloadAndInstallPlugin,
+    installLocal: installLocalPlugin,
+    error: pluginError
+  } = usePluginStore();
+
   useEffect(() => {
     const init = async () => {
       await getModelsDir();
       await loadModels();
       await checkServerStatus();
+      await checkPluginStatus();
     };
     init();
-  }, [checkServerStatus, getModelsDir, loadModels]);
+  }, [checkServerStatus, getModelsDir, loadModels, checkPluginStatus]);
 
   useEffect(() => {
-    if (isRunning) {
-      onComplete();
-    } else if (models.length > 0) {
-      setStep('ready');
-      setSelectedLocalModel(models[0]);
-    } else {
-      setStep('no_model');
+    if (stage === 'model') {
+      if (isRunning) {
+        setStage('plugin');
+        setStep('plugin_setup');
+      } else if (models.length > 0) {
+        setStep('ready');
+        setSelectedLocalModel(models[0]);
+      } else if (!isLoading) {
+        setStep('no_model');
+      }
     }
-  }, [isRunning, models, onComplete]);
+  }, [isRunning, models, stage, isLoading]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -122,10 +140,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     
     try {
       await downloadModel(selectedPreset.url, selectedPreset.filename);
-      
       setDownloadProgress(100);
-      
-      // Reload models and check status
       await loadModels();
       await checkServerStatus();
       
@@ -139,16 +154,55 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     }
   };
 
+  const handleDownloadPlugin = async () => {
+    setStep('plugin_downloading');
+    setDownloadProgress(0);
+    setDownloadedBytes(0);
+    
+    try {
+      await downloadAndInstallPlugin();
+      setDownloadProgress(100);
+      setStep('plugin_setup');
+    } catch (e) {
+      console.error('Plugin download failed:', e);
+      setStep('error');
+    }
+  };
+
+  const handleInstallLocalPlugin = async () => {
+    try {
+      await installLocalPlugin();
+    } catch (e) {
+      console.error('Local plugin install failed:', e);
+      setStep('error');
+    }
+  };
+
   const handleRefresh = async () => {
     await loadModels();
     await checkServerStatus();
   };
 
-  const handleStartServer = async () => {
-    if (!selectedLocalModel) return;
+  const handleProceedToPlugin = () => {
+    setStage('plugin');
+    setStep('plugin_setup');
+  };
+
+  const handleFinishSetup = async () => {
+    if (isRunning) {
+      onComplete();
+      return;
+    }
+
+    const model = selectedLocalModel || (models.length > 0 ? models[0] : null);
+    if (!model) {
+      onComplete();
+      return;
+    }
+
     setStep('starting');
     try {
-      const modelPath = `${modelsDir}\\${selectedLocalModel.name}`;
+      const modelPath = `${modelsDir}\\${model.name}`;
       await startServer(modelPath);
     } catch (e) {
       console.error('Failed to start server:', e);
@@ -263,7 +317,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
       <Check size={48} className="text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 rounded-full p-2.5 mb-2" />
       <Text variant="heading1">Ready to Start</Text>
       <Text variant="body" className={styles.description}>
-        Found {models.length} model(s). Select one to start the AI server.
+        Found {models.length} model(s). Select one for the AI backend.
       </Text>
       
       <VStack gap="sm" className={styles.readyList}>
@@ -282,13 +336,12 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
       </VStack>
 
       <Button 
-        onClick={handleStartServer} 
+        onClick={handleProceedToPlugin} 
         variant="primary" 
         className={styles.actionButton}
         disabled={!selectedLocalModel || isLoading}
       >
-        {isLoading ? <Loader2 className={styles.spinner} size={20} /> : <Cpu size={20} />}
-        Start AI Server
+        Next: Daz Plugin Setup
       </Button>
 
       <Button 
@@ -299,6 +352,120 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
         <RefreshCw size={16} />
         Scan for More Models
       </Button>
+    </VStack>
+  );
+
+  const renderPluginSetup = () => {
+    const isInstalled = pluginStatus === 'installed';
+    const isChecking = pluginStatus === 'checking';
+    const isDownloading = pluginStatus === 'downloading';
+    
+    return (
+      <VStack gap="lg" className={styles.centered}>
+        <Cpu size={64} className="text-cyan-400 animate-pulse mb-2" />
+        <Text variant="heading2">Daz Studio C++ Bridge</Text>
+        <Text variant="body" className={styles.description}>
+          DazPilot needs a C++ Bridge Plugin in Daz Studio to synchronize the viewport and execute commands.
+        </Text>
+
+        <div className={styles.modelCard}>
+          <div className={styles.downloadTitle}>
+            <span>Daz Studio Plugins Folder</span>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'center' }}>
+            <code className={styles.pathCode} style={{ flexGrow: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {pluginCustomPath || 'Default plugins directory...'}
+            </code>
+            <Button onClick={browseCustomPath} variant="ghost" size="sm" style={{ flexShrink: 0, padding: '4px 8px', height: 'auto', border: '1px solid rgba(255,255,255,0.1)' }}>
+              Browse...
+            </Button>
+          </div>
+
+          <div style={{ marginTop: '8px' }}>
+            <span className={styles.pathLabel}>Status:</span>
+            {isChecking ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', fontSize: '13px', fontWeight: 600 }}>
+                <Loader2 className={styles.spinner} size={14} /> Checking plugins folder...
+              </span>
+            ) : isInstalled ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34d399', fontSize: '13px', fontWeight: 600 }}>
+                <Check size={14} /> DazPilotBridge.dll linked successfully!
+              </span>
+            ) : (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f87171', fontSize: '13px', fontWeight: 600 }}>
+                <AlertCircle size={14} /> DazPilotBridge.dll not found.
+              </span>
+            )}
+          </div>
+
+          {!isInstalled && !isChecking && (
+            <VStack gap="xs" style={{ marginTop: '12px', width: '100%' }}>
+              <Button 
+                onClick={handleDownloadPlugin} 
+                variant="primary" 
+                className={styles.actionButton}
+                disabled={isDownloading}
+              >
+                <Download size={16} />
+                Download & Install from Releases
+              </Button>
+              <Button 
+                onClick={handleInstallLocalPlugin} 
+                variant="ghost" 
+                className={styles.actionButton}
+                style={{ border: '1px solid rgba(255,255,255,0.05)' }}
+                disabled={isDownloading}
+              >
+                Link / Copy Local DLL
+              </Button>
+            </VStack>
+          )}
+
+          {isInstalled && (
+            <div style={{ width: '100%', textAlign: 'center', padding: '6px 0', color: '#94a3b8', fontSize: '11px' }}>
+              Bridge plugin linked successfully! Setup is fully complete.
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '12px', width: '100%' }}>
+            <Button 
+              onClick={handleFinishSetup} 
+              variant="primary" 
+              className={styles.actionButton}
+              disabled={isChecking}
+            >
+              {isInstalled ? 'Finish & Start AI Server' : 'Skip & Start AI Server'}
+            </Button>
+          </div>
+        </div>
+      </VStack>
+    );
+  };
+
+  const renderPluginDownloading = () => (
+    <VStack gap="lg" className={styles.centered}>
+      <Loader2 className={styles.spinner} size={64} />
+      <Text variant="heading2">Downloading C++ Bridge Plugin</Text>
+      <Text variant="body" className="text-slate-400 text-center text-sm max-w-[320px]">
+        Downloading DazPilotBridge.dll from GitHub Releases...
+      </Text>
+      <div className="w-full">
+        <div className={styles.progressTrack} aria-label="Download progress">
+          <div
+            className={styles.progressFill}
+            style={{ width: `${Math.min(downloadProgress, 100)}%` }}
+          />
+        </div>
+        <span className={styles.progressText}>
+          {downloadProgress === 0 && downloadedBytes > 0 
+            ? `${formatBytes(downloadedBytes)} downloaded...`
+            : `${Math.round(downloadProgress)}% complete`}
+        </span>
+      </div>
+      <Text variant="small" className="text-slate-500 font-semibold mt-2">
+        {formatBytes(downloadedBytes)} downloaded
+      </Text>
     </VStack>
   );
 
@@ -316,7 +483,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
       <AlertCircle size={48} className="text-rose-500 mb-2" />
       <Text variant="heading2">Setup Failed</Text>
       <Text variant="body" className={styles.description}>
-        {error || 'An error occurred. Please try again.'}
+        {error || pluginError || 'An error occurred. Please try again.'}
       </Text>
       <Button onClick={() => setStep('no_model')} variant="primary" className="w-full max-w-[200px]">
         Try Again
@@ -331,6 +498,8 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
         {step === 'no_model' && renderNoModel()}
         {step === 'downloading' && renderDownloading()}
         {step === 'ready' && renderReady()}
+        {step === 'plugin_setup' && renderPluginSetup()}
+        {step === 'plugin_downloading' && renderPluginDownloading()}
         {step === 'starting' && renderStarting()}
         {step === 'error' && renderError()}
       </Card>
