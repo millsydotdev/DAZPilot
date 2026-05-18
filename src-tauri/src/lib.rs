@@ -211,38 +211,76 @@ fn get_ai_status() -> ai_service::ModelInfo {
     })
 }
 
+fn bridge_plugin_filename() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "DazPilotBridge.dll"
+    } else if cfg!(target_os = "macos") {
+        "libDazPilotBridge.dylib"
+    } else {
+        "libDazPilotBridge.so"
+    }
+}
+
 fn default_daz_path() -> std::path::PathBuf {
-    let daz_candidates = [
+    #[cfg(target_os = "windows")]
+    let daz_candidates = vec![
         std::path::PathBuf::from(r"C:\Program Files\DAZ 3D\DAZStudio4\plugins"),
         std::path::PathBuf::from(r"C:\Program Files (x86)\DAZ 3D\DAZStudio4\plugins"),
+    ];
+
+    #[cfg(target_os = "macos")]
+    let daz_candidates = vec![
+        dirs::home_dir()
+            .unwrap_or_default()
+            .join("Library/Application Support/DAZ 3D/Studio4/plugins"),
+        std::path::PathBuf::from("/Applications/DAZ 3D/DAZStudio4/plugins"),
+    ];
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let daz_candidates = vec![
+        dirs::home_dir()
+            .unwrap_or_default()
+            .join(".local/share/DAZ 3D/Studio4/plugins"),
+        std::path::PathBuf::from("/opt/DAZ 3D/DAZStudio4/plugins"),
     ];
 
     daz_candidates
         .iter()
         .find(|p| p.parent().map(|pp| pp.exists()).unwrap_or(false))
         .cloned()
-        .unwrap_or_else(|| std::path::PathBuf::from(r"C:\Program Files\DAZ 3D\DAZStudio4\plugins"))
+        .unwrap_or_else(|| daz_candidates[0].clone())
 }
 
 #[tauri::command]
 fn install_daz3d_plugin(custom_path: Option<String>) -> Result<String, String> {
-    // Look for the DLL next to the exe (Tauri bundles it there), then fall back to dev source
+    let plugin_name = bridge_plugin_filename();
     let exe_dir = std::env::current_exe()
         .map_err(|e| format!("Failed to get exe path: {}", e))?
         .parent()
         .ok_or("Failed to get parent directory")?
         .to_path_buf();
 
-    let candidate_paths = [
-        exe_dir.join("DazPilotBridge.dll"),
-        std::path::PathBuf::from(r"E:\DazAI\src-tauri\resources\DazPilotBridge.dll"),
-        std::path::PathBuf::from(r"E:\DazAI\plugins\daz3d-bridge\dist\Release\DazPilotBridge.dll"),
-    ];
+    let mut candidate_paths = vec![exe_dir.join(plugin_name)];
+    #[cfg(target_os = "macos")]
+    if exe_dir.ends_with("MacOS") {
+        if let Some(contents_dir) = exe_dir.parent() {
+            candidate_paths.push(contents_dir.join("Resources").join(plugin_name));
+        }
+    }
+    if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
+        let repo_root = std::path::PathBuf::from(manifest_dir)
+            .parent()
+            .map(std::path::Path::to_path_buf)
+            .unwrap_or_default();
+        candidate_paths.push(repo_root.join("src-tauri").join("resources").join(plugin_name));
+        candidate_paths.push(repo_root.join("plugins").join("daz3d-bridge").join("dist").join(plugin_name));
+        candidate_paths.push(repo_root.join("plugins").join("daz3d-bridge").join("dist").join("Release").join(plugin_name));
+    }
 
     let resource_path = candidate_paths
         .iter()
         .find(|p| p.exists())
-        .ok_or_else(|| "DazPilotBridge.dll not found. Build the plugin first.".to_string())?;
+        .ok_or_else(|| format!("{} not found. Build or download the bridge plugin first.", plugin_name))?;
 
     let daz_plugins_path = if let Some(ref path) = custom_path {
         if !path.is_empty() {
@@ -254,7 +292,7 @@ fn install_daz3d_plugin(custom_path: Option<String>) -> Result<String, String> {
         default_daz_path()
     };
 
-    let dest_path = daz_plugins_path.join("DazPilotBridge.dll");
+    let dest_path = daz_plugins_path.join(plugin_name);
 
     std::fs::create_dir_all(&daz_plugins_path)
         .map_err(|e| format!("Failed to create plugins directory: {}", e))?;
@@ -268,20 +306,21 @@ fn install_daz3d_plugin(custom_path: Option<String>) -> Result<String, String> {
 
 #[tauri::command]
 fn get_plugin_status(custom_path: Option<String>) -> Result<String, String> {
-    let mut daz_candidates = vec![
-        std::path::PathBuf::from(r"C:\Program Files\DAZ 3D\DAZStudio4\plugins\DazPilotBridge.dll"),
-        std::path::PathBuf::from(r"C:\Program Files (x86)\DAZ 3D\DAZStudio4\plugins\DazPilotBridge.dll"),
-    ];
+    let plugin_name = bridge_plugin_filename();
+    let mut daz_candidates = vec![default_daz_path().join(plugin_name)];
+
+    #[cfg(target_os = "windows")]
+    daz_candidates.push(std::path::PathBuf::from(r"C:\Program Files (x86)\DAZ 3D\DAZStudio4\plugins").join(plugin_name));
 
     if let Some(ref path) = custom_path {
         if !path.is_empty() {
             let path_buf = std::path::PathBuf::from(path);
-            let dll_path = if path_buf.is_file() {
+            let plugin_path = if path_buf.is_file() {
                 path_buf
             } else {
-                path_buf.join("DazPilotBridge.dll")
+                path_buf.join(plugin_name)
             };
-            daz_candidates.insert(0, dll_path);
+            daz_candidates.insert(0, plugin_path);
         }
     }
 
@@ -303,6 +342,7 @@ fn select_plugins_directory() -> Result<Option<String>, String> {
 
 #[tauri::command]
 fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<String>) -> Result<String, String> {
+    let plugin_name = bridge_plugin_filename();
     let daz_plugins_path = if let Some(ref path) = custom_path {
         if !path.is_empty() {
             std::path::PathBuf::from(path)
@@ -313,16 +353,19 @@ fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<String
         default_daz_path()
     };
 
-    let dest_path = daz_plugins_path.join("DazPilotBridge.dll");
+    let dest_path = daz_plugins_path.join(plugin_name);
     
     std::fs::create_dir_all(&daz_plugins_path)
         .map_err(|e| format!("Failed to create plugins directory: {}", e))?;
 
     let dest_str = dest_path.to_string_lossy().to_string();
 
-    let url = "https://github.com/millsydotdev/DazPilot/releases/latest/download/DazPilotBridge.dll";
+    let url = format!(
+        "https://github.com/millsydotdev/DazPilot/releases/latest/download/{}",
+        plugin_name
+    );
     
-    crate::model_download::download_model(&app, url, &dest_str)?;
+    crate::model_download::download_model(&app, &url, &dest_str)?;
 
     info!("Plugin downloaded and installed to Daz3D plugins folder: {}", dest_path.display());
     Ok(format!("Plugin successfully installed to: {}", dest_path.display()))

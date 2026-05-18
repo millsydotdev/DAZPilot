@@ -26,12 +26,8 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
-    "resources": [
-      "resources/llama/*",
-      "resources/models/*",
-      "resources/DazPilotBridge.dll"
-    ],
+    "targets": "all",
+    "resources": ["resources/llama/*", "resources/models/*", "resources/*DazPilotBridge.*"],
     "windows": {
       "nsis": {
         "installMode": "currentUser"

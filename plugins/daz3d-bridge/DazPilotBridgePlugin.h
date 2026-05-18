@@ -1,7 +1,9 @@
 #pragma once
 
+#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#endif
 
 #include <QtCore/QObject>
 #include <QtCore/QString>
@@ -35,10 +37,14 @@
 #include "dzobject.h"
 #include "dzshape.h"
 #include "dzmaterial.h"
-#ifdef DAZPILOTBRIDGE_EXPORTS
-#define DAZPILOTBRIDGE_API __declspec(dllexport)
+#if defined(_WIN32)
+#  ifdef DAZPILOTBRIDGE_EXPORTS
+#    define DAZPILOTBRIDGE_API __declspec(dllexport)
+#  else
+#    define DAZPILOTBRIDGE_API __declspec(dllimport)
+#  endif
 #else
-#define DAZPILOTBRIDGE_API __declspec(dllimport)
+#  define DAZPILOTBRIDGE_API __attribute__((visibility("default")))
 #endif
 
 struct SceneInfo {

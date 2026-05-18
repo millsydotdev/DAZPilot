@@ -4,23 +4,61 @@ project(DazPilotBridge)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# CRITICAL: Define WIN32_LEAN_AND_MEAN and include winsock2 FIRST to avoid conflicts
-add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX)
+if(WIN32)
+    add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX)
+endif()
 
-set(DAZ_SDK_ROOT    "E:/DazAI/DAZStudio4.5+ SDK")
+if(DEFINED ENV{DAZ_SDK_ROOT} AND NOT DEFINED DAZ_SDK_ROOT)
+    set(DAZ_SDK_ROOT "$ENV{DAZ_SDK_ROOT}")
+else()
+    set(DAZ_SDK_ROOT "${CMAKE_SOURCE_DIR}/../../DAZStudio4.5+ SDK" CACHE PATH "Daz Studio SDK root")
+endif()
 set(DAZ_SDK_INCLUDE "${DAZ_SDK_ROOT}/include")
-set(DAZ_SDK_LIB     "${DAZ_SDK_ROOT}/lib/x64")
+if(WIN32)
+    set(DAZ_SDK_PLATFORM "x64" CACHE STRING "Daz Studio SDK platform folder")
+elseif(APPLE)
+    set(DAZ_SDK_PLATFORM "mac64" CACHE STRING "Daz Studio SDK platform folder")
+else()
+    set(DAZ_SDK_PLATFORM "linux64" CACHE STRING "Daz Studio SDK platform folder")
+endif()
+set(DAZ_SDK_LIB "${DAZ_SDK_ROOT}/lib/${DAZ_SDK_PLATFORM}")
+set(DAZ_SDK_BIN "${DAZ_SDK_ROOT}/bin/${DAZ_SDK_PLATFORM}")
+
+if(NOT EXISTS "${DAZ_SDK_INCLUDE}/dzplugin.h")
+    message(FATAL_ERROR "Daz Studio SDK not found at '${DAZ_SDK_ROOT}'. Set DAZ_SDK_ROOT to the SDK root directory.")
+endif()
 
 include_directories(${DAZ_SDK_INCLUDE})
 
 # Setup Qt from the DAZ SDK for AUTOMOC
-set(DZ_MIXED_PLATFORM x64)
-set(DAZ_SDK_QTCORE_LIBRARY "${DAZ_SDK_ROOT}/lib/${DZ_MIXED_PLATFORM}/QtCore4.lib")
+set(DAZ_SDK_QTCORE_LIBRARY "${DAZ_SDK_LIB}/${CMAKE_STATIC_LIBRARY_PREFIX}QtCore4${CMAKE_STATIC_LIBRARY_SUFFIX}")
+if(WIN32)
+    set(DAZ_SDK_QTCORE_LIBRARY "${DAZ_SDK_LIB}/QtCore4.lib")
+endif()
 set(QT_QTCORE_LIBRARY_RELEASE ${DAZ_SDK_QTCORE_LIBRARY})
-set(QT_QMAKE_EXECUTABLE "${DAZ_SDK_ROOT}/bin/${DZ_MIXED_PLATFORM}/qmake.exe")
-set(QT_BINARY_DIR "${DAZ_SDK_ROOT}/bin/${DZ_MIXED_PLATFORM}")
+set(QT_LIBRARY_DIR "${DAZ_SDK_LIB}")
+if(WIN32)
+    set(QT_QMAKE_EXECUTABLE "${DAZ_SDK_BIN}/qmake.exe")
+else()
+    set(QT_QMAKE_EXECUTABLE "${DAZ_SDK_BIN}/qmake")
+endif()
+set(QT_BINARY_DIR "${DAZ_SDK_BIN}")
 set(QT_HEADERS_DIR "${DAZ_SDK_ROOT}/include")
 set(QT_QTCORE_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtCore")
+set(QT_QTGUI_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtGui")
+set(QT_QTSCRIPT_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtScript")
+set(QT_QTOPENGL_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtOpenGL")
+set(QT_QTNETWORK_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtNetwork")
+set(QT_QTSQL_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtSql")
+set(QT_QTXML_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtXml")
+if(WIN32)
+    set(QT_QTGUI_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtGui4.lib")
+    set(QT_QTSCRIPT_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtScript4.lib")
+    set(QT_QTOPENGL_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtOpenGL4.lib")
+    set(QT_QTNETWORK_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtNetwork4.lib")
+    set(QT_QTSQL_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtSql4.lib")
+    set(QT_QTXML_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtXml4.lib")
+endif()
 
 # the qt find module needs this folder but our build does not so just fake it
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/DUMMY_MKSPECS/default" )
@@ -41,22 +79,38 @@ list(APPEND CMAKE_AUTOMOC_MOC_OPTIONS -i)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Make sure even in debug we use MD and undef debug for compatibility with release dzcore
-add_compile_options("/MD" "/U_DEBUG")
+if(MSVC)
+    # Make sure even in debug we use MD and undef debug for compatibility with release dzcore.
+    add_compile_options("/MD" "/U_DEBUG")
+endif()
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS -DDAZPILOTBRIDGE_EXPORTS)
 
 set(DAZ_LIBS
-    "${DAZ_SDK_LIB}/dzcore.lib"
     ${DZSDK_QT_CORE_TARGET}
     ${DZSDK_QT_GUI_TARGET}
     ${DZSDK_QT_SCRIPT_TARGET}
     ${DZSDK_QT_NETWORK_TARGET}
-    Ws2_32.lib
 )
+if(WIN32)
+    list(APPEND DAZ_LIBS "${DAZ_SDK_LIB}/dzcore.lib" Ws2_32.lib)
+else()
+    find_library(DAZ_DZCORE_LIBRARY NAMES dzcore libdzcore PATHS "${DAZ_SDK_LIB}" NO_DEFAULT_PATH REQUIRED)
+    list(APPEND DAZ_LIBS "${DAZ_DZCORE_LIBRARY}")
+endif()
 
-set(DAZ_PLUGINS_DIR     "C:/Program Files/DAZ 3D/DAZStudio4/plugins")
+if(WIN32)
+    set(DAZ_BRIDGE_PLUGIN_FILE "DazPilotBridge.dll")
+    set(DAZ_PLUGINS_DIR "C:/Program Files/DAZ 3D/DAZStudio4/plugins" CACHE PATH "Daz Studio plugin install directory")
+elseif(APPLE)
+    set(DAZ_BRIDGE_PLUGIN_FILE "libDazPilotBridge.dylib")
+    set(DAZ_PLUGINS_DIR "$ENV{HOME}/Library/Application Support/DAZ 3D/Studio4/plugins" CACHE PATH "Daz Studio plugin install directory")
+else()
+    set(DAZ_BRIDGE_PLUGIN_FILE "libDazPilotBridge.so")
+    set(DAZ_PLUGINS_DIR "$ENV{HOME}/.local/share/DAZ 3D/Studio4/plugins" CACHE PATH "Daz Studio plugin install directory")
+endif()
 set(TAURI_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/../../src-tauri/resources")
+option(DAZPILOT_DEPLOY_TO_DAZ "Copy DazPilotBridge to the Daz Studio plugins directory after build" OFF)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DazPilot Bridge Plugin
@@ -70,6 +124,9 @@ add_library(DazPilotBridge SHARED
     DazPilotBridgePlugin.h
     DazPilotPhyModifier.h
 )
+if(WIN32)
+    target_sources(DazPilotBridge PRIVATE DazPilotBridge.def)
+endif()
 
 target_link_libraries(DazPilotBridge PRIVATE ${DAZ_LIBS})
 
@@ -83,12 +140,14 @@ add_custom_command(TARGET DazPilotBridge POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${TAURI_RESOURCES_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "$<TARGET_FILE:DazPilotBridge>"
-        "${TAURI_RESOURCES_DIR}/DazPilotBridge.dll"
-    COMMENT "Copying DazPilotBridge.dll -> src-tauri/resources/"
+        "${TAURI_RESOURCES_DIR}/${DAZ_BRIDGE_PLUGIN_FILE}"
+    COMMENT "Copying ${DAZ_BRIDGE_PLUGIN_FILE} -> src-tauri/resources/"
 )
-add_custom_command(TARGET DazPilotBridge POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE:DazPilotBridge>"
-        "${DAZ_PLUGINS_DIR}/DazPilotBridge.dll"
-    COMMENT "Copying DazPilotBridge.dll -> Daz Studio plugins/"
-)
+if(DAZPILOT_DEPLOY_TO_DAZ)
+    add_custom_command(TARGET DazPilotBridge POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:DazPilotBridge>"
+            "${DAZ_PLUGINS_DIR}/${DAZ_BRIDGE_PLUGIN_FILE}"
+        COMMENT "Copying ${DAZ_BRIDGE_PLUGIN_FILE} -> Daz Studio plugins/"
+    )
+endif()

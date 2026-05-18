@@ -1,0 +1,110 @@
+name: App Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build, for example v0.1.0
+        required: true
+        type: string
+
+concurrency:
+  group: app-release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-app:
+    name: Build app (${{ matrix.platform.name }})
+    runs-on: ${{ matrix.platform.runner }}
+
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: windows
+            runner: windows-latest
+            bundles: nsis
+          - name: macos
+            runner: macos-latest
+            bundles: app,dmg
+          - name: linux
+            runner: ubuntu-22.04
+            bundles: appimage,deb
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libfuse2 \
+            patchelf
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Verify release resources
+        shell: bash
+        run: |
+          case "${{ matrix.platform.name }}" in
+            windows)
+              test -f src-tauri/resources/DazPilotBridge.dll
+              test -f src-tauri/resources/llama/llama-server.exe
+              ;;
+            macos)
+              test -f src-tauri/resources/libDazPilotBridge.dylib || echo "macOS bridge plugin not committed; app will offer plugin download/install when published."
+              test -f src-tauri/resources/llama/llama-server || echo "macOS llama-server not committed; local GGUF requires adding the platform binary."
+              ;;
+            linux)
+              test -f src-tauri/resources/libDazPilotBridge.so || echo "Linux bridge plugin not committed; app will offer plugin download/install when published."
+              test -f src-tauri/resources/llama/llama-server || echo "Linux llama-server not committed; local GGUF requires adding the platform binary."
+              ;;
+          esac
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build and upload Tauri bundles
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.event.inputs.tag || github.ref_name }}
+          releaseName: DazPilot ${{ github.event.inputs.tag || github.ref_name }}
+          releaseBody: |
+            DazPilot desktop app release.
+
+            The Daz Studio bridge plugin is published by the separate Plugin Release workflow and may also be attached to this release.
+          releaseDraft: true
+          prerelease: ${{ contains(github.event.inputs.tag || github.ref_name, '-') }}
+          args: --bundles ${{ matrix.platform.bundles }}

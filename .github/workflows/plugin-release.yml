@@ -1,0 +1,79 @@
+name: Plugin Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'plugin-v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to attach the plugin asset to
+        required: true
+        type: string
+
+concurrency:
+  group: plugin-release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  bridge-plugin:
+    name: Package Windows Daz bridge plugin
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Verify bridge DLL exists
+        shell: pwsh
+        run: |
+          $dll = "src-tauri/resources/DazPilotBridge.dll"
+          if (-not (Test-Path $dll)) {
+            throw "Missing $dll. Build the bridge locally with the Daz SDK, then commit the release DLL."
+          }
+
+      - name: Verify Daz plugin exports
+        shell: pwsh
+        run: |
+          $dll = "src-tauri/resources/DazPilotBridge.dll"
+          $dumpbin = "${env:VCToolsInstallDir}bin\Hostx64\x64\dumpbin.exe"
+          if (-not (Test-Path $dumpbin)) {
+            $dumpbin = (Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter dumpbin.exe |
+              Where-Object FullName -like "*Hostx64*x64*" |
+              Select-Object -First 1 -ExpandProperty FullName)
+          }
+          if (-not $dumpbin) {
+            throw "dumpbin.exe not found."
+          }
+
+          $exports = & $dumpbin /EXPORTS $dll | Out-String
+          foreach ($symbol in @("getSDKVersion", "getPluginDefinition")) {
+            if ($exports -notmatch "\b$symbol\b") {
+              throw "Bridge DLL is missing required Daz export: $symbol"
+            }
+          }
+
+      - name: Package plugin zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "release\plugin" | Out-Null
+          Copy-Item "src-tauri/resources/DazPilotBridge.dll" "release/plugin/DazPilotBridge.dll"
+          Copy-Item "plugins/daz3d-bridge/README.md" "release/plugin/README.md"
+          Compress-Archive -Path "release/plugin/*" -DestinationPath "DazPilotBridge-windows-${env:RELEASE_TAG}.zip" -Force
+
+      - name: Upload plugin release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          draft: true
+          prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
+          files: DazPilotBridge-windows-${{ env.RELEASE_TAG }}.zip

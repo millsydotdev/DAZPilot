@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -20,15 +21,12 @@ pub struct LlamaServer {
 
 impl LlamaServer {
     pub fn start(model_path: &str, port: u16) -> Result<Self, String> {
-        let exe_path = std::env::current_exe()
-            .map_err(|e| format!("Failed to get exe path: {}", e))?
-            .parent()
-            .ok_or("Failed to get parent directory")?
+        let exe_path = bundled_resource_dir()?
             .join("llama")
-            .join("llama-server.exe");
+            .join(llama_server_binary_name());
 
         if !exe_path.exists() {
-            return Err(format!("llama-server.exe not found at: {}", exe_path.display()));
+            return Err(format!("{} not found at: {}", llama_server_binary_name(), exe_path.display()));
         }
 
         let child = Command::new(&exe_path)
@@ -92,9 +90,35 @@ impl LlamaServer {
     }
 }
 
+fn bundled_resource_dir() -> Result<PathBuf, String> {
+    let exe_dir = std::env::current_exe()
+        .map_err(|e| format!("Failed to get exe path: {}", e))?
+        .parent()
+        .ok_or("Failed to get parent directory")?
+        .to_path_buf();
+
+    #[cfg(target_os = "macos")]
+    {
+        if exe_dir.ends_with("MacOS") {
+            if let Some(contents_dir) = exe_dir.parent() {
+                return Ok(contents_dir.join("Resources"));
+            }
+        }
+    }
+
+    Ok(exe_dir)
+}
+
+fn llama_server_binary_name() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "llama-server.exe"
+    } else {
+        "llama-server"
+    }
+}
+
 pub fn get_models_dir() -> std::path::PathBuf {
-    std::env::current_exe()
-        .map(|p| p.parent().unwrap().to_path_buf())
+    bundled_resource_dir()
         .unwrap_or_default()
         .join("models")
 }

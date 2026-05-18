@@ -1,0 +1,4 @@
+LIBRARY DazPilotBridge
+EXPORTS
+    getSDKVersion=?getSDKVersion@@YA?AVDzVersion@@XZ
+    getPluginDefinition=?getPluginDefinition@@YAPEAVDzPlugin@@XZ

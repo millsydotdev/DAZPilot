@@ -36,7 +36,7 @@ function App() {
   } = useAppStore();
 
   const wizardCompleted = storeWizardCompleted || 
-    (typeof window !== 'undefined' && (window.location.search.includes('skipModel') || !(window as any).__TAURI__));
+    (typeof window !== 'undefined' && (window.location.search.includes('skipModel') || !(window as unknown as { __TAURI__?: unknown }).__TAURI__));
 
   const handleWizardComplete = () => {
     setWizardCompleted(true);

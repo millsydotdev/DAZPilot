@@ -1,4 +1,5 @@
 #include "DazPilotBridgePlugin.h"
+#include "dzplugin.h"
 #include "dzundostack.h"
 #include "dzexportmgr.h"
 #include "dzfloatproperty.h"
@@ -18,6 +19,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <cstring>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QEvent>
 #include <iostream>
@@ -25,10 +27,24 @@
 #include <string>
 #include <thread>
 
+#ifdef _WIN32
+using BridgeSocket = SOCKET;
+static constexpr BridgeSocket INVALID_BRIDGE_SOCKET = INVALID_SOCKET;
+static void CloseBridgeSocket(BridgeSocket socket) { closesocket(socket); }
+#else
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+using BridgeSocket = int;
+static constexpr BridgeSocket INVALID_BRIDGE_SOCKET = -1;
+static void CloseBridgeSocket(BridgeSocket socket) { close(socket); }
+#endif
+
 static DazPilotBridgeState g_state = {nullptr, QList<QTcpSocket*>(), "127.0.0.1", 8765, ""};
 static std::atomic<bool> g_serverRunning(false);
 static std::thread g_serverThread;
-static SOCKET g_listenSocket = INVALID_SOCKET;
+static BridgeSocket g_listenSocket = INVALID_BRIDGE_SOCKET;
 
 static std::string JsonEscape(const QString& value);
 
@@ -940,28 +956,34 @@ static std::string DispatchRequest(const std::string& line) {
 }
 
 static void BridgeServerLoop() {
+#ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         std::cout << "[DazPilotBridge] WSAStartup failed" << std::endl;
         return;
     }
+#endif
 
-    g_listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (g_listenSocket == INVALID_SOCKET) {
+    g_listenSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (g_listenSocket == INVALID_BRIDGE_SOCKET) {
+#ifdef _WIN32
         WSACleanup();
+#endif
         return;
     }
 
     sockaddr_in service;
     service.sin_family = AF_INET;
     service.sin_addr.s_addr = inet_addr("127.0.0.1");
-    service.sin_port = htons(static_cast<u_short>(g_state.port));
+    service.sin_port = htons(static_cast<unsigned short>(g_state.port));
 
-    if (bind(g_listenSocket, reinterpret_cast<SOCKADDR*>(&service), sizeof(service)) == SOCKET_ERROR) {
+    if (bind(g_listenSocket, reinterpret_cast<sockaddr*>(&service), sizeof(service)) < 0) {
         std::cout << "[DazPilotBridge] Failed to bind 127.0.0.1:" << g_state.port << std::endl;
-        closesocket(g_listenSocket);
-        g_listenSocket = INVALID_SOCKET;
+        CloseBridgeSocket(g_listenSocket);
+        g_listenSocket = INVALID_BRIDGE_SOCKET;
+#ifdef _WIN32
         WSACleanup();
+#endif
         return;
     }
 
@@ -969,8 +991,8 @@ static void BridgeServerLoop() {
     std::cout << "[DazPilotBridge] Listening on 127.0.0.1:" << g_state.port << std::endl;
 
     while (g_serverRunning.load()) {
-        SOCKET client = accept(g_listenSocket, nullptr, nullptr);
-        if (client == INVALID_SOCKET) continue;
+        BridgeSocket client = accept(g_listenSocket, nullptr, nullptr);
+        if (client == INVALID_BRIDGE_SOCKET) continue;
 
         std::string line;
         char ch;
@@ -980,15 +1002,21 @@ static void BridgeServerLoop() {
         }
 
         std::string response = DispatchRequest(line);
+#ifdef _WIN32
         send(client, response.c_str(), static_cast<int>(response.size()), 0);
-        closesocket(client);
+#else
+        send(client, response.c_str(), response.size(), 0);
+#endif
+        CloseBridgeSocket(client);
     }
 
-    if (g_listenSocket != INVALID_SOCKET) {
-        closesocket(g_listenSocket);
-        g_listenSocket = INVALID_SOCKET;
+    if (g_listenSocket != INVALID_BRIDGE_SOCKET) {
+        CloseBridgeSocket(g_listenSocket);
+        g_listenSocket = INVALID_BRIDGE_SOCKET;
     }
+#ifdef _WIN32
     WSACleanup();
+#endif
 }
 
 const char* GetPluginName() { return "DazPilot Bridge"; }
@@ -1027,9 +1055,9 @@ bool ConnectToDazPilot(const char* host, int port) {
 
 void DisconnectFromDazPilot() {
     g_serverRunning = false;
-    if (g_listenSocket != INVALID_SOCKET) {
-        closesocket(g_listenSocket);
-        g_listenSocket = INVALID_SOCKET;
+    if (g_listenSocket != INVALID_BRIDGE_SOCKET) {
+        CloseBridgeSocket(g_listenSocket);
+        g_listenSocket = INVALID_BRIDGE_SOCKET;
     }
     if (g_serverThread.joinable()) {
         g_serverThread.join();
@@ -1097,3 +1125,25 @@ const char* CaptureViewport() {
     }
     return g_state.lastResponse.toUtf8().constData();
 }
+
+class DazPilotBridgeDzPlugin : public DzPlugin {
+public:
+    DazPilotBridgeDzPlugin()
+        : DzPlugin(
+              "DazPilot Bridge",
+              "DazPilot",
+              "TCP bridge for DazPilot scene editing and viewport sync.",
+              1,
+              0,
+              0,
+              0) {}
+
+protected:
+    void startup() override { PluginInitialize(); }
+    void shutdown() override { PluginCleanup(); }
+};
+
+DZ_CUSTOM_PLUGIN_DEFINITION(DazPilotBridgeDzPlugin);
+DZ_PLUGIN_CLASS_GUID(DazPilotPhyModifier, F9EC5E01-A301-48CD-AF81-C3BB80EC4AA6);
+DZ_PLUGIN_CLASS_GUID(DazPilotPhyModifierIO, 1C884DA8-6C3C-4364-81B4-272501D5DDD8);
+DZ_PLUGIN_REGISTER_MODIFIER_EXTRA_OBJECT_IO("dazpilot_phy", DazPilotPhyModifierIO, DazPilotPhyModifier);
