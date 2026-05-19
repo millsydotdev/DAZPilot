@@ -1,10 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Loader2, Cpu, Check, AlertCircle, RefreshCw, Download, FolderOpen } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Loader2,
+  Cpu,
+  Check,
+  AlertCircle,
+  RefreshCw,
+  Download,
+  FolderOpen,
+  ArrowLeft,
+  Zap,
+  Monitor,
+} from 'lucide-react';
 import { useLocalAiStore, type LocalModelInfo } from '../store/localAiStore';
+import { useOllamaStore } from '../store/ollamaStore';
+import { useConnectionStore } from '../store/connectionStore';
 import { usePluginStore } from '../store';
 import { Button, Card, VStack, Text } from './ui';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
+import { useAppStore } from '../store';
 import styles from './FirstLaunchWizard.module.css';
 
 interface FirstLaunchWizardProps {
@@ -13,14 +27,20 @@ interface FirstLaunchWizardProps {
 
 type WizardStep =
   | 'checking'
+  | 'ai_backend_choice'
+  | 'ollama_setup'
   | 'no_model'
   | 'downloading'
   | 'ready'
   | 'plugin_setup'
   | 'plugin_downloading'
+  | 'bridge_test'
   | 'sdk_setup'
   | 'starting'
+  | 'ready_to_launch'
   | 'error';
+
+type AiBackend = 'local' | 'ollama';
 
 interface ModelPreset {
   id: string;
@@ -58,6 +78,45 @@ const MODEL_PRESETS: ModelPreset[] = [
   },
 ];
 
+const WIZARD_STEPS: { key: WizardStep; label: string }[] = [
+  { key: 'ai_backend_choice', label: 'AI Backend' },
+  { key: 'no_model', label: 'Model' },
+  { key: 'plugin_setup', label: 'Plugin' },
+  { key: 'sdk_setup', label: 'SDK' },
+  { key: 'ready_to_launch', label: 'Launch' },
+];
+
+function getStepIndex(step: WizardStep): number {
+  const map: Record<string, number> = {
+    checking: -1,
+    ai_backend_choice: 0,
+    ollama_setup: 0,
+    no_model: 1,
+    downloading: 1,
+    ready: 1,
+    plugin_setup: 2,
+    plugin_downloading: 2,
+    bridge_test: 2,
+    sdk_setup: 3,
+    starting: 4,
+    ready_to_launch: 4,
+    error: -1,
+  };
+  return map[step] ?? -1;
+}
+
+function isValidGgufUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
+      (parsed.pathname.endsWith('.gguf') || parsed.pathname.includes('.gguf'))
+    );
+  } catch {
+    return false;
+  }
+}
+
 interface DownloadProgressPayload {
   progress: number;
   total: number | null;
@@ -65,16 +124,24 @@ interface DownloadProgressPayload {
 }
 
 export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
-  const [stage, setStage] = useState<'model' | 'plugin'>('model');
   const [step, setStep] = useState<WizardStep>('checking');
+  const [stepHistory, setStepHistory] = useState<WizardStep[]>([]);
+  const [aiBackend, setAiBackend] = useState<AiBackend>('local');
   const [selectedLocalModel, setSelectedLocalModel] = useState<LocalModelInfo | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<ModelPreset>(MODEL_PRESETS[0]);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadedBytes, setDownloadedBytes] = useState(0);
   const [customGgufUrl, setCustomGgufUrl] = useState('');
   const [customGgufFilename, setCustomGgufFilename] = useState('');
+  const [customUrlError, setCustomUrlError] = useState<string | null>(null);
   const [sdkPath, setSdkPath] = useState<string | null>(null);
   const [sdkChecking, setSdkChecking] = useState(false);
+  const [bridgeTestResult, setBridgeTestResult] = useState<'success' | 'failed' | null>(null);
+  const [bridgeTesting, setBridgeTesting] = useState(false);
+  const [selectedOllamaModel, setSelectedOllamaModel] = useState<string | null>(null);
+  const [ollamaPullName, setOllamaPullName] = useState('');
+
+  const setAiProvider = useAppStore((s) => s.setAiProvider);
 
   const {
     isRunning,
@@ -90,6 +157,15 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
   } = useLocalAiStore();
 
   const {
+    isRunning: ollamaRunning,
+    models: ollamaModels,
+    isLoading: ollamaLoading,
+    checkStatus: checkOllamaStatus,
+    loadModels: loadOllamaModels,
+    pullModel: pullOllamaModel,
+  } = useOllamaStore();
+
+  const {
     status: pluginStatus,
     customPath: pluginCustomPath,
     checkPluginStatus,
@@ -99,57 +175,101 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     error: pluginError,
   } = usePluginStore();
 
+  const { connect: connectBridge } = useConnectionStore();
+
+  const navigateTo = useCallback(
+    (newStep: WizardStep) => {
+      setStepHistory((prev) => [...prev, step]);
+      setStep(newStep);
+    },
+    [step]
+  );
+
+  const goBack = useCallback(() => {
+    setStepHistory((prev) => {
+      const next = [...prev];
+      const last = next.pop();
+      if (last) setStep(last);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       await getModelsDir();
       await loadModels();
       await checkServerStatus();
       await checkPluginStatus();
+      await checkOllamaStatus();
     };
     init();
-  }, [checkServerStatus, getModelsDir, loadModels, checkPluginStatus]);
+  }, [checkServerStatus, getModelsDir, loadModels, checkPluginStatus, checkOllamaStatus]);
 
   useEffect(() => {
-    if (stage === 'model') {
-      if (isRunning) {
-        setStage('plugin');
-        setStep('plugin_setup');
-      } else if (models.length > 0) {
-        setStep('ready');
-        setSelectedLocalModel(models[0]);
-      } else if (!isLoading) {
-        setStep('no_model');
-      }
+    if (step !== 'checking') return;
+
+    if (isRunning) {
+      setStep('ready_to_launch');
+    } else if (models.length > 0) {
+      setAiBackend('local');
+      setSelectedLocalModel(models[0]);
+      setStep('ready');
+    } else if (!isLoading) {
+      setStep('ai_backend_choice');
     }
-  }, [isRunning, models, stage, isLoading]);
+  }, [isRunning, models, step, isLoading]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
-
     const setupListener = async () => {
       unlisten = await listen<DownloadProgressPayload>('download-progress', (event) => {
         setDownloadProgress(event.payload.progress);
         setDownloadedBytes(event.payload.downloaded);
       });
     };
-
     setupListener();
     return () => {
       if (unlisten) unlisten();
     };
   }, []);
 
+  const handleSelectBackend = (backend: AiBackend) => {
+    setAiBackend(backend);
+    if (backend === 'ollama') {
+      navigateTo('ollama_setup');
+      loadOllamaModels().catch(console.error);
+    } else {
+      navigateTo('no_model');
+    }
+  };
+
+  const handleOllamaPull = async () => {
+    if (!ollamaPullName.trim()) return;
+    await pullOllamaModel(ollamaPullName.trim());
+    setSelectedOllamaModel(ollamaPullName.trim());
+  };
+
+  const handleOllamaContinue = async () => {
+    if (!selectedOllamaModel && ollamaModels.length > 0) {
+      setSelectedOllamaModel(ollamaModels[0].name);
+    }
+    try {
+      await setAiProvider('ollama');
+    } catch {
+      // ignore
+    }
+    navigateTo('plugin_setup');
+  };
+
   const handleDownloadModel = async () => {
-    setStep('downloading');
+    navigateTo('downloading');
     setDownloadProgress(0);
     setDownloadedBytes(0);
-
     try {
       await downloadModel(selectedPreset.url, selectedPreset.filename);
       setDownloadProgress(100);
       await loadModels();
       await checkServerStatus();
-
       if (models.length > 0) {
         setSelectedLocalModel(models[0]);
         setStep('ready');
@@ -164,29 +284,32 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     const url = customGgufUrl.trim();
     if (!url) return;
 
+    if (!isValidGgufUrl(url)) {
+      setCustomUrlError('Please enter a valid GGUF URL (must end with .gguf)');
+      return;
+    }
+    setCustomUrlError(null);
+
     let filename = customGgufFilename.trim();
     if (!filename) {
       try {
         const parts = url.split('/');
         filename = parts[parts.length - 1] || 'custom-model.gguf';
-        if (!filename.endsWith('.gguf')) {
-          filename += '.gguf';
-        }
+        if (!filename.endsWith('.gguf')) filename += '.gguf';
       } catch {
         filename = 'custom-model.gguf';
       }
     }
 
-    setStep('downloading');
+    navigateTo('downloading');
     setDownloadProgress(0);
     setDownloadedBytes(0);
-
     setSelectedPreset({
       id: 'custom',
       name: filename,
       description: 'Custom GGUF Model weights',
-      url: url,
-      filename: filename,
+      url,
+      filename,
       sizeDesc: 'Custom Size',
     });
 
@@ -195,7 +318,6 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
       setDownloadProgress(100);
       await loadModels();
       await checkServerStatus();
-
       if (models.length > 0) {
         setSelectedLocalModel(models[0]);
         setStep('ready');
@@ -207,14 +329,13 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
   };
 
   const handleDownloadPlugin = async () => {
-    setStep('plugin_downloading');
+    navigateTo('plugin_downloading');
     setDownloadProgress(0);
     setDownloadedBytes(0);
-
     try {
       await downloadAndInstallPlugin();
       setDownloadProgress(100);
-      setStep('plugin_setup');
+      setStep('bridge_test');
     } catch (e) {
       console.error('Plugin download failed:', e);
       setStep('error');
@@ -224,9 +345,23 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
   const handleInstallLocalPlugin = async () => {
     try {
       await installLocalPlugin();
+      navigateTo('bridge_test');
     } catch (e) {
       console.error('Local plugin install failed:', e);
       setStep('error');
+    }
+  };
+
+  const handleTestBridge = async () => {
+    setBridgeTesting(true);
+    try {
+      await connectBridge();
+      const status = useConnectionStore.getState().status;
+      setBridgeTestResult(status === 'connected' ? 'success' : 'failed');
+    } catch {
+      setBridgeTestResult('failed');
+    } finally {
+      setBridgeTesting(false);
     }
   };
 
@@ -235,22 +370,14 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     await checkServerStatus();
   };
 
-  const handleProceedToPlugin = () => {
-    setStage('plugin');
-    setStep('plugin_setup');
-  };
-
   const handleProceedToSdk = async () => {
-    setStep('sdk_setup');
+    navigateTo('sdk_setup');
     setSdkChecking(true);
     try {
-      // Check if SDK is already configured
       const configuredPath = await invoke<string | null>('get_app_setting', {
         key: 'daz_sdk_path',
       });
-      if (configuredPath) {
-        setSdkPath(configuredPath);
-      }
+      if (configuredPath) setSdkPath(configuredPath);
     } catch (e) {
       console.error('Failed to check SDK path:', e);
     } finally {
@@ -274,20 +401,27 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
 
   const handleFinishSetup = async () => {
     if (isRunning) {
-      onComplete();
+      navigateTo('ready_to_launch');
+      return;
+    }
+
+    if (aiBackend === 'ollama') {
+      navigateTo('ready_to_launch');
       return;
     }
 
     const model = selectedLocalModel || (models.length > 0 ? models[0] : null);
     if (!model) {
-      onComplete();
+      navigateTo('ready_to_launch');
       return;
     }
 
-    setStep('starting');
+    navigateTo('starting');
     try {
-      const modelPath = `${modelsDir}\\${model.name}`;
+      const sep = modelsDir.includes('\\') ? '\\' : '/';
+      const modelPath = `${modelsDir}${sep}${model.name}`;
       await startServer(modelPath);
+      navigateTo('ready_to_launch');
     } catch (e) {
       console.error('Failed to start server:', e);
       setStep('error');
@@ -302,28 +436,198 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const currentStepIndex = getStepIndex(step);
+
+  const renderStepIndicator = () => {
+    if (currentStepIndex < 0) return null;
+    return (
+      <>
+        <div className={styles.stepLabel}>
+          Step {currentStepIndex + 1} of {WIZARD_STEPS.length}:{' '}
+          {WIZARD_STEPS[currentStepIndex]?.label}
+        </div>
+        <div className={styles.stepIndicator}>
+          {WIZARD_STEPS.map((s, i) => (
+            <div
+              key={s.key}
+              className={`${styles.stepDot} ${
+                i === currentStepIndex
+                  ? styles.stepDotActive
+                  : i < currentStepIndex
+                    ? styles.stepDotCompleted
+                    : ''
+              }`}
+            />
+          ))}
+        </div>
+      </>
+    );
+  };
+
+  const renderBackButton = () => {
+    if (stepHistory.length === 0) return null;
+    return (
+      <div className={styles.navRow}>
+        <Button onClick={goBack} variant="ghost" className={styles.backButton}>
+          <ArrowLeft size={14} />
+          Back
+        </Button>
+      </div>
+    );
+  };
+
   const renderChecking = () => (
     <div className={styles.centered}>
       <Loader2 className={styles.spinner} size={48} />
       <Text variant="body" className={styles.statusText}>
-        Checking AI setup...
+        Checking your setup...
       </Text>
     </div>
+  );
+
+  const renderAiBackendChoice = () => (
+    <VStack gap="lg" className={styles.centered}>
+      <Cpu size={64} className="text-cyan-400 animate-pulse mb-2" />
+      <Text variant="heading1">Welcome to DazPilot</Text>
+      <Text variant="body" className={styles.description}>
+        Choose your AI backend. This powers the natural-language scene control.
+      </Text>
+
+      <div className={styles.backendChoiceGrid}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => handleSelectBackend('local')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') handleSelectBackend('local');
+          }}
+          className={`${styles.backendCard} ${styles.backendCardSelected}`}
+        >
+          <Cpu size={32} className={styles.backendIcon} />
+          <span className={styles.backendTitle}>Local GGUF</span>
+          <span className={styles.backendDesc}>Runs on your machine. No internet needed.</span>
+          <span className={styles.recommendedBadge}>Recommended</span>
+        </div>
+
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => handleSelectBackend('ollama')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') handleSelectBackend('ollama');
+          }}
+          className={`${styles.backendCard} ${!ollamaRunning ? styles.backendCardDisabled : ''}`}
+        >
+          <Zap size={32} className={styles.backendIcon} />
+          <span className={styles.backendTitle}>Ollama</span>
+          <span className={styles.backendDesc}>Use Ollama if you have it installed.</span>
+          <span
+            className={ollamaRunning ? styles.backendStatusOnline : styles.backendStatusOffline}
+          >
+            {ollamaRunning ? 'Detected' : 'Not detected'}
+          </span>
+        </div>
+      </div>
+
+      <Text variant="small" className="text-slate-500" style={{ marginTop: '8px' }}>
+        You can change this later in Settings.
+      </Text>
+    </VStack>
+  );
+
+  const renderOllamaSetup = () => (
+    <VStack gap="lg" className={styles.centered}>
+      <Zap size={64} className="text-cyan-400 animate-pulse mb-2" />
+      <Text variant="heading2">Ollama Setup</Text>
+      <Text variant="body" className={styles.description}>
+        {ollamaRunning
+          ? 'Select a model or pull a new one.'
+          : 'Ollama does not appear to be running. Start Ollama and try again.'}
+      </Text>
+
+      {ollamaRunning && (
+        <div className={styles.modelCard}>
+          <Text variant="heading3" className={styles.downloadTitle}>
+            Available Models
+          </Text>
+          {ollamaModels.length > 0 ? (
+            <VStack gap="sm" className={styles.readyList}>
+              {ollamaModels.map((model) => (
+                <div
+                  key={model.name}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedOllamaModel(model.name)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') setSelectedOllamaModel(model.name);
+                  }}
+                  className={`${styles.readyItem} ${
+                    selectedOllamaModel === model.name ? styles.readyItemSelected : ''
+                  }`}
+                >
+                  <span className={styles.readyName}>{model.name}</span>
+                  <span className={styles.readySize}>{Math.round(model.size / 1024 / 1024)}MB</span>
+                </div>
+              ))}
+            </VStack>
+          ) : (
+            <Text variant="small" className="text-slate-500">
+              No models found. Pull one below.
+            </Text>
+          )}
+
+          <div className={styles.customSection}>
+            <span className={styles.customLabel}>Pull a model</span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                placeholder="e.g. llama3, phi3, mistral"
+                value={ollamaPullName}
+                onChange={(e) => setOllamaPullName(e.target.value)}
+                className={styles.input}
+              />
+              <Button
+                onClick={handleOllamaPull}
+                variant="ghost"
+                disabled={!ollamaPullName.trim() || ollamaLoading}
+                style={{ flexShrink: 0 }}
+              >
+                {ollamaLoading ? (
+                  <Loader2 className={styles.spinner} size={14} />
+                ) : (
+                  <Download size={14} />
+                )}
+                Pull
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Button
+        onClick={handleOllamaContinue}
+        variant="primary"
+        className={styles.actionButton}
+        disabled={ollamaRunning && ollamaModels.length > 0 && !selectedOllamaModel}
+      >
+        {ollamaRunning ? 'Next: Daz Plugin Setup' : 'Skip & Continue'}
+      </Button>
+      {renderBackButton()}
+    </VStack>
   );
 
   const renderNoModel = () => (
     <VStack gap="lg" className={styles.centered}>
       <Cpu size={64} className="text-cyan-400 animate-pulse mb-2" />
-      <Text variant="heading1">Welcome to DazPilot</Text>
+      <Text variant="heading1">Download AI Model</Text>
       <Text variant="body" className={styles.description}>
-        DazPilot is your AI co-pilot for Daz Studio — describe what you want and AI controls the
-        scene for you.
+        Pick a model to run locally on your machine.
       </Text>
 
       <div className={styles.modelCard}>
         <Text variant="heading3" className={styles.downloadTitle}>
           <Download size={20} />
-          Download AI Model
+          Preset Models
         </Text>
 
         <VStack gap="sm" className={styles.presetsList}>
@@ -334,11 +638,11 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
               tabIndex={0}
               onClick={() => setSelectedPreset(preset)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  setSelectedPreset(preset);
-                }
+                if (e.key === 'Enter' || e.key === ' ') setSelectedPreset(preset);
               }}
-              className={`${styles.presetItem} ${selectedPreset.id === preset.id ? styles.selected : ''}`}
+              className={`${styles.presetItem} ${
+                selectedPreset.id === preset.id ? styles.presetItemSelected : ''
+              }`}
             >
               <div className={styles.presetHeader}>
                 <span className={styles.presetName}>{preset.name}</span>
@@ -358,72 +662,30 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           Download & Setup
         </Button>
 
-        <div
-          style={{
-            borderTop: '1px solid rgba(255,255,255,0.05)',
-            paddingTop: '16px',
-            marginTop: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              color: 'var(--color-text-secondary)',
-              display: 'block',
-              marginBottom: '4px',
-            }}
-          >
-            Or Download from Direct Hugging Face GGUF URL
-          </span>
+        <div className={styles.customSection}>
+          <span className={styles.customLabel}>Or Download from Direct Hugging Face GGUF URL</span>
           <input
             type="text"
             placeholder="https://huggingface.co/username/repo/resolve/main/model.gguf"
             value={customGgufUrl}
-            onChange={(e) => setCustomGgufUrl(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              fontSize: '12px',
-              background: 'rgba(0,0,0,0.2)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 'var(--radius-sm)',
-              color: '#fff',
-              outline: 'none',
+            onChange={(e) => {
+              setCustomGgufUrl(e.target.value);
+              setCustomUrlError(null);
             }}
+            className={customUrlError ? styles.inputError : styles.input}
           />
+          {customUrlError && <span className={styles.errorMessage}>{customUrlError}</span>}
           <input
             type="text"
             placeholder="Custom Filename (e.g. my-model.gguf - optional)"
             value={customGgufFilename}
             onChange={(e) => setCustomGgufFilename(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              fontSize: '12px',
-              background: 'rgba(0,0,0,0.2)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 'var(--radius-sm)',
-              color: '#fff',
-              outline: 'none',
-            }}
+            className={styles.input}
           />
           <Button
             onClick={handleDownloadCustomModel}
             variant="ghost"
-            style={{
-              border: '1px solid rgba(16,185,129,0.3)',
-              color: '#10b981',
-              display: 'flex',
-              gap: '6px',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
+            className={styles.customDownloadButton}
             disabled={!customGgufUrl.trim() || isLoading}
           >
             <Download size={14} />
@@ -439,6 +701,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           </Button>
         </div>
       </div>
+      {renderBackButton()}
     </VStack>
   );
 
@@ -487,11 +750,11 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
             tabIndex={0}
             onClick={() => setSelectedLocalModel(model)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                setSelectedLocalModel(model);
-              }
+              if (e.key === 'Enter' || e.key === ' ') setSelectedLocalModel(model);
             }}
-            className={`${styles.readyItem} ${selectedLocalModel?.name === model.name ? styles.selected : ''}`}
+            className={`${styles.readyItem} ${
+              selectedLocalModel?.name === model.name ? styles.readyItemSelected : ''
+            }`}
           >
             <span className={styles.readyName}>{model.name}</span>
             <span className={styles.readySize}>{Math.round(model.size_mb)}MB</span>
@@ -500,7 +763,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
       </VStack>
 
       <Button
-        onClick={handleProceedToPlugin}
+        onClick={() => navigateTo('plugin_setup')}
         variant="primary"
         className={styles.actionButton}
         disabled={!selectedLocalModel || isLoading}
@@ -512,6 +775,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
         <RefreshCw size={16} />
         Scan for More Models
       </Button>
+      {renderBackButton()}
     </VStack>
   );
 
@@ -522,7 +786,7 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
 
     return (
       <VStack gap="lg" className={styles.centered}>
-        <Cpu size={64} className="text-cyan-400 animate-pulse mb-2" />
+        <Monitor size={64} className="text-cyan-400 animate-pulse mb-2" />
         <Text variant="heading2">Daz Studio C++ Bridge</Text>
         <Text variant="body" className={styles.description}>
           DazPilot needs a C++ Bridge Plugin in Daz Studio to synchronize the viewport and execute
@@ -534,80 +798,39 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
             <span>Daz Studio Plugins Folder</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'center' }}>
-            <code
-              className={styles.pathCode}
-              style={{
-                flexGrow: 1,
-                textAlign: 'left',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
+          <div className={styles.pluginFolderRow}>
+            <code className={styles.pathCodeInline}>
               {pluginCustomPath || 'Default plugins directory...'}
             </code>
             <Button
               onClick={browseCustomPath}
               variant="ghost"
               size="sm"
-              style={{
-                flexShrink: 0,
-                padding: '4px 8px',
-                height: 'auto',
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}
+              className={styles.browseButton}
             >
               Browse...
             </Button>
           </div>
 
-          <div style={{ marginTop: '8px' }}>
+          <div className={styles.statusRow}>
             <span className={styles.pathLabel}>Status:</span>
             {isChecking ? (
-              <span
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: '#fbbf24',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                }}
-              >
+              <span className={styles.statusChecking}>
                 <Loader2 className={styles.spinner} size={14} /> Checking plugins folder...
               </span>
             ) : isInstalled ? (
-              <span
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: '#34d399',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                }}
-              >
+              <span className={styles.statusInstalled}>
                 <Check size={14} /> DazPilotBridge.dll linked successfully!
               </span>
             ) : (
-              <span
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: '#f87171',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                }}
-              >
+              <span className={styles.statusNotInstalled}>
                 <AlertCircle size={14} /> DazPilotBridge.dll not found.
               </span>
             )}
           </div>
 
           {!isInstalled && !isChecking && (
-            <VStack gap="xs" style={{ marginTop: '12px', width: '100%' }}>
+            <VStack gap="xs" className={styles.pluginActions}>
               <Button
                 onClick={handleDownloadPlugin}
                 variant="primary"
@@ -626,43 +849,40 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
               >
                 Link / Copy Local DLL
               </Button>
+              <div className={styles.dllInstructions}>
+                <strong>How to find the DLL:</strong>
+                <br />
+                The bundled DLL is at <code>resources/DazPilotBridge.dll</code> inside the app.
+                <br />
+                Or build it: <code>npm run plugin:rebuild</code>
+                <br />
+                Copy to: <code>C:\Program Files\DAZ 3D\DAZStudio4\plugins\</code>
+              </div>
             </VStack>
           )}
 
           {isInstalled && (
-            <div
-              style={{
-                width: '100%',
-                textAlign: 'center',
-                padding: '6px 0',
-                color: '#94a3b8',
-                fontSize: '11px',
-              }}
+            <Text
+              variant="small"
+              className="text-slate-400 text-center"
+              style={{ padding: '6px 0' }}
             >
-              Bridge plugin linked successfully! Setup is fully complete.
-            </div>
+              Bridge plugin linked successfully!
+            </Text>
           )}
 
-          <div
-            style={{
-              display: 'flex',
-              gap: '8px',
-              borderTop: '1px solid rgba(255,255,255,0.05)',
-              paddingTop: '12px',
-              marginTop: '12px',
-              width: '100%',
-            }}
-          >
+          <div className={styles.pluginFooter}>
             <Button
-              onClick={handleProceedToSdk}
+              onClick={isInstalled ? () => navigateTo('bridge_test') : handleProceedToSdk}
               variant="primary"
               className={styles.actionButton}
               disabled={isChecking}
             >
-              {isInstalled ? 'Next: SDK Setup' : 'Skip & Continue to SDK'}
+              {isInstalled ? 'Next: Test Bridge' : 'Skip & Continue to SDK'}
             </Button>
           </div>
         </div>
+        {renderBackButton()}
       </VStack>
     );
   };
@@ -693,9 +913,75 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     </VStack>
   );
 
+  const renderBridgeTest = () => (
+    <VStack gap="lg" className={styles.centered}>
+      <Zap size={64} className="text-cyan-400 animate-pulse mb-2" />
+      <Text variant="heading2">Test Bridge Connection</Text>
+      <Text variant="body" className={styles.description}>
+        Verify the bridge plugin can communicate with DazPilot.
+      </Text>
+
+      {bridgeTestResult === null ? (
+        <div className={styles.modelCard} style={{ textAlign: 'center' }}>
+          {bridgeTesting ? (
+            <>
+              <Loader2 className={styles.spinner} size={32} style={{ margin: '0 auto' }} />
+              <Text variant="body" className={styles.statusText}>
+                Testing connection to 127.0.0.1:8765...
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text variant="body" className="text-slate-400" style={{ marginBottom: '12px' }}>
+                Click to test if Daz Studio is running with the bridge plugin loaded.
+              </Text>
+              <Button onClick={handleTestBridge} variant="primary" className={styles.actionButton}>
+                <Zap size={16} />
+                Test Connection
+              </Button>
+              <Text variant="small" className="text-slate-500" style={{ marginTop: '8px' }}>
+                Make sure Daz Studio is running with the DazPilotBridge plugin loaded.
+              </Text>
+            </>
+          )}
+        </div>
+      ) : bridgeTestResult === 'success' ? (
+        <div className={styles.bridgeTestSuccess}>
+          <Check size={32} className="text-emerald-400" style={{ margin: '0 auto 8px' }} />
+          <Text variant="body" className="text-emerald-400 font-semibold">
+            Connected to Daz Studio!
+          </Text>
+          <Text variant="small" className="text-slate-400" style={{ marginTop: '4px' }}>
+            Bridge plugin is working correctly.
+          </Text>
+        </div>
+      ) : (
+        <div className={styles.bridgeTestFailed}>
+          <AlertCircle size={32} className="text-amber-400" style={{ margin: '0 auto 8px' }} />
+          <Text variant="body" className="text-amber-400 font-semibold">
+            Could not connect
+          </Text>
+          <Text variant="small" className="text-slate-400" style={{ marginTop: '4px' }}>
+            Bridge plugin is installed. Start Daz Studio to connect later.
+          </Text>
+        </div>
+      )}
+
+      <div className={styles.navRow}>
+        <Button onClick={goBack} variant="ghost" className={styles.backButton}>
+          <ArrowLeft size={14} />
+          Back
+        </Button>
+        <Button onClick={handleProceedToSdk} variant="primary" className={styles.actionButton}>
+          {bridgeTestResult === 'success' ? 'Next: SDK Setup' : 'Continue to SDK'}
+        </Button>
+      </div>
+    </VStack>
+  );
+
   const renderSdkSetup = () => (
     <VStack gap="lg" className={styles.centered}>
-      <Cpu size={64} className="text-cyan-400 animate-pulse mb-2" />
+      <FolderOpen size={64} className="text-cyan-400 animate-pulse mb-2" />
       <Text variant="heading2">DAZStudio SDK Setup (Optional)</Text>
       <Text variant="body" className={styles.description}>
         For enhanced AI scripting intelligence, install the DAZStudio 4.5+ SDK via Daz Install
@@ -716,47 +1002,14 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           </div>
         ) : sdkPath ? (
           <div style={{ padding: '8px 0' }}>
-            <span
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                color: '#34d399',
-                fontSize: '13px',
-                fontWeight: 600,
-              }}
-            >
+            <span className={styles.statusInstalled}>
               <Check size={14} /> SDK found!
             </span>
-            <code
-              style={{
-                display: 'block',
-                marginTop: '8px',
-                padding: '8px 12px',
-                fontSize: '11px',
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 'var(--radius-sm)',
-                color: '#38bdf8',
-                fontFamily: 'monospace',
-                wordBreak: 'break-all',
-              }}
-            >
-              {sdkPath}
-            </code>
+            <code className={styles.sdkPathCode}>{sdkPath}</code>
           </div>
         ) : (
           <div style={{ padding: '8px 0' }}>
-            <span
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                color: '#fbbf24',
-                fontSize: '13px',
-                fontWeight: 600,
-              }}
-            >
+            <span className={styles.statusChecking}>
               <AlertCircle size={14} /> SDK not found
             </span>
             <Text variant="small" className="text-slate-500" style={{ marginTop: '4px' }}>
@@ -765,26 +1018,14 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           </div>
         )}
 
-        <Button
-          onClick={handleBrowseSdk}
-          variant="ghost"
-          style={{ width: '100%', marginTop: '8px', border: '1px solid rgba(255,255,255,0.1)' }}
-        >
+        <Button onClick={handleBrowseSdk} variant="ghost" className={styles.sdkButton}>
           <FolderOpen size={16} />
           Browse for SDK Include Folder...
         </Button>
 
-        <div
-          style={{
-            borderTop: '1px solid rgba(255,255,255,0.05)',
-            paddingTop: '12px',
-            marginTop: '12px',
-            fontSize: '11px',
-            color: 'var(--color-text-muted)',
-          }}
-        >
+        <div className={styles.sdkInstructions}>
           <strong>How to get the SDK:</strong>
-          <ol style={{ margin: '8px 0 0 20px', lineHeight: '1.6' }}>
+          <ol>
             <li>Open Daz Install Manager (DIM)</li>
             <li>Search for DAZStudio 4.5+ SDK</li>
             <li>Install to the default location</li>
@@ -793,11 +1034,12 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+      <div className={styles.sdkFinishRow}>
         <Button onClick={handleFinishSetup} variant="primary" className={styles.actionButton}>
           {sdkPath ? 'Finish & Start AI Server' : 'Skip SDK & Start AI Server'}
         </Button>
       </div>
+      {renderBackButton()}
     </VStack>
   );
 
@@ -810,6 +1052,52 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     </div>
   );
 
+  const renderReadyToLaunch = () => (
+    <VStack gap="lg" className={styles.centered}>
+      <Check
+        size={64}
+        className="text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 rounded-full p-3 mb-2"
+      />
+      <Text variant="heading1">{"You're all set!"}</Text>
+      <Text variant="body" className={styles.description}>
+        {"DazPilot is ready. Here's what to do next:"}
+      </Text>
+
+      <div className={styles.postSetupCard}>
+        <ul className={styles.postSetupList}>
+          <li className={styles.postSetupItem}>
+            <span className={styles.postSetupNumber}>1</span>
+            <span>
+              Open <strong>Daz Studio</strong> and load a scene
+            </span>
+          </li>
+          <li className={styles.postSetupItem}>
+            <span className={styles.postSetupNumber}>2</span>
+            <span>
+              Try a chat command: <strong>&quot;list all nodes in the scene&quot;</strong>
+            </span>
+          </li>
+          <li className={styles.postSetupItem}>
+            <span className={styles.postSetupNumber}>3</span>
+            <span>
+              Explore the <strong>Asset Browser</strong> to find your content
+            </span>
+          </li>
+          <li className={styles.postSetupItem}>
+            <span className={styles.postSetupNumber}>4</span>
+            <span>
+              Check <strong>Settings &gt; Connection</strong> to verify the bridge
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <Button onClick={onComplete} variant="primary" className={styles.actionButton}>
+        Enter Workspace
+      </Button>
+    </VStack>
+  );
+
   const renderError = () => (
     <VStack gap="md" className={styles.centered}>
       <AlertCircle size={48} className="text-rose-500 mb-2" />
@@ -818,7 +1106,14 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
         {error || pluginError || 'An error occurred. Please try again.'}
       </Text>
       <Button
-        onClick={() => setStep('no_model')}
+        onClick={() => {
+          const last = stepHistory[stepHistory.length - 1];
+          if (last) {
+            goBack();
+          } else {
+            setStep('ai_backend_choice');
+          }
+        }}
         variant="primary"
         className="w-full max-w-[200px]"
       >
@@ -827,18 +1122,47 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
     </VStack>
   );
 
+  const renderStep = () => {
+    switch (step) {
+      case 'checking':
+        return renderChecking();
+      case 'ai_backend_choice':
+        return renderAiBackendChoice();
+      case 'ollama_setup':
+        return renderOllamaSetup();
+      case 'no_model':
+        return renderNoModel();
+      case 'downloading':
+        return renderDownloading();
+      case 'ready':
+        return renderReady();
+      case 'plugin_setup':
+        return renderPluginSetup();
+      case 'plugin_downloading':
+        return renderPluginDownloading();
+      case 'bridge_test':
+        return renderBridgeTest();
+      case 'sdk_setup':
+        return renderSdkSetup();
+      case 'starting':
+        return renderStarting();
+      case 'ready_to_launch':
+        return renderReadyToLaunch();
+      case 'error':
+        return renderError();
+      default:
+        return renderChecking();
+    }
+  };
+
   return (
     <div className={styles.overlay}>
       <Card className={styles.wizard}>
-        {step === 'checking' && renderChecking()}
-        {step === 'no_model' && renderNoModel()}
-        {step === 'downloading' && renderDownloading()}
-        {step === 'ready' && renderReady()}
-        {step === 'plugin_setup' && renderPluginSetup()}
-        {step === 'plugin_downloading' && renderPluginDownloading()}
-        {step === 'sdk_setup' && renderSdkSetup()}
-        {step === 'starting' && renderStarting()}
-        {step === 'error' && renderError()}
+        <button type="button" className={styles.skipLink} onClick={onComplete}>
+          Skip Setup
+        </button>
+        {renderStepIndicator()}
+        {renderStep()}
       </Card>
     </div>
   );
