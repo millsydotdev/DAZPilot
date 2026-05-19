@@ -167,8 +167,15 @@ pub fn get_default_content_paths() -> Vec<ContentPath> {
 
 pub fn scan_directory(path: &str) -> ScanResult {
     let mut categorized = CategorizedAssets::default();
-    let errors = vec![];
+    let mut errors = vec![];
     let mut total_files = 0;
+
+    // Validate path exists before scanning
+    let path_buf = PathBuf::from(path);
+    if !path_buf.exists() {
+        errors.push(format!("Path does not exist: {}", path));
+        return ScanResult { total_files: 0, categorized, errors };
+    }
 
     for entry in WalkDir::new(path)
         .follow_links(true)
@@ -277,23 +284,38 @@ fn detect_category(file_name: &str, extension: &str, metadata: &HashMap<String, 
 
 fn read_asset_metadata(path: &std::path::Path) -> HashMap<String, String> {
     let mut metadata = HashMap::new();
-    let Ok(bytes) = std::fs::read(path) else {
+    
+    // Only read first 512KB to avoid memory issues with large files
+    const MAX_READ_SIZE: usize = 512 * 1024;
+    
+    let Ok(mut file) = std::fs::File::open(path) else {
         return metadata;
     };
-
-    let sample_len = bytes.len().min(256 * 1024);
     
-    // Check for Gzip header (1f 8b)
-    let content = if bytes.len() > 2 && bytes[0] == 0x1f && bytes[1] == 0x8b {
-        let mut decoder = GzDecoder::new(&bytes[..]);
-        let mut decompressed = String::new();
-        // Read up to 256KB of decompressed data
-        match decoder.read_to_string(&mut decompressed) {
-            Ok(_) => decompressed,
-            Err(_) => String::from_utf8_lossy(&bytes[..sample_len]).to_string(),
+    let mut buffer = vec![0u8; MAX_READ_SIZE];
+    let bytes_read = match file.read(&mut buffer) {
+        Ok(n) => n,
+        Err(_) => return metadata,
+    };
+    buffer.truncate(bytes_read);
+    
+    // Check for Gzip header (1f 8b) - only decompress if small enough
+    let content = if bytes_read > 2 && buffer[0] == 0x1f && buffer[1] == 0x8b {
+        // Only decompress if the file is small enough to avoid memory issues
+        if bytes_read < 10 * 1024 * 1024 { // 10MB limit
+            let mut decoder = GzDecoder::new(&buffer[..bytes_read]);
+            let mut decompressed = String::new();
+            if decoder.read_to_string(&mut decompressed).is_ok() {
+                decompressed
+            } else {
+                String::from_utf8_lossy(&buffer[..bytes_read]).to_string()
+            }
+        } else {
+            // Too large to decompress, just check for text content
+            String::from_utf8_lossy(&buffer[..bytes_read]).to_string()
         }
     } else {
-        String::from_utf8_lossy(&bytes[..sample_len]).to_string()
+        String::from_utf8_lossy(&buffer[..bytes_read]).to_string()
     };
 
     if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
