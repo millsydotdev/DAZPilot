@@ -50,6 +50,12 @@ jobs:
       - name: Typecheck frontend
         run: npm run typecheck
 
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
       - name: Test frontend
         run: npm test
 

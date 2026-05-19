@@ -21,7 +21,8 @@
     "plugin:configure": "cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build",
     "plugin:build": "cmake --build plugins/daz3d-bridge/build --config Release",
     "plugin:rebuild": "cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build && cmake --build plugins/daz3d-bridge/build --config Release",
-    "plugin:rebuild:deploy": "cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DDAZPILOT_DEPLOY_TO_DAZ=ON && cmake --build plugins/daz3d-bridge/build --config Release"
+    "plugin:rebuild:deploy": "cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DDAZPILOT_DEPLOY_TO_DAZ=ON && cmake --build plugins/daz3d-bridge/build --config Release",
+    "prepare": "husky"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.35",
@@ -52,7 +53,9 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.5",
     "markdownlint-cli2": "^0.22.1",
     "postcss": "^8.5.14",
     "prettier": "^3.8.3",
@@ -60,5 +63,17 @@
     "typescript": "~5.6.2",
     "vite": "^6.0.1",
     "vitest": "^4.1.6"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "*.md": [
+      "markdownlint-cli2 --fix"
+    ]
   }
 }

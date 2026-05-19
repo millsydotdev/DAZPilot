@@ -13,12 +13,45 @@
 - Backend: Rust + Tauri 2 commands in `src-tauri/src/`
 - Bridge: C++ Daz Studio plugin in `plugins/daz3d-bridge/`
 
+## Git Hooks
+
+This project uses [Husky](https://typicode.github.io/husky/) and [lint-staged](https://github.com/lint-staged/lint-staged) to enforce code quality automatically.
+
+### Pre-commit (runs on `git commit`)
+
+Runs `lint-staged` on staged files only:
+
+- `*.{ts,tsx}` — ESLint fix + Prettier format
+- `*.{json,css,md,yml,yaml}` — Prettier format
+- `*.md` — markdownlint fix
+
+### Pre-push (runs on `git push`)
+
+Runs the full validation pipeline:
+
+```
+npm run check
+```
+
+This executes: typecheck → lint → format check → tests. If any step fails, the push is blocked.
+
+### Skipping hooks
+
+In rare cases, you can skip hooks with `--no-verify`:
+
+```bash
+git commit --no-verify    # Skip pre-commit
+git push --no-verify      # Skip pre-push
+```
+
+Use this sparingly — CI will still catch failures.
+
 ## Testing
 
 ```bash
-npm test          # Run frontend tests
-cargo test        # Run Rust backend tests
-npm run check     # Full pipeline: typecheck + lint + format + test
+npm test              # Run frontend tests
+cargo test            # Run Rust backend tests
+npm run check         # Full pipeline: typecheck + lint + format + test
 ```
 
 ## Code Style
@@ -31,4 +64,4 @@ npm run check     # Full pipeline: typecheck + lint + format + test
 
 - Keep changes focused and well-described
 - Add tests for new functionality
-- Verify the app builds and runs before submitting
+- Verify `npm run check` passes before submitting
