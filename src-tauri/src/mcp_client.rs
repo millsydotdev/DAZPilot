@@ -575,4 +575,58 @@ mod tests {
     fn rejects_unknown_commands() {
         assert!(validate_command("pretend_success", &serde_json::json!({})).is_err());
     }
+
+    #[test]
+    fn connection_fails_with_useful_error_when_bridge_not_running() {
+        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
+        let result = McpConnection::connect("127.0.0.1", 19999);
+        assert!(result.is_err());
+        match result {
+            Err(ref err) => {
+                assert!(
+                    err.contains("Daz bridge connection failed"),
+                    "Error should mention bridge connection: {}",
+                    err
+                );
+            }
+            Ok(_) => panic!("Expected connection to fail"),
+        }
+    }
+
+    #[test]
+    fn mock_bridge_provides_valid_responses() {
+        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
+        let resp = send_mcp_request("get_scene_info", serde_json::json!({}));
+        assert!(resp.is_ok());
+        let resp = resp.unwrap();
+        assert_eq!(resp.status, "ok");
+        assert!(resp.data.is_some());
+        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
+    }
+
+    #[test]
+    fn bridge_response_parser_handles_valid_json() {
+        let raw = r#"{"status":"ok","result":"test","data":{"key":"value"}}"#;
+        let resp = parse_bridge_response(raw).unwrap();
+        assert_eq!(resp.status, "ok");
+        assert_eq!(resp.result, Some("test".to_string()));
+        assert!(resp.data.is_some());
+    }
+
+    #[test]
+    fn bridge_response_parser_handles_error_json() {
+        let raw = r#"{"status":"error","error":"something broke"}"#;
+        let resp = parse_bridge_response(raw).unwrap();
+        assert_eq!(resp.status, "error");
+        assert_eq!(resp.error, Some("something broke".to_string()));
+    }
+
+    #[test]
+    fn command_schemas_are_complete() {
+        let commands = get_mcp_command_list();
+        assert!(commands.len() >= 20, "Should have at least 20 commands, got {}", commands.len());
+        assert!(commands.iter().any(|c| c.name == "get_scene_info"));
+        assert!(commands.iter().any(|c| c.name == "load_asset"));
+        assert!(commands.iter().any(|c| c.name == "run_script"));
+    }
 }

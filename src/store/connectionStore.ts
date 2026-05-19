@@ -118,7 +118,12 @@ export const useConnectionStore = create<ConnectionState & ConnectionActions>((s
     } catch (e) {
       const errorMsg = String(e);
       set({ status: 'error', error: errorMsg });
-      useToastStore.getState().error(`Bridge connection failed: ${errorMsg}`);
+      const hint = errorMsg.includes('refused')
+        ? ' Is Daz Studio running with DazPilotBridge loaded?'
+        : errorMsg.includes('timed out')
+          ? ' Check that the bridge host/port match your Daz Studio config.'
+          : '';
+      useToastStore.getState().error(`Bridge connection failed: ${errorMsg}${hint}`);
     }
   },
   disconnect: async () => {

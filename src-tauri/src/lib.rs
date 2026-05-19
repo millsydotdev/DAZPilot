@@ -283,7 +283,10 @@ fn install_daz3d_plugin(custom_path: Option<String>) -> Result<String, String> {
         .ok_or("Failed to get parent directory")?
         .to_path_buf();
 
-    let mut candidate_paths = vec![exe_dir.join(plugin_name)];
+    let mut candidate_paths = vec![
+        exe_dir.join(plugin_name),
+        exe_dir.join("resources").join(plugin_name),
+    ];
     #[cfg(target_os = "macos")]
     if exe_dir.ends_with("MacOS") {
         if let Some(contents_dir) = exe_dir.parent() {
@@ -425,8 +428,42 @@ fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<String
     std::fs::create_dir_all(&daz_plugins_path)
         .map_err(|e| format!("Failed to create plugins directory: {}", e))?;
 
-    let dest_str = dest_path.to_string_lossy().to_string();
+    // First try to find a locally bundled DLL (Tauri resources, dev builds, etc.)
+    let exe_dir = std::env::current_exe()
+        .map_err(|e| format!("Failed to get exe path: {}", e))?
+        .parent()
+        .ok_or("Failed to get parent directory")?
+        .to_path_buf();
 
+    let mut candidate_paths = vec![
+        exe_dir.join(plugin_name),
+        exe_dir.join("resources").join(plugin_name),
+    ];
+    #[cfg(target_os = "macos")]
+    if exe_dir.ends_with("MacOS") {
+        if let Some(contents_dir) = exe_dir.parent() {
+            candidate_paths.push(contents_dir.join("Resources").join(plugin_name));
+        }
+    }
+    if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
+        let repo_root = std::path::PathBuf::from(manifest_dir)
+            .parent()
+            .map(std::path::Path::to_path_buf)
+            .unwrap_or_default();
+        candidate_paths.push(repo_root.join("src-tauri").join("resources").join(plugin_name));
+        candidate_paths.push(repo_root.join("plugins").join("daz3d-bridge").join("dist").join(plugin_name));
+        candidate_paths.push(repo_root.join("plugins").join("daz3d-bridge").join("dist").join("Release").join(plugin_name));
+    }
+
+    if let Some(local_path) = candidate_paths.iter().find(|p| p.exists()) {
+        std::fs::copy(local_path, &dest_path)
+            .map_err(|e| format!("Failed to copy bundled plugin: {}", e))?;
+        info!("Plugin installed from bundled resource to Daz3D plugins folder: {}", dest_path.display());
+        return Ok(format!("Plugin installed from bundled resource to: {}", dest_path.display()));
+    }
+
+    // No local DLL found — download from GitHub Releases
+    let dest_str = dest_path.to_string_lossy().to_string();
     let url = format!(
         "https://github.com/millsydotdev/DazPilot/releases/latest/download/{}",
         plugin_name
