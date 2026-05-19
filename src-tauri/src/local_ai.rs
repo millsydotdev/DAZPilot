@@ -49,42 +49,6 @@ impl LlamaServer {
         })
     }
 
-    pub fn chat(&self, prompt: &str, model: &str) -> Result<String, String> {
-        let client = reqwest::blocking::Client::builder()
-            .timeout(std::time::Duration::from_secs(60))
-            .build()
-            .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
-
-        let request_body = serde_json::json!({
-            "model": model,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "stream": false
-        });
-
-        let response = client
-            .post(format!("http://127.0.0.1:{}/v1/chat/completions", self.port))
-            .header("Content-Type", "application/json")
-            .json(&request_body)
-            .send()
-            .map_err(|e| format!("Request failed: {}", e))?;
-
-        if !response.status().is_success() {
-            return Err(format!("Server error: {}", response.status()));
-        }
-
-        let json: serde_json::Value = response
-            .json()
-            .map_err(|e| format!("Failed to parse response: {}", e))?;
-
-        let content = json["choices"][0]["message"]["content"]
-            .as_str()
-            .ok_or("No content in response")?;
-
-        Ok(content.to_string())
-    }
-
     pub fn stop(&mut self) {
         let _ = self.child.kill();
     }
@@ -182,7 +146,7 @@ pub fn first_local_model_path() -> Option<std::path::PathBuf> {
 }
 
 pub fn start_local_server(model_path: &str, port: u16) -> Result<(), String> {
-    let mut server = LLAMA_SERVER.lock().unwrap();
+    let mut server = LLAMA_SERVER.lock().unwrap_or_else(|e| e.into_inner());
     
     if server.is_some() {
         return Ok(()); 
@@ -196,24 +160,60 @@ pub fn start_local_server(model_path: &str, port: u16) -> Result<(), String> {
 }
 
 pub fn stop_local_server() {
-    let mut server = LLAMA_SERVER.lock().unwrap();
+    let mut server = LLAMA_SERVER.lock().unwrap_or_else(|e| e.into_inner());
     if let Some(mut srv) = server.take() {
         srv.stop();
         println!("Local AI server stopped");
     }
 }
 
-pub fn chat_with_local(prompt: String, model: String) -> Result<String, String> {
-    let server = LLAMA_SERVER.lock().unwrap();
-    
-    if let Some(ref srv) = *server {
-        srv.chat(&prompt, &model)
-    } else {
-        Err("Local server not running".to_string())
+pub async fn chat_with_local(prompt: String, model: String) -> Result<String, String> {
+    let port = {
+        let server = LLAMA_SERVER.lock().unwrap_or_else(|e| e.into_inner());
+        match *server {
+            Some(ref srv) => srv.port,
+            None => return Err("Local server not running".to_string()),
+        }
+    };
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+
+    let request_body = serde_json::json!({
+        "model": model,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ],
+        "stream": false
+    });
+
+    let response = client
+        .post(format!("http://127.0.0.1:{}/v1/chat/completions", port))
+        .header("Content-Type", "application/json")
+        .json(&request_body)
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {}", e))?;
+
+    if !response.status().is_success() {
+        return Err(format!("Server error: {}", response.status()));
     }
+
+    let json: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse response: {}", e))?;
+
+    let content = json["choices"][0]["message"]["content"]
+        .as_str()
+        .ok_or("No content in response")?;
+
+    Ok(content.to_string())
 }
 
 pub fn is_local_server_running() -> bool {
-    let server = LLAMA_SERVER.lock().unwrap();
+    let server = LLAMA_SERVER.lock().unwrap_or_else(|e| e.into_inner());
     server.is_some()
 }

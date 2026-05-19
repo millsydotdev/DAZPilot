@@ -461,7 +461,7 @@ pub async fn run_chat(
                 }
             }
 
-            let response_text = local_ai::chat_with_local(gguf_prompt, model.to_string())?;
+            let response_text = local_ai::chat_with_local(gguf_prompt, model.to_string()).await?;
             Ok(response_text)
         }
         _ => Err(format!("Unsupported provider: {}", provider)),

@@ -411,7 +411,7 @@ fn select_plugins_directory() -> Result<Option<String>, String> {
 }
 
 #[tauri::command]
-fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<String>) -> Result<String, String> {
+async fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<String>) -> Result<String, String> {
     let plugin_name = bridge_plugin_filename();
     let daz_plugins_path = if let Some(ref path) = custom_path {
         if !path.is_empty() {
@@ -469,7 +469,7 @@ fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<String
         plugin_name
     );
     
-    crate::model_download::download_model(&app, &url, &dest_str)?;
+    crate::model_download::download_model(&app, &url, &dest_str).await?;
 
     info!("Plugin downloaded and installed to Daz3D plugins folder: {}", dest_path.display());
     Ok(format!("Plugin successfully installed to: {}", dest_path.display()))

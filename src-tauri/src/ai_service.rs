@@ -105,7 +105,9 @@ impl AiService {
             .map(|m| format!("{}: {}", m.role, m.content))
             .collect::<Vec<_>>()
             .join("\n");
-        let content = local_ai::chat_with_local(prompt, request.model.clone())?;
+        let content = tokio::task::block_in_place(|| {
+            tokio::runtime::Handle::current().block_on(local_ai::chat_with_local(prompt, request.model.clone()))
+        })?;
         Ok(ChatResponse {
             content,
             model: request.model,
@@ -200,14 +202,14 @@ pub fn init_ai_service(backend: AiBackend) -> Result<(), String> {
     let mut service = AiService::new(selected_backend);
     service.load_model("models/phi-2-q4.gguf")?;
     
-    let mut global = AI_SERVICE.lock().unwrap();
+    let mut global = AI_SERVICE.lock().unwrap_or_else(|e| e.into_inner());
     *global = Some(service);
     
     Ok(())
 }
 
 pub fn chat(prompt: String) -> Result<ChatResponse, String> {
-    let global = AI_SERVICE.lock().unwrap();
+    let global = AI_SERVICE.lock().unwrap_or_else(|e| e.into_inner());
     if let Some(ref service) = *global {
         let request = ChatRequest {
             messages: vec![
@@ -227,11 +229,11 @@ pub fn chat(prompt: String) -> Result<ChatResponse, String> {
 }
 
 pub fn get_model_info() -> Option<ModelInfo> {
-    let global = AI_SERVICE.lock().unwrap();
+    let global = AI_SERVICE.lock().unwrap_or_else(|e| e.into_inner());
     global.as_ref().map(|s| s.get_model_info())
 }
 
 pub fn is_ai_ready() -> bool {
-    let global = AI_SERVICE.lock().unwrap();
+    let global = AI_SERVICE.lock().unwrap_or_else(|e| e.into_inner());
     global.as_ref().map(|s| s.is_loaded()).unwrap_or(false)
 }

@@ -22,8 +22,8 @@ pub fn stop_local_server() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn chat_with_local(prompt: String, model: String) -> Result<String, String> {
-    local::chat_with_local(prompt, model)
+pub async fn chat_with_local(prompt: String, model: String) -> Result<String, String> {
+    local::chat_with_local(prompt, model).await
 }
 
 #[tauri::command]
