@@ -206,7 +206,7 @@ pub fn run() {
 
 #[tauri::command]
 fn get_app_version() -> String {
-    "0.1.0".to_string()
+    env!("CARGO_PKG_VERSION").to_string()
 }
 
 #[tauri::command]
