@@ -1270,12 +1270,12 @@ bool PluginInitialize() {
 #ifdef _WIN32
     char* appdata = getenv("APPDATA");
     if (appdata) {
-        configPath = QString(appdata) + "/com.dazpilot.app/bridge_config.json";
+        configPath = QString(appdata) + "/com.dazpilot.desktop/bridge_config.json";
     }
 #else
     char* home = getenv("HOME");
     if (home) {
-        configPath = QString(home) + "/Library/Application Support/com.dazpilot.app/bridge_config.json";
+        configPath = QString(home) + "/Library/Application Support/com.dazpilot.desktop/bridge_config.json";
     }
 #endif
 

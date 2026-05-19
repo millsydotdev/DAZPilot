@@ -59,11 +59,11 @@ The bridge plugin (`DazPilotBridge.dll`) is a proper Daz Studio plugin that:
 ## Models Directory
 
 The `models/` directory stores downloaded GGUF model weights for the local AI backend.
-Default location: `%APPDATA%/com.dazpilot.app/models/`
+Default location: `%APPDATA%/com.dazpilot.desktop/models/`
 
 ## Configuration
 
 Bridge configuration is stored in:
-- Windows: `%APPDATA%/com.dazpilot.app/bridge_config.json`
-- macOS: `~/Library/Application Support/com.dazpilot.app/bridge_config.json`
-- Linux: `~/.local/share/com.dazpilot.app/bridge_config.json`
+- Windows: `%APPDATA%/com.dazpilot.desktop/bridge_config.json`
+- macOS: `~/Library/Application Support/com.dazpilot.desktop/bridge_config.json`
+- Linux: `~/.local/share/com.dazpilot.desktop/bridge_config.json`
