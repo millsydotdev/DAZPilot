@@ -1,6 +1,0 @@
-// DAZ Studio version 4.15.0.2 filetype DAZ Script
-
-
-
-MessageBox.information("\n- Select Golden Palace;\n- Load the 'Clitzilla Tentacle': it is a follower that will add suckers to Clitzilla.", "Info", "&OK");
-

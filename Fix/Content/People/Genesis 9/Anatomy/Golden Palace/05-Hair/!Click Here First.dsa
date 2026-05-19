@@ -1,6 +1,0 @@
-// DAZ Studio version 4.15.0.2 filetype DAZ Script
-
-
-
-MessageBox.information("\n- Select G9;\n- Load one of the hair scripts.\n\nThe hairs are split between G9 and Golden Palace; this way they conform to both figures. In order to quickly remove them, load the 'Hairs Delete All' Script.", "Info", "&OK");
-

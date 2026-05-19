@@ -1,6 +1,0 @@
-// DAZ Studio version 4.15.0.2 filetype DAZ Script
-
-
-
-MessageBox.information("\n- Select Golden Palace;\n- Load the 'Drips' or 'Squirt' follower.\n\nThe drips include extra bones for posing them; the squirt can be posed adjusting the Golden Palace 'Urethra 1' bone.", "Info", "&OK");
-

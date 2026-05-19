@@ -1,6 +1,0 @@
-// DAZ Studio version 4.15.0.2 filetype DAZ Script
-
-
-
-MessageBox.information("\n- Select Golden Palace;\n- Select the 'Drips' or 'Squirt' follower.\n\nLoad the Material.", "Info", "&OK");
-

@@ -1,6 +1,0 @@
-// DAZ Studio version 4.15.0.2 filetype DAZ Script
-
-
-
-MessageBox.information("\n- Select G9;\n- Load one of the pose presets and its genitalia preset if you want to set it up for penetration.\n\nCustom and additional joint contolled morphs have been included and are activated by default for extreme bends. They can be disabled in the Parameters tab, undialing the 'GP_JCM_Improvement' on G9.", "Info", "&OK");
-
