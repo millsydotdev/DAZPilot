@@ -20,7 +20,7 @@
 
 </div>
 
-> **Disclaimer:** DazPilot is an independent, third-party project and is **not affiliated with, authorized, or endorsed by Daz 3D.** All product names, logos, and brands are property of their respective owners.
+> **Disclaimer:** DAZPilot is an independent, third-party project and is **not affiliated with, authorized, or endorsed by DAZ3D.** All product names, logos, and brands are property of their respective owners.
 
 ---
 
