@@ -12,10 +12,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   app-checks:
     name: App checks
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -33,7 +36,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Setup Rust
@@ -68,7 +71,7 @@ jobs:
 
   plugin-source-check:
     name: Plugin source check
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - name: Checkout

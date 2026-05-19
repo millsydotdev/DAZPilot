@@ -11,6 +11,9 @@ on:
         required: true
         type: string
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-bridge:
     name: Build Bridge (${{ matrix.os }})
@@ -18,11 +21,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: windows-latest
+          - os: windows-2022
             artifact_name: DazPilotBridge.dll
           - os: macos-latest
             artifact_name: libDazPilotBridge.dylib
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             artifact_name: libDazPilotBridge.so
 
     steps:
@@ -36,7 +39,7 @@ jobs:
           key: ${{ runner.os }}-daz-sdk-${{ hashFiles('**/CMakeLists.txt') }}
 
       - name: Install CMake/Qt
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-24.04'
         run: sudo apt-get install -y cmake qt4-dev-tools
 
       - name: Configure and Build
