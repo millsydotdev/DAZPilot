@@ -7,9 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-19
+
 ### Added
 
-- Comprehensive documentation overhaul with badges, getting started guide, and roadmap
+- Husky + lint-staged git hooks: pre-commit runs lint-staged on staged files, pre-push runs full validation pipeline
+- Documentation overhaul: badges, table of contents, features section, quick start guide
+- `docs/GETTING_STARTED.md`: step-by-step setup with prerequisites and troubleshooting
+- `docs/ROADMAP.md`: planned features, known limitations, and contribution areas
+- CI now enforces lint and format checks alongside typecheck and tests
+- `process:default` Tauri capability for auto-relaunch after updates
+- `.orchids/` added to `.gitignore`
+
+### Fixed
+
+- Rust compiler warnings: unused imports in `asset_selection.rs` and `vector_store.rs`, unnecessary `mut` in `asset_selection.rs` and `library_scanner.rs`
+- Auto-update relaunch: added missing `process:default` capability so the app restarts after installing an update
+- Dynamic version: `get_app_version()` now reads from `CARGO_PKG_VERSION` instead of hardcoded string
+
+### Changed
+
+- `CONTRIBUTING.md`: added git hooks documentation
+- `CHANGELOG.md`: updated to Keep a Changelog standard with comparison links
 
 ## [0.1.0] - 2024-01-01
 
@@ -35,5 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separate release workflows for app bundles and bridge plugin
 - Environment variable configuration for dev mocks and AI backend selection
 
-[Unreleased]: https://github.com/millsydotdev/DazPilot/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/millsydotdev/DazPilot/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/millsydotdev/DazPilot/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/millsydotdev/DazPilot/releases/tag/v0.1.0
