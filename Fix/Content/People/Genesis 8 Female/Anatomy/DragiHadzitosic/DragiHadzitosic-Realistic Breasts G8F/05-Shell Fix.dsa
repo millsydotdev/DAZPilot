@@ -1,0 +1,82 @@
+// DAZ Studio version 6.25.2025.17807 filetype DAZ Script
+
+(function () {
+
+    var targetTorso = "material_group_Realistic Breasts G8F_Torso_vis";
+    var targetArms  = "material_group_Realistic Breasts G8F_Arms_vis";
+
+    var node = Scene.getPrimarySelection();
+    if (!node) {
+        print("No node selected.");
+        return;
+    }
+
+    var label = typeof node.getLabel === "function" ? node.getLabel() : "";
+
+    // === Shell array with numbered variants 1 to 5 ===
+    var allShells = [];
+    allShells.push("Realistic Breasts G8F Shell");
+    for (var i = 1; i <= 5; i++) {
+        allShells.push("Realistic Breasts G8F Shell (" + i + ")");
+    }
+
+    var specialShells = ["Scars Shell", "Stretch Marks Shell", "Veins Shell"];
+
+    function getSurfaces(node) {
+        return node.getPropertyGroups()
+                   ? node.getPropertyGroups().findChild("Shell")
+                       ? node.getPropertyGroups().findChild("Shell")
+                           .findChild("Visibility")
+                           .findChild("Surfaces")
+                           ? node.getPropertyGroups().findChild("Shell")
+                               .findChild("Visibility")
+                               .findChild("Surfaces").getAllProperties()
+                           : []
+                       : []
+                   : [];
+    }
+
+    function turnOffExcept(surfaces, keepList) {
+        for (var i = 0; i < surfaces.length; i++) {
+            var s = surfaces[i];
+            if (keepList.indexOf(s.name) < 0) {
+                try {
+                    s.setValue(false, 0);
+                    if (typeof s.valueChanged === "function") s.valueChanged();
+                    print("Turned OFF surface: " + s.name);
+                } catch (e) {}
+            } else {
+                print("Keeping surface ON: " + s.name);
+            }
+        }
+    }
+
+    var surfaces = getSurfaces(node);
+    if (!surfaces.length) {
+        print("No surfaces found under Shell/Visibility/Surfaces.");
+        return;
+    }
+
+    if (allShells.indexOf(label) >= 0) {
+        // Realistic Breasts G8F Shell and its numbered variants
+        turnOffExcept(surfaces, [targetTorso]);
+        print("â Realistic Breasts G8F Shell updated: only Torso visibility kept ON.");
+    } else {
+        // All other shells: turn off exactly Torso + Arms
+        for (var i = 0; i < surfaces.length; i++) {
+            var s = surfaces[i];
+            if (s.name === targetTorso || s.name === targetArms) {
+                try {
+                    s.setValue(false, 0);
+                    if (typeof s.valueChanged === "function") s.valueChanged();
+                    print("Turned OFF: " + s.name);
+                } catch (e) {}
+            }
+        }
+        print("â Other shell updated: Torso + Arms turned OFF if present.");
+    }
+
+    if (typeof node.requestUpdate === "function") node.requestUpdate();
+    MessageBox.information("Shell fixed", "Done", "OK");
+
+})();

@@ -1,0 +1,6 @@
+// DAZ Studio version 4.11.0.366 filetype DAZ Script
+
+
+
+MessageBox.information("\n----------------------------- GENITALIA SETUP ------------------------------\n\n1 - Check Genesis 8.1 Female is selected in the scene;\n\n2 - Load Golden Palace Genitalia and the Golden Palace Shell;\n\n3 - Execute the Golden Palace Material Copy script.\n\n4 - [Optional, useful is you load other grafts and you get white surfaces in front of them] Select Golden Palace Shell and run the Shell Fix Script.\n\nIf you choose the Golden Palace WITHOUT rigidity maps, you may have to load the 'Adjust rigging to shape' script (with GP selected in the scene) in order to align its bones to the new geometry. If you choose the Golden Palace WITH rigidity maps, the bones will follow the mesh, but with some characters you may get strange shapes.", "Info", "&OK");
+

@@ -1,0 +1,22 @@
+{
+	"file_version" : "0.6.0.0",
+	"asset_info" : {
+		"id" : "/People/Genesis%208%20Female/Anatomy/Golden%20Palace%20v2/2-Basic%20Shaping%20Presets%20Gen/Vagina%20Open_Front%20Stretch.duf",
+		"type" : "preset_pose",
+		"contributor" : {
+			"author" : "Meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2021-10-19T09:06:30Z"
+	},
+	"scene" : {
+		"animations" : [
+			{
+				"url" : "name://@selection#Vagina_Open_Front%20Stretch:?value/value",
+				"keys" : [ [ 0, 1 ] ]
+			}
+		]
+	}
+}

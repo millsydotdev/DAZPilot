@@ -1,0 +1,6 @@
+// DAZ Studio version 4.15.0.2 filetype DAZ Script
+
+
+
+MessageBox.information("\n- Select G9;\n- Load one of the material presets.\n\nThe presets are smart, so they will load the textures on the right geoshells.\n\nThe white teeths of the 'Red_Toothy' setup will only show up while rendered.", "Info", "&OK");
+

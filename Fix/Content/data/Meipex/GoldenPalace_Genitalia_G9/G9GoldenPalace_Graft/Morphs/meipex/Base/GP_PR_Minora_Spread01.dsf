@@ -1,0 +1,116 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_PR_Minora_Spread01.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_PR_Minora_Spread01",
+			"name" : "GP_PR_Minora_Spread01",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 1, 0.8117647, 0.3647059 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_PR_Minora_Spread01",
+				"label" : "GP_PR_Minora_Spread 01",
+				"visible" : false,
+				"value" : 0,
+				"min" : -0.5,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/Hidden",
+			"formulas" : [
+				{
+					"output" : "lLabiumMinora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMinora1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_Minora_Spread01?value" },
+						{ "op" : "push", "val" : -50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMinora2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMinora2?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_Minora_Spread01?value" },
+						{ "op" : "push", "val" : -50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMinora3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMinora3?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_Minora_Spread01?value" },
+						{ "op" : "push", "val" : -50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMinora4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMinora4?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_Minora_Spread01?value" },
+						{ "op" : "push", "val" : -50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMinora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMinora1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_Minora_Spread01?value" },
+						{ "op" : "push", "val" : 50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMinora2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMinora2?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_Minora_Spread01?value" },
+						{ "op" : "push", "val" : 50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMinora3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMinora3?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_Minora_Spread01?value" },
+						{ "op" : "push", "val" : 50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMinora4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMinora4?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_Minora_Spread01?value" },
+						{ "op" : "push", "val" : 50 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_PR_Minora_Spread01-1",
+				"url" : "#GP_PR_Minora_Spread01"
+			}
+		]
+	}
+}

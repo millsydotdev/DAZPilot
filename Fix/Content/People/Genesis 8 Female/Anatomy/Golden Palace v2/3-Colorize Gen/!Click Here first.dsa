@@ -1,0 +1,6 @@
+// DAZ Studio version 4.11.0.366 filetype DAZ Script
+
+
+
+MessageBox.information("\n- Check G8F (or any of its child nodes) is selected;\n- Load the colorizing script.\n", "Info", "&OK");
+

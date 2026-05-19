@@ -1,0 +1,22 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/People/Genesis%209/Anatomy/Golden%20Palace/03-Shape%20Presets/Glutes%20and%20Legs/Left%20Leg%20Widen%201_Full.duf",
+		"type" : "preset_pose",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-04-19T06:51:18Z"
+	},
+	"scene" : {
+		"animations" : [
+			{
+				"url" : "name://@selection#GP_LegWiden2_Left:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			}
+		]
+	}
+}

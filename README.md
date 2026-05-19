@@ -1,5 +1,7 @@
 # DazPilot
 
+> **Disclaimer:** DazPilot is an independent, third-party project and is **not affiliated with, authorized, or endorsed by Daz 3D.** All product names, logos, and brands are property of their respective owners.
+
 AI-assisted Daz Studio scene control through a Tauri desktop app, a local GGUF model, a Daz SDK knowledge index, and a C++ bridge plugin.
 
 ## At A Glance

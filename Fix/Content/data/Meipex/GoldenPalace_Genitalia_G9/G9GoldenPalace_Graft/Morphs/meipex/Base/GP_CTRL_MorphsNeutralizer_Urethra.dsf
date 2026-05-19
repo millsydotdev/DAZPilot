@@ -1,0 +1,130 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_CTRL_MorphsNeutralizer_Urethra.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_CTRL_MorphsNeutralizer_Urethra",
+			"name" : "GP_CTRL_MorphsNeutralizer_Urethra",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 0.1607843, 0.1607843, 0.1607843 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_CTRL_MorphsNeutralizer_Urethra",
+				"label" : "GP_CTRL_MorphsNeutralizer_Urethra",
+				"visible" : false,
+				"value" : 1,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/Hidden",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Urethra_Open.dsf#GP_Urethra_Open?value" },
+						{ "op" : "push", "val" : -5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Urethra_Up-Down.dsf#GP_Urethra_Up-Down?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Urethra_Shrinken2.dsf#GP_Urethra_Shrinken2?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Urethra_Shrinken1.dsf#GP_Urethra_Shrinken1?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Urethra_Front-Back.dsf#GP_Urethra_Front-Back?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_UrethralOpening_Puffy3.dsf#GP_UrethralOpening_Puffy3?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_UrethralOpening_Puffy2.dsf#GP_UrethralOpening_Puffy2?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_UrethralOpening_Puffy1_More.dsf#GP_UrethralOpening_Puffy1_More?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_UrethralOpening_Puffy1.dsf#GP_UrethralOpening_Puffy1?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_UrethralOpening_Close.dsf#GP_UrethralOpening_Close?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_UrethralOpening_Bump.dsf#GP_UrethralOpening_Bump?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Urethra?value" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_CTRL_MorphsNeutralizer_Urethra-1",
+				"url" : "#GP_CTRL_MorphsNeutralizer_Urethra"
+			}
+		]
+	}
+}

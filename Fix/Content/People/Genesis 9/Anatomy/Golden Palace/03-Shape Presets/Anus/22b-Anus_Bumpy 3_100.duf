@@ -1,0 +1,50 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/People/Genesis%209/Anatomy/Dicktator/03-Shape%20Presets/Anus%20Shape/19-Anus_Bumpy%201.duf",
+		"type" : "preset_shape",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-01-26T09:51:13Z"
+	},
+	"scene" : {
+		"animations" : [
+			{
+				"url" : "name://@selection#GP_Anus_Bump1:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Bump2:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Bump3:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Bump4:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Bump5:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_PR_Anus_Bump01:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_PR_Anus_Bump02:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_PR_Anus_Bump03:?value/value",
+				"keys" : [ [ 0, 1 ] ]
+			}
+		]
+	}
+}

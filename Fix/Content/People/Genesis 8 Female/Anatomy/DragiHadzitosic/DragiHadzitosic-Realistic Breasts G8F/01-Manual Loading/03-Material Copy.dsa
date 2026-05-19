@@ -1,0 +1,117 @@
+// DAZ Studio version 4.10.0.123 filetype DAZ Script
+
+(function(){
+
+	/*********************************************************************/
+	// Boolean : Deep copy a material from source to target (your working method)
+	function deepCopyMaterial( oSrcNode, sSrcMaterial, oTgtNode, sTgtMaterial ){
+		if( !oSrcNode || !oTgtNode || sSrcMaterial.isEmpty() || sTgtMaterial.isEmpty() ){
+			return false;
+		}
+
+		var oSrcObject = oSrcNode.getObject();
+		var oTgtObject = oTgtNode.getObject();
+		if( !oSrcObject || !oTgtObject ) return false;
+
+		var oSrcShape = oSrcObject.getCurrentShape();
+		var oTgtShape = oTgtObject.getCurrentShape();
+		if( !oSrcShape || !oTgtShape ) return false;
+
+		var oSrcMaterial = oSrcShape.findMaterial( sSrcMaterial );
+		var oTgtMaterial = oTgtShape.findMaterial( sTgtMaterial );
+		if( !oSrcMaterial || !oTgtMaterial ) return false;
+
+		var oContext = new DzElementDuplicateContext();
+		var oDupeMaterial = oSrcMaterial.doDuplicateElement( oContext );
+
+		// Preserve name + label
+		oDupeMaterial.name = oTgtMaterial.name;
+		oDupeMaterial.setLabel( oTgtMaterial.getLabel() );
+
+		// Shader name/class fix
+		if( oDupeMaterial.className() != oSrcMaterial.className() &&
+			(oDupeMaterial.inherits("DzShaderMaterial") ||
+			 oDupeMaterial.inherits("DzBrickMaterial")) ){
+			oDupeMaterial.setMaterialName( oSrcMaterial.getMaterialName() );
+		}
+
+		oContext.createAlaises();
+		oContext.createERC();
+		oContext.doResolve();
+		oContext.doFinalize();
+
+		var oError = oTgtShape.replaceMaterial( oTgtMaterial, oDupeMaterial );
+
+		// Force UV Set
+		var oNewMat = oTgtShape.findMaterial( sTgtMaterial );
+		if( oNewMat ){
+			var uv = oNewMat.getUVSetControl();
+			if( uv ){
+				uv.setValueFromString( "Uv 01 RN" );
+			}
+		}
+
+		return oError.valueOf() == 0x00000000;
+	}
+
+	/*********************************************************************/
+	var sOk = qsTr("&Ok");
+
+	if( App.version64 < 0x0004000600030027 ){
+		MessageBox.information(
+			qsTr("This script requires a newer version of the application."),
+			qsTr("Version Error"), sOk );
+		return;
+	}
+
+	var aNodes = Scene.getSelectedNodeList();
+	if( aNodes.length !== 1 ){
+		MessageBox.information(
+			qsTr("Please select the Genesis 8 Female figure that Realistic Breasts G8F is fitted to."),
+			qsTr("Selection Error"), sOk );
+		return;
+	}
+
+	var oSrcNode = aNodes[0];
+	if( oSrcNode.inherits("DzBone") ){
+		oSrcNode = oSrcNode.getSkeleton();
+	}
+
+	// The G8F realistic breasts graft
+	var tNode = oSrcNode.findNodeChild("Realistic Breasts G8F");
+	if( !tNode ){
+		MessageBox.information(
+			qsTr("Could not find 'Realistic Breasts G8F' on the selected figure."),
+			qsTr("Node Error"), sOk );
+		return;
+	}
+
+	/*********************************************************************/
+	// Copy Torso + Arms
+	var surfaces = ["Torso", "Arms"];
+	var copied = 0;
+
+	for( var i=0; i<surfaces.length; i++ ){
+		if( deepCopyMaterial( oSrcNode, surfaces[i], tNode, surfaces[i] ) ){
+			copied++;
+		}
+	}
+
+	/*********************************************************************/
+	if( copied === surfaces.length ){
+		MessageBox.information(
+			qsTr("Materials successfully copied onto Realistic Breasts G8F."),
+			qsTr("Realistic Breasts G8F"), sOk );
+	}
+	else if( copied > 0 ){
+		MessageBox.warning(
+			qsTr("Some materials were copied, but not all."),
+			qsTr("Realistic Breasts G8F"), sOk );
+	}
+	else{
+		MessageBox.warning(
+			qsTr("Failed to copy materials."),
+			qsTr("Realistic Breasts G8F"), sOk );
+	}
+
+})();

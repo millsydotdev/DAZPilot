@@ -7,7 +7,7 @@ export interface ActionParam {
 
 export interface StructuredAiAction {
   command: string;
-  args: any;
+  args: Record<string, string>;
   confidence: number;
   sdk_refs: string[];
   requires_confirmation: boolean;

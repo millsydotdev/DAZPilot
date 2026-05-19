@@ -1,0 +1,76 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/Daz%203D/Genesis%209/Base/Morphs/meipex/GoldenPalace/GP_body_cbs_thigh_x35p_y75p_r_Add.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "0.0",
+		"modified" : "2023-04-07T13:04:07Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_body_cbs_thigh_x35p_y75p_r_Add",
+			"name" : "GP_body_cbs_thigh_x35p_y75p_r_Add",
+			"parent" : "/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#Genesis9",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 0.1607843, 0.1607843, 0.1607843 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_body_cbs_thigh_x35p_y75p_r_Add",
+				"label" : "GP_body_cbs_thigh_x35p_y75p_r_Add",
+				"visible" : false,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"region" : "Hip",
+			"group" : "/Golden Palace/Hidden",
+			"formulas" : [
+				{
+					"output" : "Genesis9:#GP_body_cbs_thigh_x35p_y75p_r_Add?value",
+					"operations" : [
+						{ "op" : "push", "url" : "r_thigh:/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#r_thigh?rotation/y" },
+						{ "op" : "push", "val" : 0.013333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Genesis9:#GP_body_cbs_thigh_x35p_y75p_r_Add?value",
+					"operations" : [
+						{ "op" : "push", "url" : "r_thigh:/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#r_thigh?rotation/x" },
+						{ "op" : "push", "val" : 0.0285 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Genesis9:#GP_body_cbs_thigh_x35p_y75p_r_Add?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "Genesis9:/data/Daz%203D/Genesis%209/Base/Morphs/meipex/GoldenPalace/GP_body_cbs_Improvement.dsf#GP_body_cbs_Improvement?value" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_body_cbs_thigh_x35p_y75p_r_Add-1",
+				"url" : "#GP_body_cbs_thigh_x35p_y75p_r_Add"
+			}
+		]
+	}
+}

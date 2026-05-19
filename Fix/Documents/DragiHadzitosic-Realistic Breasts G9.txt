@@ -1,0 +1,584 @@
+======================================================================
+                              SOME INFO
+======================================================================
+
+Thank you for purchasing Realistic Breasts G9.
+
+Look for more exciting sets coming soon to Renderotica.com!
+
+https://www.renderotica.com/content-artists/DragiHadzitosic/1370
+
+dragihadzitosic@gmail.com
+
+======================================================================
+                              CONTENTS
+======================================================================
+
+..\My Library\data\Daz 3D\Genesis 9\Base\Morphs\DragiHadzitosic\Realistic Breasts G9\
+   Large Breasts 01.dsf
+   Large Breasts 02.dsf
+   Large Breasts 03.dsf
+   Large Breasts Implants 01.dsf
+   Large Breasts Implants 02.dsf
+   Large Breasts Implants 03.dsf
+   Large Saggy Breasts 01.dsf
+   Large Saggy Breasts 02.dsf
+   Large Saggy Breasts 03.dsf
+   Medium Breasts 01.dsf
+   Medium Breasts 02.dsf
+   Medium Breasts 03.dsf
+   Medium Breasts Implants 01.dsf
+   Medium Breasts Implants 02.dsf
+   Medium Breasts Implants 03.dsf
+   Medium Saggy Breasts 01.dsf
+   Medium Saggy Breasts 02.dsf
+   Medium Saggy Breasts 03.dsf
+   Small Breasts 01.dsf
+   Small Breasts 02.dsf
+   Small Breasts 03.dsf
+   XL Implants Titjob.dsf
+   XL Implatns.dsf
+   XL Natural Breasts Titjob.dsf
+   XL Saggy Breasts Titjob.dsf
+   XL Saggy Breasts.dsf
+   Xl Breasts.dsf
+
+..\My Library\data\DragiHadzitosic\Realistic Breasts G9\Breasts Graft\Morphs\DragiHadzitosic\Base\
+   Areola Shape 01.dsf
+   Areola Shape 02.dsf
+   Areola Shape 03.dsf
+   Areola Shape 04.dsf
+   Areola Shape 05.dsf
+   Areola Shape 06.dsf
+   Areola Shape 07.dsf
+   Areola Shape 08.dsf
+   Areola Shape 09.dsf
+   Areola Shape 10.dsf
+   Areola Size.dsf
+   Large Breasts 01.dsf
+   Large Breasts 02.dsf
+   Large Breasts 03.dsf
+   Large Breasts Implants 01.dsf
+   Large Breasts Implants 02.dsf
+   Large Breasts Implants 03.dsf
+   Large Saggy Breasts 01.dsf
+   Large Saggy Breasts 02.dsf
+   Large Saggy Breasts 03.dsf
+   Left Pectoral Wrinkle FIX.dsf
+   Medium Breasts 01.dsf
+   Medium Breasts 02.dsf
+   Medium Breasts 03.dsf
+   Medium Breasts Implants 01.dsf
+   Medium Breasts Implants 02.dsf
+   Medium Breasts Implants 03.dsf
+   Medium Saggy Breasts 01.dsf
+   Medium Saggy Breasts 02.dsf
+   Medium Saggy Breasts 03.dsf
+   Nipple Shape 01.dsf
+   Nipple Shape 02.dsf
+   Nipple Shape 03.dsf
+   Nipple Shape 04.dsf
+   Nipple Shape 05.dsf
+   Nipple Shape 06.dsf
+   Nipple Shape 07.dsf
+   Nipple Shape 08.dsf
+   Nipple Shape 09.dsf
+   Nipple Shape 10.dsf
+   Nipple Shape 11.dsf
+   Nipple Shape 12.dsf
+   Nipple Shape 13.dsf
+   Nipple Shape 14.dsf
+   Nipples LongShort.dsf
+   Right Pectoral Wrinkle FIX.dsf
+   Scale Nipples.dsf
+   Small Breasts 01.dsf
+   Small Breasts 02.dsf
+   Small Breasts 03.dsf
+   XL Implants Titjob.dsf
+   XL Implatns.dsf
+   XL Natural Breasts Titjob.dsf
+   XL Saggy Breasts Titjob.dsf
+   XL Saggy Breasts.dsf
+   Xl Breasts.dsf
+   body_cbs_shoulder_x30n_l.dsf
+   body_cbs_shoulder_x30n_r.dsf
+   body_cbs_shoulder_x30p_l.dsf
+   body_cbs_shoulder_x30p_r.dsf
+   body_cbs_shoulder_z55n_r.dsf
+   body_cbs_shoulder_z55p_l.dsf
+   body_cbs_spine2_x40p.dsf
+   body_cbs_spine3_x35p.dsf
+   body_cbs_upperarm_x95n_l.dsf
+   body_cbs_upperarm_x95n_r.dsf
+   body_cbs_upperarm_y110n_l.dsf
+   body_cbs_upperarm_y110n_z40n_l.dsf
+   body_cbs_upperarm_y110n_z90p_l.dsf
+   body_cbs_upperarm_y110p_r.dsf
+   body_cbs_upperarm_y110p_z40p_r.dsf
+   body_cbs_upperarm_y110p_z90n_r.dsf
+   body_cbs_upperarm_z40n_l.dsf
+   body_cbs_upperarm_z40p_r.dsf
+   body_cbs_upperarm_z90n_r.dsf
+   body_cbs_upperarm_z90p_l.dsf
+
+..\My Library\data\DragiHadzitosic\Realistic Breasts G9\Breasts Graft\Morphs\DragiHadzitosic\Realistic Breasts G9\
+   Large Breasts 03.dsf
+   Medium Breasts Implants 01.dsf
+
+..\My Library\data\DragiHadzitosic\Realistic Breasts G9\Breasts Graft\UV Sets\DragiHadzitosic\Base\
+   MATs UV.dsf
+   Scars And Veins UV.dsf
+   default.dsf
+
+..\My Library\data\DragiHadzitosic\Realistic Breasts G9\Breasts Graft\
+   Realistic Breasts G9.dsf
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Manual Loading\
+   01-Instructions.dse
+   01-Instructions.png
+   02-DragiHadzitosic-Realistic Breasts G9-Graft.duf
+   02-DragiHadzitosic-Realistic Breasts G9-Graft.png
+   03-DragiHadzitosic-Realistic Breasts G9-Shell.duf
+   03-DragiHadzitosic-Realistic Breasts G9-Shell.duf.png
+   04-DragiHadzitosic-Realistic Breasts G9-Material Copy.dse
+   04-DragiHadzitosic-Realistic Breasts G9-Material Copy.png
+   05-DragiHadzitosic-Realistic Breasts G9-Material Copy Daz 2025+.dse
+   05-DragiHadzitosic-Realistic Breasts G9-Material Copy Daz 2025+.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Nipples 01\
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Default.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Default.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Higher.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Higher.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Lower.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Lower.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Default.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Default.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Higher.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Higher.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Lower.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Lower.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 01.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 01.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 02.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 02.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 03.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 03.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 04.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 04.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 05.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 05.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 06.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 06.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 07.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 07.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 08.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 08.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Nipples 02\
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Default.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Default.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Higher.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Higher.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Lower.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Lower.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Default.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Default.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Higher.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Higher.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Lower.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Lower.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 01.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 01.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 02.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 02.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 03.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 03.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 04.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 04.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 05.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 05.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 06.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 06.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 07.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 07.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 08.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 08.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Nipples 03\
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Default.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Default.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Higher.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Higher.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Lower.duf
+   DragiHadzitosic-Realistic Nipples G9-Cutout Opacity Lower.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Default.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Default.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Higher.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Higher.duf.png
+   DragiHadzitosic-Realistic Nipples G9-Glossy Lower.duf
+   DragiHadzitosic-Realistic Nipples G9-Glossy Lower.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 01.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 01.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 02.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 02.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 03.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 03.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 04.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 04.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 05.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 05.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 06.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 06.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 07.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 07.duf.png
+   DragiHadzitosic-Realistic Nipples G9-MAT 08.duf
+   DragiHadzitosic-Realistic Nipples G9-MAT 08.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Scars\Scars Materials\
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 01.duf
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 01.png
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 02.duf
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 02.png
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 03.duf
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 03.png
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 04.duf
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 04.png
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 05-Scars Healed.duf
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 05-Scars Healed.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 06-Scars Default Opacity.duf
+   DragiHadzitosic-Realistic Breasts G9-Scars-Material 06-Scars Default Opacity.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Scars\
+   DragiHadzitosic-Realistic Breasts G9-Scars Shell.duf
+   DragiHadzitosic-Realistic Breasts G9-Scars Shell.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Stretch Marks\Stretch Marks Materials\
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 01.duf
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 01.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 02.duf
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 02.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 03.duf
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 03.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 04.duf
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 04.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 05-Stretch Marks Stronger.duf
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 05-Stretch Marks Stronger.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 06-Stretch Marks Default.duf
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks-Material 06-Stretch Marks Default.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Stretch Marks\
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks Shell.duf
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks Shell.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Veins\Veins Materials\
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 01.duf
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 01.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 02.duf
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 02.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 03.duf
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 03.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 04.duf
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 04.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 05-Veins Stronger.duf
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 05-Veins Stronger.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 06-Veins Default.duf
+   DragiHadzitosic-Realistic Breasts G9-Veins-Material 06-Veins Default.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Materials\Veins\
+   DragiHadzitosic-Realistic Breasts G9-Veins Shell.duf
+   DragiHadzitosic-Realistic Breasts G9-Veins Shell.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Shapes\01-Breasts Shapes\01-Small Breasts\
+   Realistic Breasts G9-Small Breasts 01.duf
+   Realistic Breasts G9-Small Breasts 01.duf.png
+   Realistic Breasts G9-Small Breasts 02.duf
+   Realistic Breasts G9-Small Breasts 02.duf.png
+   Realistic Breasts G9-Small Breasts 03.duf
+   Realistic Breasts G9-Small Breasts 03.duf.png
+   Realistic Breasts G9-Zero Breasts Shape.duf
+   Realistic Breasts G9-Zero Breasts Shape.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Shapes\01-Breasts Shapes\02-Medium Breasts\
+   Realistic Breasts G9-Medium Breast Implants 01.duf
+   Realistic Breasts G9-Medium Breast Implants 01.png
+   Realistic Breasts G9-Medium Breast Implants 02.duf
+   Realistic Breasts G9-Medium Breast Implants 02.png
+   Realistic Breasts G9-Medium Breast Implants 03.duf
+   Realistic Breasts G9-Medium Breast Implants 03.png
+   Realistic Breasts G9-Medium Breasts 01.duf
+   Realistic Breasts G9-Medium Breasts 01.png
+   Realistic Breasts G9-Medium Breasts 02.duf
+   Realistic Breasts G9-Medium Breasts 02.png
+   Realistic Breasts G9-Medium Breasts 03.duf
+   Realistic Breasts G9-Medium Breasts 03.png
+   Realistic Breasts G9-Medium Saggy Breasts 01.duf
+   Realistic Breasts G9-Medium Saggy Breasts 01.png
+   Realistic Breasts G9-Medium Saggy Breasts 02.duf
+   Realistic Breasts G9-Medium Saggy Breasts 02.png
+   Realistic Breasts G9-Medium Saggy Breasts 03.duf
+   Realistic Breasts G9-Medium Saggy Breasts 03.png
+   Realistic Breasts G9-Zero Breasts Shape.duf
+   Realistic Breasts G9-Zero Breasts Shape.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Shapes\01-Breasts Shapes\03-Large Breasts\
+   Realistic Breasts G9-Large Breast Implants 01.duf
+   Realistic Breasts G9-Large Breast Implants 01.duf.png
+   Realistic Breasts G9-Large Breast Implants 02.duf
+   Realistic Breasts G9-Large Breast Implants 02.duf.png
+   Realistic Breasts G9-Large Breast Implants 03.duf
+   Realistic Breasts G9-Large Breast Implants 03.duf.png
+   Realistic Breasts G9-Large Breasts 01.duf
+   Realistic Breasts G9-Large Breasts 01.png
+   Realistic Breasts G9-Large Breasts 02.duf
+   Realistic Breasts G9-Large Breasts 02.duf.png
+   Realistic Breasts G9-Large Breasts 03.duf
+   Realistic Breasts G9-Large Breasts 03.duf.png
+   Realistic Breasts G9-Large Saggy Breasts 01.duf
+   Realistic Breasts G9-Large Saggy Breasts 01.duf.png
+   Realistic Breasts G9-Large Saggy Breasts 02.duf
+   Realistic Breasts G9-Large Saggy Breasts 02.duf.png
+   Realistic Breasts G9-Large Saggy Breasts 03.duf
+   Realistic Breasts G9-Large Saggy Breasts 03.duf.png
+   Realistic Breasts G9-Zero Breasts Shape.duf
+   Realistic Breasts G9-Zero Breasts Shape.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Shapes\01-Breasts Shapes\04-XL Breasts\
+   Realistic Breasts G9-XL Breast Implants.duf
+   Realistic Breasts G9-XL Breast Implants.duf.png
+   Realistic Breasts G9-XL Breasts.duf
+   Realistic Breasts G9-XL Breasts.duf.png
+   Realistic Breasts G9-XL Saggy Breasts.duf
+   Realistic Breasts G9-XL Saggy Breasts.duf.png
+   Realistic Breasts G9-Zero Breasts Shape.duf
+   Realistic Breasts G9-Zero Breasts Shape.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Shapes\01-Breasts Shapes\05-Titjob\
+   Realistic Breasts G9-Large Implants Titjob.duf.png
+   Realistic Breasts G9-XL Breasts Titjob.duf
+   Realistic Breasts G9-XL Breasts Titjob.duf.png
+   Realistic Breasts G9-XL Implants Titjob.duf
+   Realistic Breasts G9-XL Implants Titjob.duf.png
+   Realistic Breasts G9-XL Saggy Titjob.duf
+   Realistic Breasts G9-XL Saggy Titjob.duf.png
+   Realistic Breasts G9-Zero Breasts Shape.duf
+   Realistic Breasts G9-Zero Breasts Shape.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Shapes\02-Custom Nipple Shapes\
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 01.duf
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 01.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 02.duf
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 02.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 03.duf
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 03.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 04.duf
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 04.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 05.duf
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 05.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 06.duf
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 06.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 07.duf
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 07.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 08.duf
+   DragiHadzitosic-Realistic Breasts G9-Custom Shapes 08.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Zero Custom Shapes.duf
+   DragiHadzitosic-Realistic Breasts G9-Zero Custom Shapes.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Shapes\03-Nipples Shapes\
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 01.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 01.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 02.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 02.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 03.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 03.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 04.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 04.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 05.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 05.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 06.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 06.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 07.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 07.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 08.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 08.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 09.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 09.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 10.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 10.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 11.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 11.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 12.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 12.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 13.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 13.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 14.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shape 14.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shapes Zero.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipple Shapes Zero.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 01-2517389828uf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 01-2517389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 02-5017389828uf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 02-5017389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 03-7517389828uf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 03-7517389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 04-10017389828uf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 04-10017389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 05-Zero Scale.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Scale 05-Zero Scale.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 01-2517389828uf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 01-2517389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 02-5017389828uf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 02-5017389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 03-7517389828uf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 03-7517389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 04-10017389828uf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 04-10017389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 05-Zero Taller.duf
+   DragiHadzitosic-Realistic Breasts G9-Nipples Taller 05-Zero Taller.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Shapes\04-Areola Shapes\
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 01.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 01.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 02.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 02.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 03.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 03.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 04.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 04.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 05.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 05.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 06.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 06.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 07.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 07.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 08.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 08.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 09.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 09.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 10.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 10.duf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 11-Zero Areola Shape.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Shape 11-Zero Areola Shape.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 01-2517389828uf
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 01-2517389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 02-5017389828uf
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 02-5017389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 03-7517389828uf
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 03-7517389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 04-10017389828uf
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 04-10017389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 05--2017389828uf
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 05--2017389828uf.png
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 06-Zero Areola Size.duf
+   DragiHadzitosic-Realistic Breasts G9-Areola Size 06-Zero Areola Size.duf.png
+
+..\My Library\People\Genesis 9\Anatomy\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\
+   01-Instructions.dse
+   01-Instructions.png
+   02-Realistic Breasts G9-Auto-Load.dse
+   02-Realistic Breasts G9-Auto-Load.png
+   03-Realistic Breasts G9-Auto-Load DAZ 2025+.dsa
+   03-Realistic Breasts G9-Auto-Load DAZ 2025+.png
+   04-Instructions-Shell Fix.dse
+   04-Instructions-Shell Fix.png
+   05-Shell Fix.dse
+   05-Shell Fix.png
+   06-Shell Fix DAZ 2025+.dse
+   06-Shell Fix DAZ 2025+.png
+
+..\My Library\Runtime\Textures\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Texture set 01\
+   DragiHadzitosic-Realistic Breasts G9-Base Color 01.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 02.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 03.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 04.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 05.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 06.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 07.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 08.jpg
+   DragiHadzitosic-Realistic Breasts G9-Cutout Opacity.jpg
+   DragiHadzitosic-Realistic Breasts G9-Displacement.jpg
+   DragiHadzitosic-Realistic Breasts G9-Normal.jpg
+   DragiHadzitosic-Realistic Breasts G9-Roughness.jpg
+
+..\My Library\Runtime\Textures\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Texture set 02\
+   DragiHadzitosic-Realistic Nipples G9-Base Color 01.jpg
+   DragiHadzitosic-Realistic Nipples G9-Base Color 02.jpg
+   DragiHadzitosic-Realistic Nipples G9-Base Color 03.jpg
+   DragiHadzitosic-Realistic Nipples G9-Base Color 04.jpg
+   DragiHadzitosic-Realistic Nipples G9-Base Color 05.jpg
+   DragiHadzitosic-Realistic Nipples G9-Base Color 06.jpg
+   DragiHadzitosic-Realistic Nipples G9-Base Color 07.jpg
+   DragiHadzitosic-Realistic Nipples G9-Base Color 08.jpg
+   DragiHadzitosic-Realistic Nipples G9-Bump.jpg
+   DragiHadzitosic-Realistic Nipples G9-Cotout Opacity.jpg
+   DragiHadzitosic-Realistic Nipples G9-Normal.jpg
+   DragiHadzitosic-Realistic Nipples G9-Roughness.jpg
+   DragiHadzitosic-Realistic Nipples G9-Specular.jpg
+
+..\My Library\Runtime\Textures\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Texture set 03\
+   DragiHadzitosic-Realistic Breasts G9-Base Color 01.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 02.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 03.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 04.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 05.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 06.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 07.jpg
+   DragiHadzitosic-Realistic Breasts G9-Base Color 08.jpg
+   DragiHadzitosic-Realistic Breasts G9-Bump.jpg
+   DragiHadzitosic-Realistic Breasts G9-Cutout Opacity.jpg
+   DragiHadzitosic-Realistic Breasts G9-Glossy Reflectivity.jpg
+   DragiHadzitosic-Realistic Breasts G9-Normal.jpg
+   DragiHadzitosic-Realistic Breasts G9-Roughness.jpg
+   DragiHadzitosic-Realistic Breasts G9-Specular.jpg
+   DragiHadzitosic-Realistic Breasts G9-Translucency 01.jpg
+
+..\My Library\Runtime\Textures\DragiHadzitosic\DragiHadzitosic-Realistic Breasts G9\Veins And Scars\
+   DragiHadzitosic-Realistic Breasts G9-Scars 01 Bump.png
+   DragiHadzitosic-Realistic Breasts G9-Scars 01 Cutout Opacity.png
+   DragiHadzitosic-Realistic Breasts G9-Scars 01 Normal.png
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks Bump.jpg
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks Cutout Opacity.jpg
+   DragiHadzitosic-Realistic Breasts G9-Stretch Marks Normal.jpg
+   DragiHadzitosic-Realistic Breasts G9-Veins Cutout Opacity.png
+
+======================================================================
+                   Product Requirements and Compatibility
+======================================================================
+
+Programs Required: Daz 4.24+
+Models Required: Genesis 9 Female,
+Any addons required to use: None
+
+======================================================================
+                            ABOUT THE SET
+======================================================================
+
+Realistic Breasts G9 is a geograft-based system for Genesis 9 Female, designed for use in DAZ Studio 4.24 and DAZ Studio 2025 Alpha. This product adds natural, anatomically accurate breast shapes with detailed shell add-ons for effects such as veins, stretch marks, and scars.
+
+It includes Auto-Load scripts for fast setup and new Shell Fix script for use with any other geograft. 
+
+A wide range of material presets and shaping presets for breasts, nipples, and areolas are also included, allowing you to achieve diverse, character-specific results.
+
+Note: Note: For detailed usage instructions, please open the included Instructions.pdf file in the Documents folder.
+
+
+======================================================================
+		       INSTALLATIN INSTRUCTIONS
+======================================================================
+
+- Unzip the zip file to a temporarily folder
+
+- Copy the 'data' and 'People' and 'Runtime' folders in the unzipped folder and paste them into your DAZ Library folder.(e.g. C:\Users\Your Username\Documents\DAZ 3D\Studio\My Library)
+
+======================================================================
+                                 TAGS
+======================================================================
+
+beasts, realistic, areola, nipple, boobs, tits, titjob, huge, small, medium
+
+======================================================================
+                          COPYRIGHT & LICENSE
+======================================================================
+
+Copyright (c) 2025 DragiHadzitosic. All rights reserved. Not intended for 
+redistribution.

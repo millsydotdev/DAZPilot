@@ -1,0 +1,154 @@
+// DAZ Studio version 2025.0.0.0 filetype DAZ Script
+
+(() => {
+  const contentMgr = App.getContentMgr();
+
+  const graftRelPath = "People/Genesis 9/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic Breasts G9/Manual Loading/02-DragiHadzitosic-Realistic Breasts G9-Graft.duf";
+  const shellRelPath = "People/Genesis 9/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic Breasts G9/Manual Loading/03-DragiHadzitosic-Realistic Breasts G9-Shell.duf";
+
+  const graftAbsPath = contentMgr.findFile(graftRelPath) ?? "";
+  const shellAbsPath = contentMgr.findFile(shellRelPath) ?? "";
+
+  if (!graftAbsPath) {
+    print(`❌ Graft file not found:\n${graftRelPath}`);
+    return;
+  }
+  if (!shellAbsPath) {
+    print(`❌ Shell file not found:\n${shellRelPath}`);
+    return;
+  }
+
+  print(`✅ Found graft file:\n${graftAbsPath}`);
+  print(`✅ Found shell file:\n${shellAbsPath}`);
+
+  // Save the currently selected base figure node(s)
+  const originalSelection = Scene.getSelectedNodeList();
+
+  if (originalSelection.length !== 1) {
+    MessageBox.information(
+      qsTr("Please select only the base figure to which 'Realistic Breasts G9' is fitted."),
+      qsTr("Selection Error"),
+      qsTr("&OK")
+    );
+    return;
+  }
+
+  const baseFigureNode = originalSelection[0];
+
+  // Load graft and shell but do NOT change selection
+  const graftLoaded = contentMgr.openFile(graftAbsPath, true);
+  if (!graftLoaded) {
+    print(`❌ Failed to load graft file:\n${graftAbsPath}`);
+    return;
+  }
+  print("✅ Graft loaded successfully.");
+
+  const shellLoaded = contentMgr.openFile(shellAbsPath, true);
+  if (!shellLoaded) {
+    print(`❌ Failed to load shell file:\n${shellAbsPath}`);
+    return;
+  }
+  print("✅ Shell loaded successfully.");
+
+  // Restore original selection (the base figure) to remain selected
+  Scene.setPrimarySelection(baseFigureNode);
+
+  // Material copy helper function
+  const deepCopyMaterial = (srcNode, srcMatName, tgtNode, tgtMatName) => {
+    if (!srcNode || !tgtNode || srcMatName.isEmpty() || tgtMatName.isEmpty()) return false;
+
+    const srcObject = srcNode.getObject();
+    const tgtObject = tgtNode.getObject();
+    if (!srcObject || !tgtObject) return false;
+
+    const srcShape = srcObject.getCurrentShape();
+    const tgtShape = tgtObject.getCurrentShape();
+    if (!srcShape || !tgtShape) return false;
+
+    const srcMat = srcShape.findMaterial(srcMatName);
+    const tgtMat = tgtShape.findMaterial(tgtMatName);
+    if (!srcMat || !tgtMat) return false;
+
+    const originalTgtLabel = tgtMat.getLabel?.();
+
+    const ctx = new DzElementDuplicateContext();
+    const dupeMat = srcMat.duplicateOrDefaultMaterial(ctx);
+    if (!dupeMat) return false;
+
+    ctx.createAlaises();
+    ctx.createERC();
+    ctx.doResolve();
+    ctx.doFinalize();
+
+    const result = tgtShape.replaceMaterial(tgtMat, dupeMat);
+    if (result.valueOf() !== 0x00000000) return false;
+
+    const newMat = tgtShape.findMaterial(dupeMat.name);
+    if (!newMat) return false;
+
+    newMat.name = tgtMatName;
+
+    if (originalTgtLabel && typeof newMat.setLabel === "function") {
+      newMat.setLabel(originalTgtLabel);
+    }
+
+    if (
+      newMat.className() !== srcMat.className() &&
+      (newMat.inherits("DzShaderMaterial") || newMat.inherits("DzBrickMaterial")) &&
+      typeof newMat.setMaterialName === "function"
+    ) {
+      newMat.setMaterialName(srcMat.getMaterialName());
+    }
+
+    const uvControl = newMat.getUVSetControl?.();
+    if (uvControl && typeof uvControl.setValue === "function") {
+      uvControl.setValue(0);
+    }
+
+    return true;
+  };
+
+  // Run material copy on the base figure node and graft node
+  const runMaterialCopy = () => {
+    if (App.version64 < 0x0005000000000000) {
+      MessageBox.information(
+        qsTr("This script requires DAZ Studio 2025 or newer."),
+        qsTr("Version Error"),
+        qsTr("&OK")
+      );
+      return;
+    }
+
+    // Use the base figure node you saved at start
+    let srcNode = baseFigureNode;
+    if (srcNode.inherits("DzBone")) srcNode = srcNode.getSkeleton();
+
+    const graftNode = srcNode.findNodeChild("Realistic Breasts G9");
+    if (!graftNode) {
+      MessageBox.information(
+        qsTr("Could not find 'Realistic Breasts G9' on the selected figure."),
+        qsTr("Node Error"),
+        qsTr("&OK")
+      );
+      return;
+    }
+
+    const copied = deepCopyMaterial(srcNode, "Body", graftNode, "Default");
+    if (copied) {
+      MessageBox.information(
+        qsTr("Material successfully copied to 'Realistic Breasts G9'."),
+        qsTr("Realistic Breasts G9"),
+        qsTr("&OK")
+      );
+    } else {
+      MessageBox.warning(
+        qsTr("Failed to copy material to 'Realistic Breasts G9'."),
+        qsTr("Realistic Breasts G9"),
+        qsTr("&OK")
+      );
+    }
+  };
+
+  runMaterialCopy();
+
+})();

@@ -1,0 +1,110 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/body_cbs_thigh_z90p_l_VagCor.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:15Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "body_cbs_thigh_z90p_l_VagCor",
+			"name" : "body_cbs_thigh_z90p_l_VagCor",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 0.3529412, 0.3529412, 0.3529412 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "body_cbs_thigh_z90p_l_VagCor",
+				"visible" : false,
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/Hidden",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_G9_9694:#body_cbs_thigh_z90p_l_VagCor?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Open5.dsf#GP_Vagina_Open5?value" },
+						{ "op" : "push", "val" : 1 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:#body_cbs_thigh_z90p_l_VagCor?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Open4.dsf#GP_Vagina_Open4?value" },
+						{ "op" : "push", "val" : 0.4 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:#body_cbs_thigh_z90p_l_VagCor?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/body_cbs_thigh_z90p_l.dsf#body_cbs_thigh_z90p_l?value" }
+					]
+				}
+			],
+			"morph" : {
+				"vertex_count" : 9694,
+				"deltas" : {
+					"count" : 26,
+					"values" : [
+						[ 3, -1.53522, -0.1319199, 0.1040694 ],
+						[ 5, 5.960464e-08, -0.02324677, 5.960464e-08 ],
+						[ 54, 0.02387142, -7.629395e-06, 0.03015089 ],
+						[ 63, -0.02450597, 0, -0.2307308 ],
+						[ 64, 0, 0, 0.0039258 ],
+						[ 85, -0.1136603, 0.03005981, -0.255188 ],
+						[ 86, -0.4537072, 0.01371765, -0.6330664 ],
+						[ 91, 0.03821093, 0, -2.384186e-07 ],
+						[ 92, -0.8606464, -0.01810455, 5.960464e-08 ],
+						[ 95, -1.385905, 0.1032639, -1.953781 ],
+						[ 97, -0.2198544, 0, 0 ],
+						[ 115, -0.3337077, 7.629395e-06, -0.5595493 ],
+						[ 270, -0.07061851, 0.02638245, -0.302767 ],
+						[ 401, -0.3958005, 7.629395e-06, 1.192093e-07 ],
+						[ 402, -0.7668902, 0, -1.192093e-07 ],
+						[ 406, -1.138681, -0.1045837, -5.960464e-08 ],
+						[ 407, -1.222607, -1.525879e-05, -0.33413 ],
+						[ 412, 0.05888951, -7.629395e-06, -0.01633692 ],
+						[ 417, 0, 0.01526642, -7.450581e-09 ],
+						[ 421, 1.192093e-07, -0.05732727, 1.117587e-08 ],
+						[ 429, -0.0503549, -0.1222839, -2.980232e-08 ],
+						[ 1408, -0.04774332, 0, -0.1184454 ],
+						[ 1409, -0.2096378, 0.04709625, -0.5607538 ],
+						[ 1410, 0.1991296, 0.04954529, -0.2746611 ],
+						[ 3583, 0, -0.1805954, 0 ],
+						[ 8792, -0.3225121, 7.629395e-06, -0.8929454 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "body_cbs_thigh_z90p_l_VagCor-1",
+				"url" : "#body_cbs_thigh_z90p_l_VagCor"
+			}
+		]
+	}
+}

@@ -267,8 +267,11 @@ export function Launcher({
         </div>
       </div>
 
-      <div className="absolute bottom-8 font-mono text-[10px] font-medium uppercase tracking-widest text-zinc-600">
-        Version {version || '—'}
+      <div className="absolute bottom-8 flex flex-col items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-widest text-zinc-600">
+        <p className="text-[9px] text-zinc-700">
+          DazPilot is an independent third-party project and is not endorsed by Daz 3D.
+        </p>
+        <span>Version {version || '—'}</span>
       </div>
     </div>
   );

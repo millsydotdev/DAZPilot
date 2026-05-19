@@ -8,5 +8,13 @@ export default defineConfig({
   build: {
     outDir: "../dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom", "lucide-react", "zustand"],
+          tauri: ["@tauri-apps/api", "@tauri-apps/plugin-process", "@tauri-apps/plugin-updater"],
+        },
+      },
+    },
   },
 });

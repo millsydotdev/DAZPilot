@@ -45,3 +45,18 @@ export { Container } from './Container';
 export type { ContainerProps, ContainerSize } from './Container';
 
 export { Toast, ToastContainer } from './Toast';
+
+export { Modal } from './Modal';
+export type { ModalProps } from './Modal';
+
+export { ContextMenu } from './ContextMenu';
+export type { ContextMenuProps } from './ContextMenu';
+
+export { Sidebar } from './Sidebar';
+export type { SidebarProps, SidebarItem } from './Sidebar';
+
+export { Tabs } from './Tabs';
+export type { TabsProps, Tab } from './Tabs';
+
+export { Select } from './Select';
+export type { SelectProps, SelectOption } from './Select';

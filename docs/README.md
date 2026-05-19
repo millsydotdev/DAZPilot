@@ -1,5 +1,7 @@
 # DazPilot Docs
 
+> **Disclaimer:** DazPilot is an independent, third-party project and is **not affiliated with, authorized, or endorsed by Daz 3D.** All product names, logos, and brands are property of their respective owners.
+
 Use this index as the starting point for project, runtime, release, and publishing documentation.
 
 | Document | Start here when you need to... |

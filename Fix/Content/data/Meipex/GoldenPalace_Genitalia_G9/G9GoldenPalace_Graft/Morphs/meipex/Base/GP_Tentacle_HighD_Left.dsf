@@ -1,0 +1,296 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_HighD_Left.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:14Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_Tentacle_HighD_Left",
+			"name" : "GP_Tentacle_HighD_Left",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Icons/G9_Gold.png",
+				"colors" : [ [ 0, 0.5019608, 1 ], [ 1, 0.4941176, 0.7803922 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "GPT_Tentacle_HighD_Left",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/5-Vagina/4-Tentacles/2-Tentacles",
+			"formulas" : [
+				{
+					"output" : "lHighTentacleD1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD1?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : -0.5767778 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD1?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : 1.357467 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD2?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : -0.5301696 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD2?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : 1.310858 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD2?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : -0.9846005 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD2?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : -0.0002441406 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD2?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : 2.417806 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD3?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : -0.9612964 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD3?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : -0.0002441406 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD3?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : 2.417806 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD3?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : -1.497292 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD3?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : -0.0002441406 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lHighTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lHighTentacleD3?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_HighD_Left?value" },
+						{ "op" : "push", "val" : 3.664578 },
+						{ "op" : "mult" }
+					]
+				}
+			],
+			"morph" : {
+				"vertex_count" : 9694,
+				"deltas" : {
+					"count" : 132,
+					"values" : [
+						[ 1446, -1.459918, 0, 3.58334 ],
+						[ 1447, -1.055819, 7.629395e-06, 2.563183 ],
+						[ 1448, -1.055819, 0, 2.563182 ],
+						[ 1449, -1.460549, 0, 3.584958 ],
+						[ 1450, -1.458895, -7.629395e-06, 3.580661 ],
+						[ 1451, -1.458819, 0, 3.580448 ],
+						[ 1452, -1.460174, -1.525879e-05, 3.584037 ],
+						[ 1453, -1.055819, 0, 2.563182 ],
+						[ 1454, -1.055819, 0, 2.563183 ],
+						[ 1455, -1.055819, 0, 2.563182 ],
+						[ 1456, -1.055819, 0, 2.563183 ],
+						[ 1457, -1.460248, -1.525879e-05, 3.584184 ],
+						[ 1458, -1.264991, 0, 3.091092 ],
+						[ 1459, -1.485182, 0.001358032, 3.643369 ],
+						[ 1460, -1.486778, -0.001655579, 3.646744 ],
+						[ 1461, -1.483268, 0.0009460449, 3.643478 ],
+						[ 1462, -1.483089, -0.0007400513, 3.642893 ],
+						[ 1463, -1.488844, -0.0009384155, 3.646424 ],
+						[ 1464, -1.488562, 0.0007858276, 3.646837 ],
+						[ 1465, -1.264991, 0, 3.091092 ],
+						[ 1466, -1.264991, 0, 3.091092 ],
+						[ 1467, -1.264991, 7.629395e-06, 3.091092 ],
+						[ 1468, -1.264991, 0, 3.091092 ],
+						[ 1469, -1.264991, 0, 3.091092 ],
+						[ 1470, -0.258974, 0, 0.657396 ],
+						[ 1471, -0.5245891, -7.629395e-06, 1.308153 ],
+						[ 1472, -0.803485, 0, 1.98215 ],
+						[ 1473, -0.803485, 7.629395e-06, 1.98215 ],
+						[ 1474, -0.524589, -7.629395e-06, 1.308152 ],
+						[ 1475, -0.258974, 0, 0.6573961 ],
+						[ 1476, -0.258974, -7.629395e-06, 0.6573961 ],
+						[ 1477, -0.524589, 0, 1.308153 ],
+						[ 1478, -0.803485, 0, 1.98215 ],
+						[ 1479, -0.258974, 0, 0.657397 ],
+						[ 1480, -0.524589, 0, 1.308153 ],
+						[ 1481, -0.803485, 7.629395e-06, 1.982151 ],
+						[ 1482, -0.258974, 0, 0.6573961 ],
+						[ 1483, -0.524589, 0, 1.308153 ],
+						[ 1484, -0.803485, 0, 1.98215 ],
+						[ 1485, -0.258974, 7.629395e-06, 0.657396 ],
+						[ 1486, -0.5245891, 0, 1.308152 ],
+						[ 1487, -0.803485, 0, 1.98215 ],
+						[ 2344, -1.460236, 0, 3.584162 ],
+						[ 2345, -1.459732, 0, 3.582883 ],
+						[ 2346, -1.488031, -0.001617432, 3.651271 ],
+						[ 2347, -1.486206, -0.00125885, 3.649748 ],
+						[ 2354, -1.055819, 7.629395e-06, 2.563182 ],
+						[ 2355, -1.055819, 0, 2.563182 ],
+						[ 2364, -1.055819, 7.629395e-06, 2.563182 ],
+						[ 2365, -1.055819, 0, 2.563182 ],
+						[ 2368, -0.258974, 0, 0.6573972 ],
+						[ 2369, -0.2589741, 7.629395e-06, 0.657396 ],
+						[ 2376, -1.459848, 0, 3.583176 ],
+						[ 2377, -1.460722, 0, 3.585395 ],
+						[ 2378, -0.524589, 0, 1.308153 ],
+						[ 2379, -0.524589, 7.629395e-06, 1.308153 ],
+						[ 2392, -0.803485, 0, 1.98215 ],
+						[ 2393, -0.803485, 7.629395e-06, 1.98215 ],
+						[ 2394, -0.8034852, 0, 1.982151 ],
+						[ 2395, -0.803485, 0, 1.982151 ],
+						[ 2414, -1.264991, 0, 3.091092 ],
+						[ 2415, -1.264991, 7.629395e-06, 3.091092 ],
+						[ 2416, -0.524589, 0, 1.308153 ],
+						[ 2417, -0.524589, 0, 1.308152 ],
+						[ 2426, -1.487014, 0.001480103, 3.649266 ],
+						[ 2427, -1.485918, 0.001403809, 3.649318 ],
+						[ 2428, -1.264991, 0, 3.091092 ],
+						[ 2429, -1.264991, 7.629395e-06, 3.091092 ],
+						[ 2430, -0.258974, 0, 0.657396 ],
+						[ 2431, -0.258974, 0, 0.657396 ],
+						[ 2436, -1.459955, -6.103516e-05, 3.583415 ],
+						[ 2437, -1.460719, -7.629395e-06, 3.58538 ],
+						[ 2438, -1.489276, -0.001731873, 3.650787 ],
+						[ 2439, -1.490289, -0.001441956, 3.650442 ],
+						[ 2448, -1.055819, 0, 2.563182 ],
+						[ 2449, -1.055819, 7.629395e-06, 2.563183 ],
+						[ 2458, -1.055819, 7.629395e-06, 2.563182 ],
+						[ 2459, -1.055819, 0, 2.563182 ],
+						[ 2460, -0.258974, 0, 0.6573961 ],
+						[ 2461, -0.258974, 0, 0.6573961 ],
+						[ 2468, -0.524589, 0, 1.308152 ],
+						[ 2469, -0.524589, -7.629395e-06, 1.308153 ],
+						[ 2470, -0.258974, -7.629395e-06, 0.657397 ],
+						[ 2471, -0.258974, -7.629395e-06, 0.657397 ],
+						[ 2478, -0.803485, 0, 1.98215 ],
+						[ 2479, -0.803485, 0, 1.98215 ],
+						[ 2480, -0.524589, 0, 1.308153 ],
+						[ 2481, -0.524589, 0, 1.308153 ],
+						[ 2492, -1.264991, 7.629395e-06, 3.091093 ],
+						[ 2493, -1.264991, 7.629395e-06, 3.091092 ],
+						[ 2494, -0.803485, 0, 1.98215 ],
+						[ 2495, -0.803485, 0, 1.982151 ],
+						[ 2508, -1.460055, 0, 3.583679 ],
+						[ 2509, -1.459769, 0, 3.582941 ],
+						[ 2510, -1.264991, 7.629395e-06, 3.091092 ],
+						[ 2511, -1.264991, 0, 3.091092 ],
+						[ 2520, -1.487912, 0.001564026, 3.648029 ],
+						[ 2521, -1.489478, 0.001358032, 3.649111 ],
+						[ 3084, -0.2589741, 7.629395e-06, 0.6573959 ],
+						[ 3085, -0.258974, 0, 0.6573961 ],
+						[ 3094, -1.484581, 0.0005493164, 3.647488 ],
+						[ 3095, -1.484495, -0.000328064, 3.647814 ],
+						[ 3096, -0.5245891, -7.629395e-06, 1.308152 ],
+						[ 3097, -0.524589, 0, 1.308152 ],
+						[ 3108, -1.055819, 0, 2.563182 ],
+						[ 3109, -1.055819, 0, 2.563182 ],
+						[ 3110, -0.258974, 0, 0.657396 ],
+						[ 3111, -0.258974, 0, 0.657396 ],
+						[ 3112, -0.803485, 0, 1.98215 ],
+						[ 3113, -0.803485, 0, 1.98215 ],
+						[ 3126, -1.460644, 0, 3.585178 ],
+						[ 3127, -1.460693, 7.629395e-06, 3.585312 ],
+						[ 3128, -1.491346, -0.0004501343, 3.652027 ],
+						[ 3129, -1.491521, 0.0004882812, 3.652419 ],
+						[ 3130, -0.524589, -7.629395e-06, 1.308152 ],
+						[ 3131, -0.524589, 0, 1.308152 ],
+						[ 3132, -1.458862, 0, 3.580691 ],
+						[ 3133, -1.459036, 0, 3.581143 ],
+						[ 3134, -0.8034849, 0, 1.98215 ],
+						[ 3135, -0.803485, -7.629395e-06, 1.98215 ],
+						[ 3154, -1.264991, 0, 3.091092 ],
+						[ 3155, -1.264991, 0, 3.091092 ],
+						[ 3202, -1.055819, 0, 2.563182 ],
+						[ 3203, -1.055819, 0, 2.563182 ],
+						[ 3204, -1.264991, -7.629395e-06, 3.091092 ],
+						[ 3205, -1.264991, 0, 3.091092 ],
+						[ 3214, -1.493277, 0.0007324219, 3.66658 ],
+						[ 3215, -1.493371, -0.0006103516, 3.666895 ],
+						[ 3216, -1.497066, -0.0006637573, 3.667263 ],
+						[ 3217, -1.496986, 0.0006713867, 3.667247 ],
+						[ 3330, -1.495685, 0.0006866455, 3.668154 ],
+						[ 3331, -1.496083, -0.0007705688, 3.668761 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_Tentacle_HighD_Left-1",
+				"url" : "#GP_Tentacle_HighD_Left"
+			}
+		]
+	}
+}

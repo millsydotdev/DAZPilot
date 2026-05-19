@@ -1,0 +1,102 @@
+{
+	"file_version" : "0.6.0.0",
+	"asset_info" : {
+		"id" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMajora_Push3%20Right.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "Meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2021-10-18T07:03:25Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "LabiaMajora_Pinch5 Right",
+			"name" : "LabiaMajora_Push3 Right",
+			"parent" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#GoldenPalace",
+			"presentation" : {
+				"type" : "Modifier/Pose",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/MajoraPush3Right.png",
+				"colors" : [ [ 0.9137255, 0.5921569, 1 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "Labia Majora_Push 3 Right",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : -1,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/2-Labia Majora",
+			"formulas" : [
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#LabiaMajora_Pinch5%20Right?value" },
+						{ "op" : "push", "val" : -0.2 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#LabiaMajora_Pinch5%20Right?value" },
+						{ "op" : "push", "val" : -0.1999999 },
+						{ "op" : "mult" }
+					]
+				}
+			],
+			"morph" : {
+				"vertex_count" : 2254,
+				"deltas" : {
+					"count" : 26,
+					"values" : [
+						[ 1363, -0.234488, 0.003494263, -0.07359898 ],
+						[ 1367, -0.357846, -0.06011963, -0.103494 ],
+						[ 1368, -0.2883501, -0.005065918, -0.08929902 ],
+						[ 1369, -0.3467211, -0.1072617, -0.09512603 ],
+						[ 1370, -0.3515269, 0.02827454, -0.004876971 ],
+						[ 1387, -0.191005, 0.007843018, -0.05905205 ],
+						[ 1391, -0.002413034, -9.918213e-05, -0.0009790063 ],
+						[ 1392, -0.18907, 0.002593994, -0.08868901 ],
+						[ 1393, -0.208839, 0.0005340576, -0.100874 ],
+						[ 1394, -0.14204, 0.001815796, -0.06629899 ],
+						[ 1395, -0.05838573, -0.001098633, -0.02611503 ],
+						[ 1396, -0.206776, -0.003883362, -0.107329 ],
+						[ 1398, -0.002583027, -0.0001068115, -0.001048863 ],
+						[ 1399, -0.009411976, -0.0004806519, -0.004710972 ],
+						[ 1400, -0.01333702, -0.001106262, -0.01085806 ],
+						[ 1408, 0, -0.000289917, -0.002896905 ],
+						[ 1668, 0, -0.0009078979, -0.008737087 ],
+						[ 1669, -0.01618002, -0.001495361, -0.01447701 ],
+						[ 1670, -0.207221, -0.00693512, -0.109103 ],
+						[ 1671, -0.334895, -0.0008621216, 0.09833002 ],
+						[ 1672, -0.260068, 0.001419067, -0.05735803 ],
+						[ 1687, -0.03471994, 0.002410889, -0.01701677 ],
+						[ 1688, -0.144152, 0.002670288, -0.03374207 ],
+						[ 1689, -0.04723185, -0.0003128052, -0.007211924 ],
+						[ 1690, -0.181433, -0.0002670288, 0.009465933 ],
+						[ 1706, -0.248747, -0.003623962, -0.05790299 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "LabiaMajora_Push3 Right",
+				"url" : "#LabiaMajora_Pinch5%20Right"
+			}
+		]
+	}
+}

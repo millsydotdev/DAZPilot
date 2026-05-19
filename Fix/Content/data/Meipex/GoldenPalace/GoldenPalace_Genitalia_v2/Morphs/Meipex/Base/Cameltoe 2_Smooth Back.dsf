@@ -1,0 +1,74 @@
+{
+	"file_version" : "0.6.0.0",
+	"asset_info" : {
+		"id" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base2/Cameltoe%202_Smooth%20Back.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "Meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2021-10-18T07:03:25Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "Cameltoe 2_Smooth Back",
+			"name" : "Cameltoe 2_Smooth Back",
+			"parent" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#GoldenPalace",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Cameltoe2_SmoothBack.png",
+				"colors" : [ [ 0.6941176, 0.6666667, 1 ], [ 0, 0, 0.627451 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "Cameltoe 2_Smooth Back",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/1-General Movement/Cameltoe",
+			"morph" : {
+				"vertex_count" : 2254,
+				"deltas" : {
+					"count" : 16,
+					"values" : [
+						[ 20, -0.07063693, -0.08462524, -0.003309131 ],
+						[ 23, -0.117764, -0.05412292, -0.07011604 ],
+						[ 24, 0.0004639998, -0.3374786, -0.1311009 ],
+						[ 25, 1.79999e-05, -0.180687, -0.05734897 ],
+						[ 27, -0.125774, -0.0843277, 0.00318706 ],
+						[ 33, -0.001404, -0.2616501, -0.07646 ],
+						[ 990, -0.024409, -0.05223846, -0.02974796 ],
+						[ 1398, 0.02442098, -0.05226898, -0.02976197 ],
+						[ 1402, 0.07071692, -0.0846405, -0.003337979 ],
+						[ 1405, 0.117733, -0.05743408, -0.07326496 ],
+						[ 1406, 2.273737e-13, -0.03820038, -0.02242208 ],
+						[ 1720, 0.08384801, -0.04068756, -0.06610298 ],
+						[ 1727, 0.0002190003, -0.2937317, -0.06657982 ],
+						[ 2018, 0.0005780007, -0.1219177, -0.03042912 ],
+						[ 2080, -0.08440499, -0.0348587, -0.06078911 ],
+						[ 2253, 0.125526, -0.0843277, 0.002635002 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "Cameltoe 2_Smooth Back-1",
+				"url" : "#Cameltoe%202_Smooth%20Back"
+			}
+		]
+	}
+}

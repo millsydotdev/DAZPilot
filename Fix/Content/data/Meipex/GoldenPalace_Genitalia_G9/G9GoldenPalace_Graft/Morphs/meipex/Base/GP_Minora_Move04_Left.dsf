@@ -1,0 +1,67 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move04_Left.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:14Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_Minora_Move04_Left",
+			"name" : "GP_Minora_Move04_Left",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Icons/G9Minora_Move04L.png",
+				"colors" : [ [ 0, 0.5019608, 1 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "GPL_Minora_Move 04_Left",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : -4,
+				"max" : 4,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/2-Labia Minora/4-Edge Move",
+			"morph" : {
+				"vertex_count" : 9694,
+				"deltas" : {
+					"count" : 9,
+					"values" : [
+						[ 108, 0.03245705, 0.0007019043, 0.004533768 ],
+						[ 111, 0.08822903, 0.001976013, 0.01282597 ],
+						[ 123, 0.109068, 0.002449036, 0.01593375 ],
+						[ 125, 0.110873, 0.002456665, 0.01596498 ],
+						[ 127, 0.07612401, 0.001663208, 0.010777 ],
+						[ 129, 0.004865006, 0.0001068115, 0.0007081032 ],
+						[ 143, 0.003931999, 7.629395e-05, 0.0004863739 ],
+						[ 149, 0.002497017, 4.577637e-05, 0.0003352165 ],
+						[ 235, 0.02951701, 0.0006332397, 0.004140854 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_Minora_Move04_Left-1",
+				"url" : "#GP_Minora_Move04_Left"
+			}
+		]
+	}
+}

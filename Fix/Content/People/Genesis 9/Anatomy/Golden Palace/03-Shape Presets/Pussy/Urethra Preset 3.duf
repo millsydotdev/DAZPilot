@@ -1,0 +1,42 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/People/Genesis%209/Anatomy/Golden%20Palace/03-Shape%20Presets/Pussy/Urethra%20Preset_REM.duf",
+		"type" : "preset_shape",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-03-31T11:13:36Z"
+	},
+	"scene" : {
+		"animations" : [
+			{
+				"url" : "name://@selection#GP_PR_Urethra01:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_PR_Urethra02:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_PR_Urethra03:?value/value",
+				"keys" : [ [ 0, 1 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_PR_Urethra04:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_PR_Urethra05:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_PR_Urethra06:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			}
+		]
+	}
+}
