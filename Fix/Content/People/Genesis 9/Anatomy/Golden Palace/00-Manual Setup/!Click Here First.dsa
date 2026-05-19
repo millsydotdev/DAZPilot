@@ -1,6 +1,0 @@
-// DAZ Studio version 4.15.0.2 filetype DAZ Script
-
-
-
-MessageBox.information("\n- Select G9;\n- Load the 'Golden Palace' graft;\n- Load the 'Golden Palace_Material Copy' script.\n- Load the geoshells you need.\n", "Info", "&OK");
-

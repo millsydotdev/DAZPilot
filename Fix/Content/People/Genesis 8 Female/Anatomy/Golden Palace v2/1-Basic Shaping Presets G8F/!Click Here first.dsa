@@ -1,6 +1,0 @@
-// DAZ Studio version 4.11.0.366 filetype DAZ Script
-
-
-
-MessageBox.information("\n- Check G8F (or any of its child nodes) is selected;\n- Load the graft selector;\n- load a glute preset.\n\n You can also edit the glute morphs in the Parameters Tab under:\n\n Genesis 8 Female/Actor/Hip/Golden Palace\n\n Do not edit the hidden glute morphs on the graft, as they won't affect the mesh outside it.\n", "Info", "&OK");
-

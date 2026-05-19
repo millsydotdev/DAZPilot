@@ -1,6 +1,0 @@
-// DAZ Studio version 4.15.0.2 filetype DAZ Script
-
-
-
-MessageBox.information("\n- Select G9;\n- Load the 'Hairs Select All' script;\n- Load a material preset.\n", "Info", "&OK");
-
