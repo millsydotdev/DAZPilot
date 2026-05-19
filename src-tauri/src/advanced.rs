@@ -228,6 +228,7 @@ pub fn export_scene(node_id: &str, path: &str, settings: ExportSettings) -> Expo
         }
     }
 
+    // Try the bridge export_scene command first
     match crate::mcp_client::send_mcp_request(
         "export_scene",
         serde_json::json!({
@@ -249,11 +250,70 @@ pub fn export_scene(node_id: &str, path: &str, settings: ExportSettings) -> Expo
                 .result
                 .unwrap_or_else(|| format!("Daz export requested for {}", path)),
         },
+        Err(bridge_err) => {
+            log::warn!("Bridge export_scene failed, trying DazScript fallback: {}", bridge_err);
+            export_via_dazscript(node_id, path, &settings)
+        }
+    }
+}
+
+fn export_via_dazscript(node_id: &str, path: &str, settings: &ExportSettings) -> ExportResult {
+    let ext = match settings.format {
+        ExportFormat::Obj => "obj",
+        ExportFormat::Fbx => "fbx",
+        ExportFormat::Gltf => "glb",
+        ExportFormat::Dae => "dae",
+        ExportFormat::Daz => "duf",
+        ExportFormat::Image => "png",
+        ExportFormat::Video => "mp4",
+    };
+
+    let escaped_path = path.replace('\\', "\\\\").replace('"', "\\\"");
+    let script = format!(
+        r#"
+        var node = Scene.findNodeByLabel("{}");
+        if (!node) {{
+            node = Scene.getNode("{}");
+        }}
+        if (node) {{
+            var exporter = App.createExporter("{}");
+            if (exporter) {{
+                exporter.setExportFilename("{}");
+                exporter.exportObject(node);
+                "Exported to {}"
+            }} else {{
+                "Exporter not available for format: {}"
+            }}
+        }} else {{
+            "Node not found: {}"
+        }}
+        "#,
+        node_id, node_id, ext, escaped_path, escaped_path, ext, node_id
+    );
+
+    match crate::mcp_client::send_mcp_request(
+        "run_script",
+        serde_json::json!({ "script": script, "args": {} }),
+    ) {
+        Ok(resp) => {
+            let msg = resp.result.unwrap_or_else(|| format!("Export requested via DazScript for {}", path));
+            ExportResult {
+                success: true,
+                file_path: path.to_string(),
+                file_size: resp
+                    .data
+                    .as_ref()
+                    .and_then(|d| d.get("file_size"))
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0),
+                message: msg,
+            }
+        }
         Err(e) => ExportResult {
             success: false,
             file_path: path.to_string(),
             file_size: 0,
-            message: format!("Export not completed: {}", e),
+            message: format!("Export not completed (bridge and DazScript both failed): {}", e),
         },
     }
 }

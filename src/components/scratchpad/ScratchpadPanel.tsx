@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useScratchpadStore } from '../../store';
 import { Button, Input } from '../ui';
@@ -19,7 +19,12 @@ export default function ScratchpadPanel() {
     addTodo,
     toggleTodo,
     deleteTodo,
+    loadPersistedData,
   } = useScratchpadStore();
+
+  useEffect(() => {
+    loadPersistedData();
+  }, [loadPersistedData]);
 
   const [activeTab, setActiveTab] = useState<TabType>('notes');
 

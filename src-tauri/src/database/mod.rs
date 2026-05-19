@@ -280,6 +280,26 @@ impl SqliteDatabase {
                 value TEXT NOT NULL,
                 updated_at TEXT DEFAULT CURRENT_TIMESTAMP
             );
+
+            -- Scratchpad persistence
+            CREATE TABLE IF NOT EXISTS scratchpad_notes (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
+                content TEXT NOT NULL,
+                tags TEXT DEFAULT '[]',
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS scratchpad_todos (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
+                content TEXT NOT NULL,
+                completed INTEGER NOT NULL DEFAULT 0,
+                priority TEXT NOT NULL DEFAULT 'medium',
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
             "#
         )?;
         
@@ -359,5 +379,132 @@ pub fn save_setting(key: &str, value: &str) -> Result<(), String> {
     } else {
         Err("Database not initialized".to_string())
     }
+}
+
+// ── Scratchpad persistence helpers ──────────────────────────────────────────
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DbNote {
+    pub id: String,
+    pub content: String,
+    pub tags: Vec<String>,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DbTodo {
+    pub id: String,
+    pub content: String,
+    pub completed: bool,
+    pub priority: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+pub fn load_notes() -> Result<Vec<DbNote>, String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare("SELECT id, content, tags, created_at, updated_at FROM scratchpad_notes WHERE user_id='default' ORDER BY created_at DESC")
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| {
+            let tags_json: String = row.get(2)?;
+            let tags: Vec<String> = serde_json::from_str(&tags_json).unwrap_or_default();
+            Ok(DbNote {
+                id: row.get(0)?,
+                content: row.get(1)?,
+                tags,
+                created_at: row.get(3)?,
+                updated_at: row.get(4)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+pub fn save_note(note: &DbNote) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let tags_json = serde_json::to_string(&note.tags).unwrap_or_else(|_| "[]".to_string());
+    conn.execute(
+        "INSERT OR REPLACE INTO scratchpad_notes (id, user_id, content, tags, created_at, updated_at) VALUES (?1, 'default', ?2, ?3, ?4, ?5)",
+        rusqlite::params![note.id, note.content, tags_json, note.created_at, note.updated_at],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn delete_note_db(note_id: &str) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    conn.execute(
+        "DELETE FROM scratchpad_notes WHERE id=?1 AND user_id='default'",
+        rusqlite::params![note_id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn load_todos() -> Result<Vec<DbTodo>, String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare("SELECT id, content, completed, priority, created_at, updated_at FROM scratchpad_todos WHERE user_id='default' ORDER BY created_at DESC")
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| {
+            Ok(DbTodo {
+                id: row.get(0)?,
+                content: row.get(1)?,
+                completed: row.get::<_, i32>(2)? != 0,
+                priority: row.get(3)?,
+                created_at: row.get(4)?,
+                updated_at: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+pub fn save_todo(todo: &DbTodo) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT OR REPLACE INTO scratchpad_todos (id, user_id, content, completed, priority, created_at, updated_at) VALUES (?1, 'default', ?2, ?3, ?4, ?5, ?6)",
+        rusqlite::params![todo.id, todo.content, todo.completed as i32, todo.priority, todo.created_at, todo.updated_at],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn delete_todo_db(todo_id: &str) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    conn.execute(
+        "DELETE FROM scratchpad_todos WHERE id=?1 AND user_id='default'",
+        rusqlite::params![todo_id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn clear_completed_todos() -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    conn.execute(
+        "DELETE FROM scratchpad_todos WHERE completed=1 AND user_id='default'",
+        [],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
 }
 

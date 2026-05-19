@@ -241,6 +241,13 @@ pub fn set_active_figure(figure_id: &str) -> AnimationResult {
 }
 
 pub fn get_pose_library() -> Vec<Pose> {
+    // Try to load from database first
+    if let Ok(poses) = load_poses_from_db() {
+        if !poses.is_empty() {
+            return poses;
+        }
+    }
+    // Fallback to hardcoded defaults
     vec![
         Pose {
             name: "Standing".to_string(),
@@ -279,4 +286,35 @@ pub fn get_pose_library() -> Vec<Pose> {
             category: "basic".to_string(),
         },
     ]
+}
+
+fn load_poses_from_db() -> Result<Vec<Pose>, String> {
+    let db_guard = crate::database::get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare(
+            "SELECT asset_name, asset_path, compatible_figures, subcategory \
+             FROM user_assets WHERE category='poses' ORDER BY asset_name",
+        )
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| {
+            let name: String = row.get(0)?;
+            let path: String = row.get(1)?;
+            let figures_raw: Option<String> = row.get(2).ok();
+            let subcat: Option<String> = row.get(3).ok();
+            let compatible_figures: Vec<String> = figures_raw
+                .as_deref()
+                .and_then(|s| serde_json::from_str(s).ok())
+                .unwrap_or_default();
+            Ok(Pose {
+                name,
+                file_path: path,
+                compatible_figures,
+                category: subcat.unwrap_or_else(|| "poses".to_string()),
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }

@@ -191,7 +191,14 @@ pub fn run() {
             analyze_shell_file,
             ai_ask_question,
             get_asset_conflicts,
-            execute_approved_script
+            execute_approved_script,
+            load_scratchpad_notes,
+            save_scratchpad_note,
+            delete_scratchpad_note,
+            load_scratchpad_todos,
+            save_scratchpad_todo,
+            delete_scratchpad_todo,
+            clear_completed_scratchpad_todos
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -1091,6 +1098,73 @@ async fn test_ai_connection(provider: String, api_key: String, base_url: Option<
     Ok(!models.is_empty())
 }
 
+fn try_agent_planning(message: &str, scene_context: &ai_system::SceneContext) -> Option<ai_action::StructuredAiAction> {
+    let agent_request = agents::AgentRequest {
+        agent_type: "task_planner".to_string(),
+        input: message.to_string(),
+        context: Some(agents::AgentContext {
+            user_id: "default".to_string(),
+            session_id: "current".to_string(),
+            current_figure: scene_context.active_figure.clone(),
+            selected_nodes: scene_context.selected_nodes.clone(),
+        }),
+    };
+
+    let response = agents::execute_agent(agent_request);
+    if !response.success || response.actions.is_empty() {
+        return None;
+    }
+
+    // Convert the first meaningful agent action into a StructuredAiAction
+    let first_action = response.actions.iter().find(|a| a.command != "chat")?;
+    let args = if first_action.args.is_empty() {
+        serde_json::json!({})
+    } else if first_action.args.len() == 1 {
+        serde_json::json!({ "value": first_action.args[0] })
+    } else {
+        // Map positional args to named parameters based on command
+        match first_action.command.as_str() {
+            "select_node" => serde_json::json!({ "node_id": first_action.args[0] }),
+            "set_render_settings" => serde_json::json!({
+                "width": first_action.args.get(0).cloned().unwrap_or_default(),
+                "height": first_action.args.get(1).cloned().unwrap_or_default()
+            }),
+            "set_light" => serde_json::json!({
+                "node_id": first_action.args.get(0).cloned().unwrap_or_default(),
+                "property": first_action.args.get(1).cloned().unwrap_or_default(),
+                "value": first_action.args.get(2).cloned().unwrap_or_default()
+            }),
+            "run_dforce_simulation" => serde_json::json!({
+                "node_id": first_action.args.get(0).cloned().unwrap_or_default(),
+                "start_frame": first_action.args.get(1).cloned().unwrap_or_default(),
+                "end_frame": first_action.args.get(2).cloned().unwrap_or_default()
+            }),
+            "seek_to_frame" => serde_json::json!({
+                "frame": first_action.args.get(0).cloned().unwrap_or_default()
+            }),
+            "add_figure" => serde_json::json!({
+                "figure_type": first_action.args.get(0).cloned().unwrap_or_default()
+            }),
+            _ => serde_json::json!({ "args": first_action.args }),
+        }
+    };
+
+    // Estimate confidence based on agent response
+    let confidence = if response.actions.iter().any(|a| a.command == "chat") {
+        0.3 // Agent fell back to generic chat
+    } else {
+        0.75 // Agent identified a specific intent
+    };
+
+    Some(ai_action::StructuredAiAction {
+        command: first_action.command.clone(),
+        args,
+        confidence,
+        sdk_refs: vec![],
+        requires_confirmation: mcp_client::command_requires_confirmation(&first_action.command),
+    })
+}
+
 #[tauri::command]
 async fn process_chat_message(
     app_handle: tauri::AppHandle,
@@ -1115,40 +1189,94 @@ async fn process_chat_message(
             .as_ref()
             .map(|a| a.confidence < 0.95)
             .unwrap_or(true);
-        let llm_plan = if needs_llm {
-            let active_provider = provider.clone().or_else(|| {
-                database::get_setting("ai_provider")
-                    .ok()
-                    .flatten()
-                    .or_else(|| std::env::var("DAZPILOT_AI_BACKEND").ok())
-            }).unwrap_or_else(|| "local-gguf".to_string());
-            let active_model = model.clone().or_else(|| {
-                database::get_setting("ai_model").ok().flatten()
-            }).unwrap_or_else(|| "phi-2-q4".to_string());
-            let api_key = match active_provider.as_str() {
-                "openai" | "custom-openai" => database::get_setting("openai_api_key").ok().flatten(),
-                "gemini" => database::get_setting("gemini_api_key").ok().flatten(),
-                "anthropic" => database::get_setting("anthropic_api_key").ok().flatten(),
-                _ => None,
-            };
-            let base_url = match active_provider.as_str() {
-                "ollama" => database::get_setting("ollama_host").ok().flatten(),
-                "openai" | "custom-openai" => database::get_setting("openai_base_url").ok().flatten(),
-                _ => None,
-            };
-            ai_tool_planner::plan_with_llm_tools(
-                &message,
-                &scene_summary,
-                &active_provider,
-                &active_model,
-                api_key,
-                base_url,
-            )
-            .await
+
+        // Try the agent system as a middle tier before LLM
+        let agent_action = if needs_llm {
+            try_agent_planning(&message, &scene_context)
         } else {
             None
         };
-        ai_tool_planner::merge_plans(heuristic_action, llm_plan)
+
+        // If the agent system produced a confident result, use it
+        if let Some(agent_result) = agent_action {
+            if agent_result.confidence >= 0.8 {
+                Some(agent_result)
+            } else {
+                // Agent confidence is low, try LLM as well
+                let llm_plan = if needs_llm {
+                    let active_provider = provider.clone().or_else(|| {
+                        database::get_setting("ai_provider")
+                            .ok()
+                            .flatten()
+                            .or_else(|| std::env::var("DAZPILOT_AI_BACKEND").ok())
+                    }).unwrap_or_else(|| "local-gguf".to_string());
+                    let active_model = model.clone().or_else(|| {
+                        database::get_setting("ai_model").ok().flatten()
+                    }).unwrap_or_else(|| "phi-2-q4".to_string());
+                    let api_key = match active_provider.as_str() {
+                        "openai" | "custom-openai" => database::get_setting("openai_api_key").ok().flatten(),
+                        "gemini" => database::get_setting("gemini_api_key").ok().flatten(),
+                        "anthropic" => database::get_setting("anthropic_api_key").ok().flatten(),
+                        _ => None,
+                    };
+                    let base_url = match active_provider.as_str() {
+                        "ollama" => database::get_setting("ollama_host").ok().flatten(),
+                        "openai" | "custom-openai" => database::get_setting("openai_base_url").ok().flatten(),
+                        _ => None,
+                    };
+                    ai_tool_planner::plan_with_llm_tools(
+                        &message,
+                        &scene_summary,
+                        &active_provider,
+                        &active_model,
+                        api_key,
+                        base_url,
+                    )
+                    .await
+                } else {
+                    None
+                };
+                // Merge agent result with LLM plan, preferring higher confidence
+                ai_tool_planner::merge_plans(Some(agent_result), llm_plan)
+                    .or_else(|| heuristic_action.clone())
+            }
+        } else {
+            // No agent result, proceed with existing logic
+            let llm_plan = if needs_llm {
+                let active_provider = provider.clone().or_else(|| {
+                    database::get_setting("ai_provider")
+                        .ok()
+                        .flatten()
+                        .or_else(|| std::env::var("DAZPILOT_AI_BACKEND").ok())
+                }).unwrap_or_else(|| "local-gguf".to_string());
+                let active_model = model.clone().or_else(|| {
+                    database::get_setting("ai_model").ok().flatten()
+                }).unwrap_or_else(|| "phi-2-q4".to_string());
+                let api_key = match active_provider.as_str() {
+                    "openai" | "custom-openai" => database::get_setting("openai_api_key").ok().flatten(),
+                    "gemini" => database::get_setting("gemini_api_key").ok().flatten(),
+                    "anthropic" => database::get_setting("anthropic_api_key").ok().flatten(),
+                    _ => None,
+                };
+                let base_url = match active_provider.as_str() {
+                    "ollama" => database::get_setting("ollama_host").ok().flatten(),
+                    "openai" | "custom-openai" => database::get_setting("openai_base_url").ok().flatten(),
+                    _ => None,
+                };
+                ai_tool_planner::plan_with_llm_tools(
+                    &message,
+                    &scene_summary,
+                    &active_provider,
+                    &active_model,
+                    api_key,
+                    base_url,
+                )
+                .await
+            } else {
+                None
+            };
+            ai_tool_planner::merge_plans(heuristic_action, llm_plan)
+        }
     };
 
     let sdk_context = build_sdk_context_for_message(&message);
@@ -1375,4 +1503,39 @@ fn ai_ask_question(question: String, options: Vec<String>, allow_custom: bool) -
 #[tauri::command]
 fn get_asset_conflicts() -> vision_service::AssetConflictReport {
     vision_service::detect_asset_conflicts_from_scene()
+}
+
+#[tauri::command]
+fn load_scratchpad_notes() -> Result<Vec<database::DbNote>, String> {
+    database::load_notes()
+}
+
+#[tauri::command]
+fn save_scratchpad_note(note: database::DbNote) -> Result<(), String> {
+    database::save_note(&note)
+}
+
+#[tauri::command]
+fn delete_scratchpad_note(note_id: String) -> Result<(), String> {
+    database::delete_note_db(&note_id)
+}
+
+#[tauri::command]
+fn load_scratchpad_todos() -> Result<Vec<database::DbTodo>, String> {
+    database::load_todos()
+}
+
+#[tauri::command]
+fn save_scratchpad_todo(todo: database::DbTodo) -> Result<(), String> {
+    database::save_todo(&todo)
+}
+
+#[tauri::command]
+fn delete_scratchpad_todo(todo_id: String) -> Result<(), String> {
+    database::delete_todo_db(&todo_id)
+}
+
+#[tauri::command]
+fn clear_completed_scratchpad_todos() -> Result<(), String> {
+    database::clear_completed_todos()
 }
