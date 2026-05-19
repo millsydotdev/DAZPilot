@@ -1,0 +1,82 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_body_cbs_thigh_x35p_y75p_l_Add.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:15Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_body_cbs_thigh_x35p_y75p_l_Add",
+			"name" : "GP_body_cbs_thigh_x35p_y75p_l_Add",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 0.3529412, 0.3529412, 0.3529412 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "GP_body_cbs_thigh_x35p_y75p_l_Add",
+				"visible" : false,
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/Hidden",
+			"morph" : {
+				"vertex_count" : 9694,
+				"deltas" : {
+					"count" : 23,
+					"values" : [
+						[ 3, 0.236341, 0.05696869, -0.2156476 ],
+						[ 5, 0.2636403, 7.629395e-06, 0 ],
+						[ 30, 0.82599, -7.629395e-06, 0.2240477 ],
+						[ 31, 1.186457, -0.2012024, 0.2932234 ],
+						[ 40, 0.3274732, -7.629395e-06, 0.1015477 ],
+						[ 41, 1.041631, -0.08853912, 0.08618593 ],
+						[ 46, 0.4202077, -0.04649353, -0.138895 ],
+						[ 54, 0.2176359, 0, 9.536743e-07 ],
+						[ 85, 0.9283333, -0.111824, 0.1149774 ],
+						[ 86, 0.5917703, -0.05601501, 0.2997625 ],
+						[ 95, 0.2962979, -0.04810333, -0.2412957 ],
+						[ 351, 0.4314532, -0.2478638, -0.03566647 ],
+						[ 352, 1.157777, -0.166008, 0.1578016 ],
+						[ 354, 0.2483585, -0.2188568, -0.03741074 ],
+						[ 402, -0.01186705, 0, -1.192093e-07 ],
+						[ 406, 0.1137689, 0.01002502, -0.08702475 ],
+						[ 407, 0.1866155, -7.629395e-06, -0.2577746 ],
+						[ 429, 0.1068031, 0, -5.960464e-08 ],
+						[ 1408, 0.0881269, 0.03651428, 0 ],
+						[ 1409, 0.2141181, -0.02839661, -2.384186e-07 ],
+						[ 1410, 0.3119124, -0.06328583, 4.768372e-07 ],
+						[ 1411, 0.110759, -7.629395e-06, -4.768372e-07 ],
+						[ 8792, 0.1338481, -7.629395e-06, 0 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_body_cbs_thigh_x35p_y75p_l_Add-1",
+				"url" : "#GP_body_cbs_thigh_x35p_y75p_l_Add"
+			}
+		]
+	}
+}

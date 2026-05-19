@@ -149,7 +149,13 @@ export const useAssetsStore = create<AssetsState & AssetsActions>((set, get) => 
     set({ isLoading: true, error: null });
     try {
       const { invoke } = await import('@tauri-apps/api/core');
-      const paths = await invoke<any[]>('get_content_paths');
+      interface ContentPathRaw {
+        id: string;
+        name: string;
+        path: string;
+        is_default?: boolean;
+      }
+      const paths = await invoke<ContentPathRaw[]>('get_content_paths');
       const mapped = paths.map((p) => ({
         id: p.id !== null && p.id !== undefined ? String(p.id) : p.path,
         name: p.name,

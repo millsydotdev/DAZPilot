@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Send,
   Sparkles,
@@ -93,6 +93,7 @@ function MacroCodeBlock({ code, language }: { code: string; language: string }) 
           <button
             onClick={handleCopy}
             className="text-xs px-2 py-1 text-slate-400 hover:text-slate-200 bg-transparent border-none cursor-pointer flex items-center gap-1"
+            aria-label={copied ? 'Copied' : 'Copy code'}
           >
             {copied ? 'Copied' : <Copy size={12} />}
           </button>
@@ -105,7 +106,7 @@ function MacroCodeBlock({ code, language }: { code: string; language: string }) 
       )}
       <div className={`${styles.macroBadge} ${styles.success}`}>
         <Check size={10} />
-        <span>✓ Automatically Executed on Main Thread</span>
+        <span>Automatically Executed on Main Thread</span>
       </div>
     </div>
   );
@@ -125,13 +126,15 @@ interface StructuredAction {
 
 // Subcomponent to render Action Confirmation dialogs
 function InteractiveActionCard({
+  action: initialAction,
   userQuery,
   commandName,
 }: {
+  action?: StructuredAction;
   userQuery: string;
   commandName: string;
 }) {
-  const [action, setAction] = useState<StructuredAction | null>(null);
+  const [action, setAction] = useState<StructuredAction | null>(initialAction || null);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{
     type: 'success' | 'error' | 'rejected';
@@ -139,6 +142,11 @@ function InteractiveActionCard({
   } | null>(null);
 
   useEffect(() => {
+    if (initialAction) {
+      setAction(initialAction);
+      return;
+    }
+
     async function loadAction() {
       try {
         const parsed = await invoke<StructuredAction>('parse_ai_action', { input: userQuery });
@@ -163,7 +171,7 @@ function InteractiveActionCard({
       }
     }
     loadAction();
-  }, [userQuery, commandName]);
+  }, [userQuery, commandName, initialAction]);
 
   const handleConfirm = async () => {
     if (!action) return;
@@ -285,14 +293,13 @@ export default function ChatWindow() {
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
 
-  const refreshModels = async () => {
+  const refreshModels = useCallback(async () => {
     setIsLoadingModels(true);
     try {
       const { invoke } = await import('@tauri-apps/api/core');
       const models = await invoke<string[]>('get_provider_models', { provider: aiProvider });
       setAvailableModels(models);
 
-      // Auto-select first model if active model is unselected or not in retrieved list
       if (models.length > 0) {
         if (!activeModel || !models.includes(activeModel)) {
           setAiModel(models[0]);
@@ -305,11 +312,11 @@ export default function ChatWindow() {
     } finally {
       setIsLoadingModels(false);
     }
-  };
+  }, [aiProvider, activeModel, setAvailableModels, setAiModel]);
 
   useEffect(() => {
     refreshModels();
-  }, [aiProvider, openaiApiKey, openaiBaseUrl, geminiApiKey, anthropicApiKey, ollamaHost]);
+  }, [refreshModels, openaiApiKey, openaiBaseUrl, geminiApiKey, anthropicApiKey, ollamaHost]);
 
   // Dropdown visibility states
   const [showModelDropdown, setShowModelDropdown] = useState(false);
@@ -457,10 +464,26 @@ export default function ChatWindow() {
     <div className={`${styles.container} ${getThemeClass(aiProvider)}`}>
       {/* Lightbox for visual attachments */}
       {lightboxImage && (
-        <div className={styles.lightbox} onClick={() => setLightboxImage(null)}>
-          <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.lightbox}
+          role="button"
+          tabIndex={0}
+          onClick={() => setLightboxImage(null)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') setLightboxImage(null);
+          }}
+        >
+          <div
+            className={styles.lightboxContent}
+            role="presentation"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img src={lightboxImage} alt="lightbox-preview" className={styles.lightboxImg} />
-            <button className={styles.lightboxClose} onClick={() => setLightboxImage(null)}>
+            <button
+              className={styles.lightboxClose}
+              onClick={() => setLightboxImage(null)}
+              aria-label="Close lightbox"
+            >
               <X size={20} />
             </button>
           </div>
@@ -470,7 +493,7 @@ export default function ChatWindow() {
       <div className={styles.header}>
         <div className={styles.headerTitleContainer}>
           <Sparkles className={styles.sparklesHeaderIcon} size={18} />
-          <h2 className={styles.headerTitle}>AI Co-Pilot Console</h2>
+          <h2 className={styles.headerTitle}>Command Console</h2>
         </div>
         <div className={styles.headerRight}>
           <div className={`${styles.statusBadge} ${styles[status]}`}>
@@ -480,15 +503,18 @@ export default function ChatWindow() {
         </div>
       </div>
 
-      <div className={styles.messagesList}>
+      <div className={styles.messagesList} role="log" aria-label="Chat messages">
         {messages.map((msg, index) => {
           const isConfirmation =
-            msg.role === 'assistant' && msg.content.includes('needs confirmation before execution');
+            msg.role === 'assistant' &&
+            (msg.content.includes('needs confirmation before execution') ||
+              msg.content.includes('[ACTION_REQUIRED]'));
           let commandName = '';
           if (isConfirmation) {
-            const commandMatch = /Planned action '([a-zA-Z0-9_]+)' needs confirmation/.exec(
-              msg.content
-            );
+            const commandMatch =
+              /(?:Planned action '|\[ACTION_REQUIRED\] Planned action ')([a-zA-Z0-9_]+)'/.exec(
+                msg.content
+              );
             commandName = commandMatch ? commandMatch[1] : '';
           }
 
@@ -506,7 +532,12 @@ export default function ChatWindow() {
                           <div
                             key={i}
                             className={styles.msgImageWrapper}
+                            role="button"
+                            tabIndex={0}
                             onClick={() => setLightboxImage(imgUrl)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') setLightboxImage(imgUrl);
+                            }}
                             title="Click to enlarge"
                           >
                             <img src={imgUrl} alt={`attached-${i}`} className={styles.msgImage} />
@@ -517,6 +548,7 @@ export default function ChatWindow() {
                     <div className="whitespace-pre-wrap">{parseMessageContent(msg.content)}</div>
                     {isConfirmation && (
                       <InteractiveActionCard
+                        action={msg.action}
                         userQuery={getPreviousUserQuery(index)}
                         commandName={commandName}
                       />
@@ -566,6 +598,7 @@ export default function ChatWindow() {
                     className={styles.removePreviewBtn}
                     onClick={() => removeAttachedImage(idx)}
                     title="Remove attachment"
+                    aria-label="Remove attachment"
                   >
                     <X size={10} />
                   </button>
@@ -582,6 +615,7 @@ export default function ChatWindow() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             className={styles.inputPromptTextarea}
+            aria-label="Chat input"
             placeholder={`Ask ${activeModel || 'assistant'} in ${activeModeInfo.label} mode... (e.g., 'Rotate figure by 45deg')`}
             disabled={isLoading}
           />
@@ -594,6 +628,7 @@ export default function ChatWindow() {
                 className={styles.toolbarActionBtn}
                 onClick={() => fileInputRef.current?.click()}
                 title="Attach images (Vision)"
+                aria-label="Attach images"
                 disabled={isLoading}
               >
                 <Plus size={16} />
@@ -749,6 +784,7 @@ export default function ChatWindow() {
                           (e.currentTarget.style.color = 'var(--color-text-secondary)')
                         }
                         title="Force reload models from API"
+                        aria-label="Reload models"
                       >
                         <RefreshCw size={12} className={isLoadingModels ? styles.spin : ''} />
                       </button>
@@ -869,6 +905,7 @@ export default function ChatWindow() {
                 onClick={handleSend}
                 disabled={isLoading || (!input.trim() && attachedImages.length === 0)}
                 title="Send query"
+                aria-label="Send message"
               >
                 <Send size={14} />
               </button>

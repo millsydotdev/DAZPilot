@@ -1,0 +1,78 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/People/Genesis%209/Anatomy/Dicktator/03-Shape%20Presets/Anus%20Shape/Anus%20Open%201.duf",
+		"type" : "preset_shape",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-01-26T07:31:53Z"
+	},
+	"scene" : {
+		"animations" : [
+			{
+				"url" : "name://@selection#GP_Anus_Open:?value/value",
+				"keys" : [ [ 0, 0.8 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Open1:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Open2:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Open3:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Contraction:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_ContractionMore:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Contraction_Shape1:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Contraction_Shape2:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Contraction_Wrinkles1:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Contraction_Wrinkles2:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Contraction_Wrinkles3:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Bump1:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Bump2:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Bump3:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Anus_Bump4:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			}
+		]
+	}
+}

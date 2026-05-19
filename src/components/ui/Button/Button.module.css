@@ -27,16 +27,16 @@
 
 /* Variants */
 .primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #00b8e6 100%);
-  color: #000000;
-  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.12);
-  border: 1px solid rgba(0, 212, 255, 0.15);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #dc2626 100%);
+  color: var(--color-primary-foreground);
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #00e1ff 0%, #00c3ff 100%);
+  background: linear-gradient(135deg, #f87171 0%, var(--color-primary) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
 }
 
 .primary:active:not(:disabled) {

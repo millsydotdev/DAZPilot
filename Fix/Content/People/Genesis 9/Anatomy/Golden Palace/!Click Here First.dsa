@@ -1,0 +1,6 @@
+// DAZ Studio version 4.15.0.2 filetype DAZ Script
+
+
+
+MessageBox.information("\n- Select G9;\n- Load one of the 'Golden Palace_Smart' wearable presets;\n- Load the 'Golden Palace_Material Copy' script.\n\nThe 'Vanilla' wearable preset loads two shells: the 'Minora' and the 'Majora' one.\n\nThe 'Wild' preset loads an extra 'Addons' shell, that includes the Clitzilla and Vagzilla textures.\n\nGeometry shells show white surfaces in front of unsupported grafts. So if you have other geoshells or other grafts loaded on your figures, select the bugged geoshells in the Scene tab and load one the two 'Shell Fix' scripts (I recommend the one provided by Omni, as its action is undoable).", "Info", "&OK");
+

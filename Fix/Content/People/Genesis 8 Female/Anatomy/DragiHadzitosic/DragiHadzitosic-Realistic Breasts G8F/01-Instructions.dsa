@@ -1,0 +1,16 @@
+// DAZ Studio version 4.10.0.123 filetype DAZ Script
+(function() {
+
+    var header = qsTr("Instructions");
+    var message = qsTr(
+        "1. Select Genesis 8 Female in the scene\n" +
+        "2. Load Auto-Load Script\n\n" +
+        "Shell Fix Instructions:\n\n" +
+        "If you are using more than one geograft on the same figure, like Realistic Breasts G8F and some genitalia grafts, " +
+        "select shells in the scene one by one and load the Shell Fix script on them."
+    );
+    var button = qsTr("&OK");
+
+    MessageBox.information(message, header, button);
+
+})();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Cpu,
   Wifi,
@@ -15,6 +15,9 @@ import {
   Terminal,
   Settings,
   HardDrive,
+  Camera,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import {
   useAppStore,
@@ -30,12 +33,24 @@ import {
   useToastStore,
 } from '../../store';
 import { Button, Input, VStack, HStack, Card, CardHeader, CardContent } from '../ui';
+import { ConflictDetector } from '../assets/ConflictDetector';
+import { useWebcamStore } from '../../store';
+import {
+  enumerateVideoDevices,
+  getDeviceCapabilities,
+  getSupportedResolutions,
+  getSupportedFramerates,
+  RESOLUTION_PRESETS,
+  FRAMERATE_PRESETS,
+  testCamera,
+} from '../../utils/webcam';
 import styles from './SettingsPanel.module.css';
 
 type SettingsTab =
   | 'general'
   | 'ai'
   | 'connection'
+  | 'webcam'
   | 'logger'
   | 'shortcuts'
   | 'diagnostics'
@@ -45,6 +60,7 @@ const tabs = [
   { id: 'general' as const, label: 'General', icon: Sliders },
   { id: 'ai' as const, label: 'AI Settings', icon: Cpu },
   { id: 'connection' as const, label: 'Connection', icon: Wifi },
+  { id: 'webcam' as const, label: 'Webcam', icon: Camera },
   { id: 'logger' as const, label: 'Log Console', icon: Terminal },
   { id: 'shortcuts' as const, label: 'Shortcuts', icon: Keyboard },
   { id: 'diagnostics' as const, label: 'Diagnostics', icon: Activity },
@@ -291,30 +307,32 @@ export default function SettingsPanel() {
   const [connStatus, setConnStatus] = useState<'idle' | 'success' | 'failed' | 'testing'>('idle');
   const [connError, setConnError] = useState<string | null>(null);
 
-  const fetchProviderModels = async (provider: string) => {
-    setIsLoadingModels(true);
-    setConnStatus('testing');
-    setConnError(null);
-    try {
-      const { invoke } = await import('@tauri-apps/api/core');
-      const models = await invoke<string[]>('get_provider_models', { provider });
-      setAvailableModels(models);
-      setConnStatus('success');
+  const fetchProviderModels = useCallback(
+    async (provider: string) => {
+      setIsLoadingModels(true);
+      setConnStatus('testing');
+      setConnError(null);
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        const models = await invoke<string[]>('get_provider_models', { provider });
+        setAvailableModels(models);
+        setConnStatus('success');
 
-      // Auto-select first model if active model is unselected or not in retrieved list
-      if (models.length > 0) {
-        if (!selectedAiModel || !models.includes(selectedAiModel)) {
-          setAiModel(models[0]);
+        if (models.length > 0) {
+          if (!selectedAiModel || !models.includes(selectedAiModel)) {
+            setAiModel(models[0]);
+          }
         }
+      } catch (e) {
+        setConnStatus('failed');
+        setConnError(String(e));
+        console.error(e);
+      } finally {
+        setIsLoadingModels(false);
       }
-    } catch (e) {
-      setConnStatus('failed');
-      setConnError(String(e));
-      console.error(e);
-    } finally {
-      setIsLoadingModels(false);
-    }
-  };
+    },
+    [selectedAiModel, setAiModel, setIsLoadingModels]
+  );
 
   useEffect(() => {
     if (activeTab !== 'ai' || !aiProvider) return;
@@ -334,6 +352,7 @@ export default function SettingsPanel() {
     anthropicApiKey,
     ollamaHost,
     localAiPort,
+    fetchProviderModels,
   ]);
 
   // Diagnostic states
@@ -484,17 +503,27 @@ export default function SettingsPanel() {
                 <CardHeader title="Appearance & Diagnostics" />
                 <CardContent>
                   <div className={styles.group}>
-                    <label className={styles.label}>App Theme</label>
-                    <select className={styles.select} value={theme} onChange={handleThemeChange}>
+                    <label className={styles.label} htmlFor="settings-app-theme">
+                      App Theme
+                    </label>
+                    <select
+                      className={styles.select}
+                      id="settings-app-theme"
+                      value={theme}
+                      onChange={handleThemeChange}
+                    >
                       <option value="dark">Dark Theme (Premium Obsidian)</option>
                       <option value="light">Light Theme (Classic Slate)</option>
                     </select>
                   </div>
 
                   <div className={styles.group}>
-                    <label className={styles.label}>App Log Threshold</label>
+                    <label className={styles.label} htmlFor="settings-app-log-threshold">
+                      App Log Threshold
+                    </label>
                     <select
                       className={styles.select}
+                      id="settings-app-log-threshold"
                       value={logLevel}
                       onChange={handleLogLevelChange}
                     >
@@ -506,9 +535,12 @@ export default function SettingsPanel() {
                   </div>
 
                   <div className={styles.group}>
-                    <label className={styles.label}>Window Startup Mode</label>
+                    <label className={styles.label} htmlFor="settings-window-startup-mode">
+                      Window Startup Mode
+                    </label>
                     <select
                       className={styles.select}
+                      id="settings-window-startup-mode"
                       value={startupWindowMode}
                       onChange={(e) =>
                         setStartupWindowMode(e.target.value as 'windowed' | 'fullscreen')
@@ -537,11 +569,12 @@ export default function SettingsPanel() {
 
                   {autoSave && (
                     <div className={styles.group}>
-                      <label className={styles.label}>
+                      <label className={styles.label} htmlFor="settings-auto-save-interval">
                         Auto-Save Interval: {autoSaveInterval} minutes
                       </label>
                       <input
                         type="range"
+                        id="settings-auto-save-interval"
                         min="1"
                         max="30"
                         value={autoSaveInterval}
@@ -748,9 +781,12 @@ export default function SettingsPanel() {
                 <CardHeader title="AI Provider & Model Selection" />
                 <CardContent>
                   <div className={styles.group}>
-                    <label className={styles.label}>Active AI Provider</label>
+                    <label className={styles.label} htmlFor="settings-ai-provider">
+                      Active AI Provider
+                    </label>
                     <select
                       className={styles.select}
+                      id="settings-ai-provider"
                       value={aiProvider}
                       onChange={(e) => {
                         setAiProvider(e.target.value);
@@ -769,7 +805,9 @@ export default function SettingsPanel() {
                   </div>
 
                   <div className={styles.group}>
-                    <label className={styles.label}>Active AI Model</label>
+                    <label className={styles.label} htmlFor="settings-ai-model">
+                      Active AI Model
+                    </label>
                     {isLoadingModels ? (
                       <div
                         style={{
@@ -787,6 +825,7 @@ export default function SettingsPanel() {
                     ) : (
                       <select
                         className={styles.select}
+                        id="settings-ai-model"
                         value={selectedAiModel}
                         onChange={(e) => setAiModel(e.target.value)}
                       >
@@ -801,8 +840,11 @@ export default function SettingsPanel() {
                   </div>
 
                   <div className={styles.group}>
-                    <label className={styles.label}>Custom Model Override (Optional)</label>
+                    <label className={styles.label} htmlFor="settings-custom-model-override">
+                      Custom Model Override (Optional)
+                    </label>
                     <Input
+                      id="settings-custom-model-override"
                       placeholder="Type custom model name if not listed above"
                       value={selectedAiModel}
                       onChange={(e) => setAiModel(e.target.value)}
@@ -885,9 +927,12 @@ export default function SettingsPanel() {
                   />
                   <CardContent>
                     <div className={styles.group}>
-                      <label className={styles.label}>API Secret Key</label>
+                      <label className={styles.label} htmlFor="settings-api-secret-key">
+                        API Secret Key
+                      </label>
                       <Input
                         type="password"
+                        id="settings-api-secret-key"
                         placeholder={
                           aiProvider === 'openai'
                             ? 'sk-proj-...'
@@ -898,8 +943,11 @@ export default function SettingsPanel() {
                       />
                     </div>
                     <div className={styles.group}>
-                      <label className={styles.label}>API Base Endpoint URL</label>
+                      <label className={styles.label} htmlFor="settings-api-base-url">
+                        API Base Endpoint URL
+                      </label>
                       <Input
+                        id="settings-api-base-url"
                         placeholder={
                           aiProvider === 'openai'
                             ? 'https://api.openai.com/v1'
@@ -918,9 +966,12 @@ export default function SettingsPanel() {
                   <CardHeader title="Google Gemini API Credentials" />
                   <CardContent>
                     <div className={styles.group}>
-                      <label className={styles.label}>Gemini API Key</label>
+                      <label className={styles.label} htmlFor="settings-gemini-api-key">
+                        Gemini API Key
+                      </label>
                       <Input
                         type="password"
+                        id="settings-gemini-api-key"
                         placeholder="Enter your Gemini API key (AIzaSy...)"
                         value={geminiApiKey}
                         onChange={(e) => handleSaveGeminiApiKey(e.target.value)}
@@ -935,9 +986,12 @@ export default function SettingsPanel() {
                   <CardHeader title="Anthropic Claude API Credentials" />
                   <CardContent>
                     <div className={styles.group}>
-                      <label className={styles.label}>Anthropic API Key</label>
+                      <label className={styles.label} htmlFor="settings-anthropic-api-key">
+                        Anthropic API Key
+                      </label>
                       <Input
                         type="password"
+                        id="settings-anthropic-api-key"
                         placeholder="Enter your Anthropic API key (sk-ant-...)"
                         value={anthropicApiKey}
                         onChange={(e) => handleSaveAnthropicApiKey(e.target.value)}
@@ -952,16 +1006,22 @@ export default function SettingsPanel() {
                   <CardHeader title="Ollama API Server Settings" />
                   <CardContent>
                     <div className={styles.group}>
-                      <label className={styles.label}>Ollama Host Address</label>
+                      <label className={styles.label} htmlFor="settings-ollama-host">
+                        Ollama Host Address
+                      </label>
                       <Input
+                        id="settings-ollama-host"
                         placeholder="http://localhost:11434"
                         value={ollamaHost}
                         onChange={(e) => handleSaveOllamaHost(e.target.value)}
                       />
                     </div>
                     <div className={styles.group}>
-                      <label className={styles.label}>Ollama Vision Model (Screenshot Eyes)</label>
+                      <label className={styles.label} htmlFor="settings-ollama-vision-model">
+                        Ollama Vision Model (Screenshot Eyes)
+                      </label>
                       <Input
+                        id="settings-ollama-vision-model"
                         placeholder="llava"
                         value={ollamaVisionModel}
                         onChange={(e) => handleSaveOllamaVisionModel(e.target.value)}
@@ -976,7 +1036,7 @@ export default function SettingsPanel() {
                   <CardHeader title="Local llama.cpp Server Settings" />
                   <CardContent>
                     <div className={styles.group}>
-                      <label className={styles.label}>Custom GGUF Models Folder</label>
+                      <span className={styles.label}>Custom GGUF Models Folder</span>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <code
                           style={{
@@ -1010,9 +1070,12 @@ export default function SettingsPanel() {
                     </div>
 
                     <div className={styles.group}>
-                      <label className={styles.label}>llama-server TCP Port</label>
+                      <label className={styles.label} htmlFor="settings-llama-port">
+                        llama-server TCP Port
+                      </label>
                       <Input
                         type="number"
+                        id="settings-llama-port"
                         value={localAiPort}
                         onChange={(e) => handleSavePort(parseInt(e.target.value) || 8080)}
                       />
@@ -1049,9 +1112,12 @@ export default function SettingsPanel() {
                 <CardHeader title="Prompt Tuning & Parameters" />
                 <CardContent>
                   <div className={styles.group}>
-                    <label className={styles.label}>Custom System Co-Pilot Prompt</label>
+                    <label className={styles.label} htmlFor="settings-system-prompt">
+                      Custom System Co-Pilot Prompt
+                    </label>
                     <textarea
                       className={styles.textarea}
+                      id="settings-system-prompt"
                       value={systemPrompt}
                       onChange={(e) => setSystemPrompt(e.target.value)}
                       placeholder="Define the prompt instruction set for script generation..."
@@ -1061,9 +1127,12 @@ export default function SettingsPanel() {
 
                   <div className={styles.row}>
                     <div className={styles.group}>
-                      <label className={styles.label}>Temperature: {temperature}</label>
+                      <label className={styles.label} htmlFor="settings-temperature">
+                        Temperature: {temperature}
+                      </label>
                       <input
                         type="range"
+                        id="settings-temperature"
                         min="0.1"
                         max="1.5"
                         step="0.1"
@@ -1073,9 +1142,12 @@ export default function SettingsPanel() {
                       />
                     </div>
                     <div className={styles.group}>
-                      <label className={styles.label}>Max Tokens Limit</label>
+                      <label className={styles.label} htmlFor="settings-max-tokens">
+                        Max Tokens Limit
+                      </label>
                       <Input
                         type="number"
+                        id="settings-max-tokens"
                         value={maxTokens}
                         onChange={(e) => setMaxTokens(parseInt(e.target.value))}
                         min={128}
@@ -1111,7 +1183,7 @@ export default function SettingsPanel() {
             </div>
 
             <div className={styles.cardLayout}>
-              <Card>
+              <Card className={styles.bridgeHeroCard}>
                 <CardHeader title="Bridge Status & Control" />
                 <CardContent>
                   <HStack gap="md" align="center">
@@ -1140,8 +1212,11 @@ export default function SettingsPanel() {
                 <CardHeader title="Connection Socket Configurations" />
                 <CardContent>
                   <div className={styles.group}>
-                    <label className={styles.label}>Bridge Target Hostname / IP</label>
+                    <label className={styles.label} htmlFor="settings-bridge-host">
+                      Bridge Target Hostname / IP
+                    </label>
                     <Input
+                      id="settings-bridge-host"
                       value={settings.host}
                       onChange={(e) => setSettings({ host: e.target.value })}
                     />
@@ -1149,18 +1224,24 @@ export default function SettingsPanel() {
 
                   <div className={styles.row}>
                     <div className={styles.group}>
-                      <label className={styles.label}>Bridge TCP Port</label>
+                      <label className={styles.label} htmlFor="settings-bridge-port">
+                        Bridge TCP Port
+                      </label>
                       <Input
                         type="number"
+                        id="settings-bridge-port"
                         value={settings.port}
                         onChange={(e) => setSettings({ port: parseInt(e.target.value) })}
                       />
                     </div>
 
                     <div className={styles.group}>
-                      <label className={styles.label}>Socket Connection Timeout (seconds)</label>
+                      <label className={styles.label} htmlFor="settings-bridge-timeout">
+                        Socket Connection Timeout (seconds)
+                      </label>
                       <Input
                         type="number"
+                        id="settings-bridge-timeout"
                         value={settings.timeout}
                         onChange={(e) => setSettings({ timeout: parseInt(e.target.value) })}
                         min={5}
@@ -1184,6 +1265,8 @@ export default function SettingsPanel() {
             </div>
           </div>
         )}
+
+        {activeTab === 'webcam' && <WebcamSettingsContent />}
 
         {activeTab === 'logger' && (
           <div className={styles.panelFull}>
@@ -1410,10 +1493,20 @@ export default function SettingsPanel() {
                     <div className={styles.diagStatusSection}>
                       <HStack gap="xs">
                         <span className={styles.statusBadge}>
-                          AI: 8080 {portStatus.ai === 'listening' ? '✔' : '✘'}
+                          AI: 8080{' '}
+                          {portStatus.ai === 'listening' ? (
+                            <CheckCircle size={14} className="text-green-500" />
+                          ) : (
+                            <XCircle size={14} className="text-red-500" />
+                          )}
                         </span>
                         <span className={styles.statusBadge}>
-                          Bridge: 8765 {portStatus.bridge === 'listening' ? '✔' : '✘'}
+                          Bridge: 8765{' '}
+                          {portStatus.bridge === 'listening' ? (
+                            <CheckCircle size={14} className="text-green-500" />
+                          ) : (
+                            <XCircle size={14} className="text-red-500" />
+                          )}
                         </span>
                       </HStack>
                       <span className={styles.diagVal}>Port bindings active</span>
@@ -1475,7 +1568,7 @@ export default function SettingsPanel() {
                         width: '100%',
                       }}
                     >
-                      <label
+                      <span
                         style={{
                           fontSize: '12px',
                           color: 'var(--color-text-secondary)',
@@ -1484,7 +1577,7 @@ export default function SettingsPanel() {
                         }}
                       >
                         Active Daz Studio Plugins Directory
-                      </label>
+                      </span>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <code
                           style={{
@@ -1551,6 +1644,13 @@ export default function SettingsPanel() {
                 </Card>
               </div>
             </VStack>
+
+            <Card>
+              <CardHeader title="Asset Conflict Detector" />
+              <CardContent>
+                <ConflictDetector />
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -1586,6 +1686,299 @@ export default function SettingsPanel() {
             </Card>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function WebcamSettingsContent() {
+  const {
+    selectedDeviceId,
+    resolutionMode,
+    customWidth,
+    customHeight,
+    framerateMode,
+    customFramerate,
+    mirrorEnabled,
+    autoStartLiveLink,
+    availableDevices,
+    actualWidth,
+    actualHeight,
+    actualFramerate,
+    setSelectedDeviceId,
+    setResolutionMode,
+    setCustomResolution,
+    setFramerateMode,
+    setCustomFramerate,
+    setMirrorEnabled,
+    setAutoStartLiveLink,
+    setAvailableDevices,
+    setActualResolution,
+    setActualFramerate,
+    loadSettings,
+  } = useWebcamStore();
+
+  const [, setDevCapabilities] = useState<MediaTrackCapabilities | null>(null);
+  const [testStream, setTestStream] = useState<MediaStream | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
+  const testVideoRef = useRef<HTMLVideoElement>(null);
+  const [supportedResolutions, setSupportedResolutions] =
+    useState<typeof RESOLUTION_PRESETS>(RESOLUTION_PRESETS);
+  const [supportedFramerates, setSupportedFramerates] = useState<number[]>(FRAMERATE_PRESETS);
+
+  const refreshDevices = async () => {
+    const devices = await enumerateVideoDevices();
+    setAvailableDevices(devices);
+    if (devices.length > 0 && !selectedDeviceId) {
+      setSelectedDeviceId(devices[0].deviceId);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+    refreshDevices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (selectedDeviceId) {
+      getDeviceCapabilities(selectedDeviceId).then((caps) => {
+        setDevCapabilities(caps);
+        if (caps) {
+          setSupportedResolutions(getSupportedResolutions(caps));
+          setSupportedFramerates(getSupportedFramerates(caps));
+        }
+      });
+    }
+  }, [selectedDeviceId]);
+
+  useEffect(() => {
+    if (testStream && testVideoRef.current) {
+      testVideoRef.current.srcObject = testStream;
+    }
+  }, [testStream]);
+
+  const handleTestCamera = async () => {
+    setIsTesting(true);
+    if (testStream) {
+      testStream.getTracks().forEach((t) => t.stop());
+      setTestStream(null);
+    }
+    const result = await testCamera(selectedDeviceId, {
+      selectedDeviceId,
+      resolutionMode,
+      customWidth,
+      customHeight,
+      framerateMode,
+      customFramerate,
+    });
+    if (result) {
+      setTestStream(result.stream);
+      setActualResolution(result.width, result.height);
+      setActualFramerate(result.frameRate);
+    }
+    setIsTesting(false);
+  };
+
+  const stopTestCamera = () => {
+    if (testStream) {
+      testStream.getTracks().forEach((t) => t.stop());
+      setTestStream(null);
+    }
+  };
+
+  return (
+    <div className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <h2 className={styles.title}>Webcam Settings</h2>
+        <p className={styles.subtitle}>
+          Configure your camera source, video quality, and Live Link behavior.
+        </p>
+      </div>
+
+      <div className={styles.cardLayout}>
+        <Card>
+          <CardHeader title="Camera Source" />
+          <CardContent>
+            <div className={styles.group}>
+              <label className={styles.label} htmlFor="settings-select-camera">
+                Select Camera
+              </label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <select
+                  className={styles.select}
+                  id="settings-select-camera"
+                  value={selectedDeviceId}
+                  onChange={(e) => setSelectedDeviceId(e.target.value)}
+                >
+                  {availableDevices.length === 0 && <option value="">No cameras found</option>}
+                  {availableDevices.map((dev) => (
+                    <option key={dev.deviceId} value={dev.deviceId}>
+                      {dev.label || `Camera ${dev.deviceId.slice(0, 8)}`}
+                    </option>
+                  ))}
+                </select>
+                <Button variant="ghost" size="sm" onClick={refreshDevices}>
+                  <RefreshCw size={14} />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader title="Video Quality" />
+          <CardContent>
+            <div className={styles.group}>
+              <label className={styles.label} htmlFor="settings-resolution">
+                Resolution
+              </label>
+              <select
+                className={styles.select}
+                id="settings-resolution"
+                value={resolutionMode}
+                onChange={(e) => setResolutionMode(e.target.value as 'auto' | 'best' | 'custom')}
+              >
+                <option value="auto">Auto (Browser Default)</option>
+                <option value="best">Best Available</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            {resolutionMode === 'custom' && (
+              <div className={styles.group}>
+                <label className={styles.label} htmlFor="settings-custom-resolution">
+                  Custom Resolution
+                </label>
+                <select
+                  className={styles.select}
+                  id="settings-custom-resolution"
+                  value={`${customWidth}x${customHeight}`}
+                  onChange={(e) => {
+                    const [w, h] = e.target.value.split('x').map(Number);
+                    setCustomResolution(w, h);
+                  }}
+                >
+                  {supportedResolutions.map(([w, h, label]) => (
+                    <option key={`${w}x${h}`} value={`${w}x${h}`}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className={styles.group}>
+              <label className={styles.label} htmlFor="settings-frame-rate">
+                Frame Rate
+              </label>
+              <select
+                className={styles.select}
+                id="settings-frame-rate"
+                value={framerateMode}
+                onChange={(e) => setFramerateMode(e.target.value as 'auto' | 'custom')}
+              >
+                <option value="auto">Auto</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            {framerateMode === 'custom' && (
+              <div className={styles.group}>
+                <label className={styles.label} htmlFor="settings-frames-per-second">
+                  Frames Per Second
+                </label>
+                <select
+                  className={styles.select}
+                  id="settings-frames-per-second"
+                  value={customFramerate}
+                  onChange={(e) => setCustomFramerate(parseInt(e.target.value))}
+                >
+                  {supportedFramerates.map((fps) => (
+                    <option key={fps} value={fps}>
+                      {fps} FPS
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader title="Preview & Behavior" />
+          <CardContent>
+            <div className={styles.checkboxGroup}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={mirrorEnabled}
+                  onChange={(e) => setMirrorEnabled(e.target.checked)}
+                />
+                Mirror Preview (Selfie View)
+              </label>
+            </div>
+
+            <div className={styles.checkboxGroup}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={autoStartLiveLink}
+                  onChange={(e) => setAutoStartLiveLink(e.target.checked)}
+                />
+                Auto-Start Live Link on Open
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleTestCamera}
+                disabled={isTesting || availableDevices.length === 0}
+              >
+                <Camera size={14} style={{ marginRight: '6px' }} />
+                {isTesting ? 'Starting...' : testStream ? 'Restart Test' : 'Test Camera'}
+              </Button>
+              {testStream && (
+                <Button variant="secondary" size="sm" onClick={stopTestCamera}>
+                  Stop
+                </Button>
+              )}
+            </div>
+
+            {testStream && (
+              <div style={{ marginTop: '16px' }}>
+                <video
+                  ref={testVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{
+                    width: '100%',
+                    maxHeight: '240px',
+                    borderRadius: 'var(--radius-md)',
+                    background: '#000',
+                    transform: mirrorEnabled ? 'scaleX(-1)' : 'none',
+                  }}
+                />
+                {actualWidth > 0 && (
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--color-text-muted)',
+                      marginTop: '8px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    Active: {actualWidth} × {actualHeight}
+                    {actualFramerate > 0 && ` @ ${Math.round(actualFramerate)} FPS`}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

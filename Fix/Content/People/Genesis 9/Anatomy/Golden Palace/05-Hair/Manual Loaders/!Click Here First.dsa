@@ -1,0 +1,6 @@
+// DAZ Studio version 4.15.0.2 filetype DAZ Script
+
+
+
+MessageBox.information("If you want to manually load the hairs select G9 or Golden Palace and load the matching follower (each hair is split in two between the main figure and its graft).", "Info", "&OK");
+

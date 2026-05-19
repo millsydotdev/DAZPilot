@@ -27,7 +27,7 @@ export interface ShellInfo {
   uv_sets: string[];
 }
 
-interface AssetFixerState {
+export interface AssetFixerState {
   isScanning: boolean;
   lastScanResult: ConflictScanResult | null;
   lastFixResult: AssetFixResult | null;
@@ -35,7 +35,7 @@ interface AssetFixerState {
   selectedConflict: AssetConflict | null;
 }
 
-interface AssetFixerActions {
+export interface AssetFixerActions {
   scanConflicts: (rootPath: string) => Promise<ConflictScanResult>;
   fixShellZones: (shellPath: string, prefix: string) => Promise<AssetFixResult>;
   autoFixAll: (rootPath: string, outputDir: string) => Promise<AssetFixResult>;

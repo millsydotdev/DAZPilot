@@ -1,0 +1,163 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Clitzilla_Bend.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_Clitzilla_Bend",
+			"name" : "GP_Clitzilla_Bend",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "Modifier/Pose",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Icons/GP_Clitzilla_Bend.png",
+				"colors" : [ [ 0, 0.5019608, 1 ], [ 1, 0, 0 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_Clitzilla_Bend",
+				"label" : "GPCZ_Clitzilla_Bend",
+				"value" : 0,
+				"min" : -1,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/3-Clitoris/8-Clitzilla/1-Pose",
+			"formulas" : [
+				{
+					"output" : "clitzilla01:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla01?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla02:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla02?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla03:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla03?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla04:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla04?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla05:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla05?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla06:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla06?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla07:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla07?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla08:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla08?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla09:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla09?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla10:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla10?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla11:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla11?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla12:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla12?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla13:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla13?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "clitzilla14:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#clitzilla14?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Clitzilla_Bend?value" },
+						{ "op" : "push", "val" : -25 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_Clitzilla_Bend-1",
+				"url" : "#GP_Clitzilla_Bend"
+			}
+		]
+	}
+}

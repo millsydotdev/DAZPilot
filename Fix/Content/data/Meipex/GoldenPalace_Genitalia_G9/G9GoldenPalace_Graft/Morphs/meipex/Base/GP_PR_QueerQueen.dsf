@@ -1,0 +1,100 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_PR_QueerQueen.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_PR_QueerQueen",
+			"name" : "GP_PR_QueerQueen",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 1, 0.8117647, 0.3647059 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_PR_QueerQueen",
+				"label" : "GP_PR_Queer Queen",
+				"visible" : false,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/Hidden",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Clitzilla_TipUp.dsf#GP_Clitzilla_TipUp?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_QueerQueen?value" },
+						{ "op" : "push", "val" : 0.612676 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Clitzilla_Pointy.dsf#GP_Clitzilla_Pointy?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_QueerQueen?value" },
+						{ "op" : "push", "val" : 0.1859155 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Clitzilla_Length.dsf#GP_Clitzilla_Length?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_QueerQueen?value" },
+						{ "op" : "push", "val" : -0.3205056 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Clitzilla_Inflate.dsf#GP_Clitzilla_Inflate?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_QueerQueen?value" },
+						{ "op" : "push", "val" : -0.2 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Clitzilla_Glans2.dsf#GP_Clitzilla_Glans2?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_QueerQueen?value" },
+						{ "op" : "push", "val" : 0.3661972 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Clitzilla.dsf#GP_Clitzilla?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_QueerQueen?value" },
+						{ "op" : "push", "val" : 0.7077465 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_PR_QueerQueen-1",
+				"url" : "#GP_PR_QueerQueen"
+			}
+		]
+	}
+}

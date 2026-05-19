@@ -35,15 +35,16 @@ cargo test
 
 Both pass in the current workspace. `npm run check` completes with lint warnings for existing `no-explicit-any` usage, but no lint errors.
 
-## Acceptance Follow-Up
+## Acceptance
 
-These items require Daz Studio, the installed bridge DLL, and representative local content:
+**Automated:** `npm run acceptance` runs workspace checks plus `cargo test acceptance_` against the dev mock bridge.
 
-- Install the freshly built DLL into Daz Studio and test against a live scene.
-- Verify asset loading and pose application across `.duf`, `.dsf`, and pose presets.
-- Verify model import format coverage through `DzContentMgr::importFile`.
-- Verify viewport capture output paths and UI-thread behavior through `Dz3DViewport::captureImage`.
-- Implement a real plugin-side scene exporter when export becomes a prioritized product feature.
+**Manual:** See [ACCEPTANCE.md](ACCEPTANCE.md) for the live Daz Studio checklist (DLL install, asset load, viewport capture, morph/light/render commands).
+
+Remaining product gaps:
+
+- Live sign-off on your machine with representative content (not automated in CI).
+- Scene export still returns unsupported until a real Daz SDK exporter is prioritized.
 
 ## Important Files
 

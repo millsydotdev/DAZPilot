@@ -1,0 +1,99 @@
+/* DazPilot Design System — Tailwind component layer */
+
+@layer components {
+  .dp-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200;
+    @apply border border-transparent disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .dp-btn-primary {
+    @apply dp-btn bg-accent text-white border-red-800/50;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+  }
+
+  .dp-btn-primary:hover:not(:disabled) {
+    @apply bg-accent-hover;
+    box-shadow: 0 0 24px rgba(239, 68, 68, 0.35);
+  }
+
+  .dp-btn-ghost {
+    @apply dp-btn bg-transparent text-zinc-400 border-border-subtle;
+  }
+
+  .dp-btn-ghost:hover:not(:disabled) {
+    @apply bg-white/5 text-zinc-100 border-white/10;
+  }
+
+  .dp-btn-outline {
+    @apply dp-btn bg-transparent text-zinc-200 border-border-subtle;
+  }
+
+  .dp-btn-outline:hover:not(:disabled) {
+    @apply border-accent/40 text-accent bg-accent-muted;
+  }
+
+  .dp-btn-danger {
+    @apply dp-btn bg-red-950/50 text-red-400 border-red-900/50;
+  }
+
+  .dp-btn-danger:hover:not(:disabled) {
+    @apply bg-red-900/40 text-red-300;
+  }
+
+  .dp-card {
+    @apply rounded-lg border border-border-subtle bg-surface p-4;
+  }
+
+  .dp-card-glass {
+    @apply dp-card backdrop-blur-md;
+    background: var(--color-glass-bg);
+    border-color: var(--color-glass-border);
+  }
+
+  .dp-input {
+    @apply w-full rounded-md border border-border-subtle bg-void px-3 py-2 text-sm text-zinc-100;
+    @apply placeholder:text-zinc-600 transition-all duration-200;
+    @apply focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30;
+  }
+
+  .dp-progress-track {
+    @apply h-1.5 w-full overflow-hidden rounded-full border border-border-subtle bg-void;
+  }
+
+  .dp-progress-fill {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+    background: linear-gradient(90deg, #dc2626, #ef4444, #f87171);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  }
+
+  .dp-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply border border-border-subtle bg-surface text-zinc-400;
+  }
+
+  .dp-badge-success::before {
+    content: '';
+    @apply h-1.5 w-1.5 rounded-full bg-cyan;
+    box-shadow: 0 0 6px rgba(34, 211, 238, 0.6);
+  }
+
+  .dp-nav-item {
+    @apply relative flex w-full items-center gap-3 rounded-md border border-transparent px-3.5 py-2.5;
+    @apply text-sm font-medium text-zinc-500 transition-all duration-150 text-left;
+  }
+
+  .dp-nav-item:hover {
+    @apply bg-white/[0.03] text-zinc-200 border-white/[0.03];
+  }
+
+  .dp-nav-item-active {
+    @apply dp-nav-item bg-accent-muted text-accent border-accent/20;
+    box-shadow: var(--shadow-glow-red);
+  }
+
+  .dp-nav-item-active::after {
+    content: '';
+    @apply absolute left-0 top-1/4 h-1/2 w-0.5 rounded-r bg-accent;
+    box-shadow: 0 0 8px var(--color-primary);
+  }
+}

@@ -1,0 +1,6 @@
+// DAZ Studio version 4.15.0.2 filetype DAZ Script
+
+
+
+MessageBox.information("\n- Select G9;\n- Load the shape presets. \n\nThese are shortcuts; much more control can be achieved dialing the morphs in the 'Parameters' tab. Select Golden Palace, and filter the results dialing 'GP' to find them.\n\nThe 'Apply First' preset resets  'PGPV_Vagina_Open' and 'PGPU_Urethra_Open', because if these parameters are activated, the following presets won't work.", "Info", "&OK");
+

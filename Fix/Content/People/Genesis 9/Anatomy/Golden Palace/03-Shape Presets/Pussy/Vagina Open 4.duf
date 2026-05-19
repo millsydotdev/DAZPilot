@@ -1,0 +1,32 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/People/Genesis%209/Anatomy/Golden%20Palace/03-Shape%20Presets/Pussy/Vagina%20Open%202.duf",
+		"type" : "preset_properties",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-04T15:41:04Z"
+	},
+	"scene" : {
+		"materials" : [
+		],
+		"animations" : [
+			{
+				"url" : "name://@selection#GP_Vagina_Open:?value/value",
+				"keys" : [ [ 0, 1 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Vagina_Open_Squeeze:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			},
+			{
+				"url" : "name://@selection#GP_Vagina_Open_Stretch:?value/value",
+				"keys" : [ [ 0, 0 ] ]
+			}
+		]
+	}
+}

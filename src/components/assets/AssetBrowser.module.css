@@ -40,6 +40,13 @@
   cursor: pointer;
 }
 
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--color-border-subtle);
+  margin: 0 var(--spacing-xs);
+}
+
 .viewButton.active {
   background: var(--color-primary-bg);
   border-color: var(--color-primary);
@@ -133,6 +140,7 @@
 }
 
 .assetCard {
+  position: relative;
   background: linear-gradient(145deg, rgba(25, 25, 35, 0.4) 0%, rgba(15, 15, 22, 0.6) 100%);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
@@ -205,6 +213,24 @@
   justify-content: center;
   height: 100%;
   color: var(--color-text-muted);
+}
+
+.favButton {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.favButton:hover {
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--color-error);
 }
 
 .spin {

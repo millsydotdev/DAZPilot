@@ -1,0 +1,2328 @@
+{
+  "file_version": "0.6.1.0",
+  "asset_info": {
+    "id": "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Geoshell_Minora/GoldenPalace_G9_Shell_Minora.dsf",
+    "type": "prop",
+    "contributor": {
+      "author": "meipex",
+      "email": "",
+      "website": ""
+    },
+    "revision": "1.0",
+    "modified": "2023-04-17T18:02:59Z"
+  },
+  "geometry_library": [
+    {
+      "id": "geometry",
+      "name": "geometry",
+      "type": "polygon_mesh",
+      "vertices": {
+        "count": 0,
+        "values": []
+      },
+      "polygon_groups": {
+        "count": 0,
+        "values": []
+      },
+      "polygon_material_groups": {
+        "count": 0,
+        "values": []
+      },
+      "polylist": {
+        "count": 0,
+        "values": []
+      },
+      "extra": [
+        {
+          "type": "studio/geometry/shell"
+        },
+        {
+          "type": "studio_geometry_channels",
+          "channels": [
+            {
+              "channel": {
+                "id": "SubDIALevel",
+                "type": "int",
+                "label": "View SubD Level",
+                "visible": false,
+                "value": 1,
+                "min": 0,
+                "max": 2,
+                "clamped": true,
+                "step_size": 1
+              },
+              "group": "/General/Mesh Resolution"
+            },
+            {
+              "channel": {
+                "id": "SubDRenderLevel",
+                "type": "int",
+                "label": "Render SubD Level (Minimum)",
+                "visible": false,
+                "value": 0,
+                "min": 0,
+                "max": 3,
+                "clamped": true,
+                "step_size": 1
+              },
+              "group": "/General/Mesh Resolution"
+            },
+            {
+              "channel": {
+                "id": "SubDAlgorithmControl",
+                "type": "enum",
+                "label": "SubDivision Algorithm",
+                "visible": false,
+                "value": 0,
+                "enum_values": [
+                  "Catmark",
+                  "Bilinear",
+                  "Loop",
+                  "Catmull-Clark (Legacy)"
+                ]
+              },
+              "group": "/General/Mesh Resolution"
+            },
+            {
+              "channel": {
+                "id": "SubDEdgeInterpolateLevel",
+                "type": "enum",
+                "label": "Edge Interpolation",
+                "visible": false,
+                "value": 2,
+                "enum_values": [
+                  "Soft Corners And Edges",
+                  "Sharp Edges and Corners",
+                  "Sharp Edges"
+                ]
+              },
+              "group": "/General/Mesh Resolution"
+            },
+            {
+              "channel": {
+                "id": "SubDNormalSmoothing",
+                "type": "enum",
+                "label": "SubDivision Normals",
+                "visible": false,
+                "value": 0,
+                "enum_values": [
+                  "Smoothed",
+                  "Preserve Cage"
+                ]
+              },
+              "group": "/General/Mesh Resolution"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "node_library": [
+    {
+      "id": "GoldenPalace_G9_Shell",
+      "name": "GoldenPalace_G9_Shell_Minora",
+      "type": "node",
+      "label": "GoldenPalaceG9_Shell_Minora",
+      "rotation_order": "XYZ",
+      "inherits_scale": true,
+      "center_point": [
+        {
+          "id": "x",
+          "type": "float",
+          "name": "xOrigin",
+          "label": "X Origin",
+          "visible": false,
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        },
+        {
+          "id": "y",
+          "type": "float",
+          "name": "yOrigin",
+          "label": "Y Origin",
+          "visible": false,
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        },
+        {
+          "id": "z",
+          "type": "float",
+          "name": "zOrigin",
+          "label": "Z Origin",
+          "visible": false,
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        }
+      ],
+      "end_point": [
+        {
+          "id": "x",
+          "type": "float",
+          "name": "xEnd",
+          "label": "X End",
+          "visible": false,
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        },
+        {
+          "id": "y",
+          "type": "float",
+          "name": "yEnd",
+          "label": "Y End",
+          "visible": false,
+          "value": 103.876,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        },
+        {
+          "id": "z",
+          "type": "float",
+          "name": "zEnd",
+          "label": "Z End",
+          "visible": false,
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        }
+      ],
+      "orientation": [
+        {
+          "id": "x",
+          "type": "float",
+          "name": "xOrientation",
+          "label": "X Orientation",
+          "visible": false,
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        },
+        {
+          "id": "y",
+          "type": "float",
+          "name": "yOrientation",
+          "label": "Y Orientation",
+          "visible": false,
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        },
+        {
+          "id": "z",
+          "type": "float",
+          "name": "zOrientation",
+          "label": "Z Orientation",
+          "visible": false,
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.01
+        }
+      ],
+      "rotation": [
+        {
+          "id": "x",
+          "type": "float",
+          "name": "XRotate",
+          "label": "X Rotate",
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.5
+        },
+        {
+          "id": "y",
+          "type": "float",
+          "name": "YRotate",
+          "label": "Y Rotate",
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.5
+        },
+        {
+          "id": "z",
+          "type": "float",
+          "name": "ZRotate",
+          "label": "Z Rotate",
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 0.5
+        }
+      ],
+      "translation": [
+        {
+          "id": "x",
+          "type": "float",
+          "name": "XTranslate",
+          "label": "X Translate",
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 1
+        },
+        {
+          "id": "y",
+          "type": "float",
+          "name": "YTranslate",
+          "label": "Y Translate",
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 1
+        },
+        {
+          "id": "z",
+          "type": "float",
+          "name": "ZTranslate",
+          "label": "Z Translate",
+          "value": 0,
+          "min": -10000,
+          "max": 10000,
+          "step_size": 1
+        }
+      ],
+      "scale": [
+        {
+          "id": "x",
+          "type": "float",
+          "name": "XScale",
+          "label": "X Scale",
+          "value": 1,
+          "min": -10000,
+          "max": 10000,
+          "display_as_percent": true,
+          "step_size": 0.005
+        },
+        {
+          "id": "y",
+          "type": "float",
+          "name": "YScale",
+          "label": "Y Scale",
+          "value": 1,
+          "min": -10000,
+          "max": 10000,
+          "display_as_percent": true,
+          "step_size": 0.005
+        },
+        {
+          "id": "z",
+          "type": "float",
+          "name": "ZScale",
+          "label": "Z Scale",
+          "value": 1,
+          "min": -10000,
+          "max": 10000,
+          "display_as_percent": true,
+          "step_size": 0.005
+        }
+      ],
+      "general_scale": {
+        "id": "general_scale",
+        "type": "float",
+        "name": "Scale",
+        "label": "Scale",
+        "value": 1,
+        "min": -10000,
+        "max": 10000,
+        "display_as_percent": true,
+        "step_size": 0.005
+      },
+      "presentation": {
+        "type": "",
+        "label": "",
+        "description": "",
+        "icon_large": "",
+        "colors": [
+          [
+            0.3529412,
+            0.3529412,
+            0.3529412
+          ],
+          [
+            1,
+            1,
+            1
+          ]
+        ],
+        "auto_fit_base": "/Golden Palace G9/Golden Palace G9_Shell_Minora",
+        "preferred_base": "/Genesis 9/Base"
+      },
+      "extra": [
+        {
+          "type": "studio/node/shell"
+        },
+        {
+          "type": "studio_node_channels",
+          "version": 4,
+          "channels": [
+            {
+              "channel": {
+                "id": "Disable Transform",
+                "type": "bool",
+                "label": "Disable Local Transform",
+                "visible": false,
+                "value": false
+              },
+              "group": "/General/Transforms"
+            },
+            {
+              "channel": {
+                "id": "Ignore Local Transform",
+                "type": "bool",
+                "label": "Ignore Local Transform",
+                "visible": false,
+                "value": false
+              },
+              "group": "/General/Transforms"
+            },
+            {
+              "channel": {
+                "id": "Point At",
+                "type": "numeric_node",
+                "label": "Point At",
+                "value": 1,
+                "min": 0,
+                "max": 1,
+                "clamped": true,
+                "step_size": 0.01,
+                "needs_node": true,
+                "node": null
+              },
+              "group": "/General/Constraints"
+            },
+            {
+              "channel": {
+                "id": "Visible",
+                "type": "bool",
+                "label": "Visible",
+                "value": true
+              },
+              "group": "/Display"
+            },
+            {
+              "channel": {
+                "id": "Visible in Viewport",
+                "type": "bool",
+                "label": "Visible in Viewport",
+                "value": true
+              },
+              "group": "/Display/Scene View"
+            },
+            {
+              "channel": {
+                "id": "Selectable",
+                "type": "bool",
+                "label": "Selectable (in Viewport)",
+                "value": false
+              },
+              "group": "/Display/Scene View"
+            },
+            {
+              "channel": {
+                "id": "Renderable",
+                "type": "bool",
+                "label": "Visible in Render",
+                "value": true
+              },
+              "group": "/Display/Rendering"
+            },
+            {
+              "channel": {
+                "id": "Cast Shadows",
+                "type": "bool",
+                "label": "Cast Shadows",
+                "value": true
+              },
+              "group": "/Display/Rendering"
+            },
+            {
+              "channel": {
+                "id": "Render Priority",
+                "type": "enum",
+                "label": "Render Priority",
+                "visible": false,
+                "value": 3,
+                "enum_values": [
+                  "Lowest",
+                  "Low",
+                  "Below Normal",
+                  "Normal",
+                  "Above Normal",
+                  "High",
+                  "Highest"
+                ]
+              },
+              "group": "/Display/Rendering"
+            },
+            {
+              "channel": {
+                "id": "Visible in Simulation",
+                "type": "bool",
+                "label": "Visible in Simulation",
+                "value": true
+              },
+              "group": "/Display/Simulation"
+            },
+            {
+              "channel": {
+                "id": "Shell Node",
+                "type": "node",
+                "label": "Shell Node"
+              },
+              "group": "/Shell"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_thigh_vis",
+                "type": "bool",
+                "label": "l_thigh",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_shoulder_vis",
+                "type": "bool",
+                "label": "r_shoulder",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_pinky1_vis",
+                "type": "bool",
+                "label": "r_pinky1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_pinky2_vis",
+                "type": "bool",
+                "label": "r_pinky2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_pinky3_vis",
+                "type": "bool",
+                "label": "r_pinky3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_upperarm_vis",
+                "type": "bool",
+                "label": "r_upperarm",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_thumb1_vis",
+                "type": "bool",
+                "label": "r_thumb1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_thumb2_vis",
+                "type": "bool",
+                "label": "r_thumb2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_thumb3_vis",
+                "type": "bool",
+                "label": "r_thumb3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_foot_vis",
+                "type": "bool",
+                "label": "l_foot",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_index1_vis",
+                "type": "bool",
+                "label": "r_index1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_index2_vis",
+                "type": "bool",
+                "label": "r_index2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_index3_vis",
+                "type": "bool",
+                "label": "r_index3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_head_vis",
+                "type": "bool",
+                "label": "head",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_shin_vis",
+                "type": "bool",
+                "label": "r_shin",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_pinky1_vis",
+                "type": "bool",
+                "label": "l_pinky1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_pinky2_vis",
+                "type": "bool",
+                "label": "l_pinky2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_pinky3_vis",
+                "type": "bool",
+                "label": "l_pinky3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_thumb1_vis",
+                "type": "bool",
+                "label": "l_thumb1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_thumb2_vis",
+                "type": "bool",
+                "label": "l_thumb2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_thumb3_vis",
+                "type": "bool",
+                "label": "l_thumb3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_ring1_vis",
+                "type": "bool",
+                "label": "r_ring1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_ring2_vis",
+                "type": "bool",
+                "label": "r_ring2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_ring3_vis",
+                "type": "bool",
+                "label": "r_ring3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_mid1_vis",
+                "type": "bool",
+                "label": "r_mid1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_mid2_vis",
+                "type": "bool",
+                "label": "r_mid2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_mid3_vis",
+                "type": "bool",
+                "label": "r_mid3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_spine1_vis",
+                "type": "bool",
+                "label": "spine1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_spine2_vis",
+                "type": "bool",
+                "label": "spine2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_spine3_vis",
+                "type": "bool",
+                "label": "spine3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_spine4_vis",
+                "type": "bool",
+                "label": "spine4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_toes_vis",
+                "type": "bool",
+                "label": "r_toes",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_forearm_vis",
+                "type": "bool",
+                "label": "l_forearm",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_hand_vis",
+                "type": "bool",
+                "label": "r_hand",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_shin_vis",
+                "type": "bool",
+                "label": "l_shin",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_shoulder_vis",
+                "type": "bool",
+                "label": "l_shoulder",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_thigh_vis",
+                "type": "bool",
+                "label": "r_thigh",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_upperarm_vis",
+                "type": "bool",
+                "label": "l_upperarm",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_mid1_vis",
+                "type": "bool",
+                "label": "l_mid1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_mid2_vis",
+                "type": "bool",
+                "label": "l_mid2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_mid3_vis",
+                "type": "bool",
+                "label": "l_mid3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_ring1_vis",
+                "type": "bool",
+                "label": "l_ring1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_ring2_vis",
+                "type": "bool",
+                "label": "l_ring2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_ring3_vis",
+                "type": "bool",
+                "label": "l_ring3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_pelvis_vis",
+                "type": "bool",
+                "label": "pelvis",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_neck1_vis",
+                "type": "bool",
+                "label": "neck1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_neck2_vis",
+                "type": "bool",
+                "label": "neck2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_forearm_vis",
+                "type": "bool",
+                "label": "r_forearm",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_r_foot_vis",
+                "type": "bool",
+                "label": "r_foot",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_index1_vis",
+                "type": "bool",
+                "label": "l_index1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_index2_vis",
+                "type": "bool",
+                "label": "l_index2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_index3_vis",
+                "type": "bool",
+                "label": "l_index3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_toes_vis",
+                "type": "bool",
+                "label": "l_toes",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_l_hand_vis",
+                "type": "bool",
+                "label": "l_hand",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "material_group_Legs_vis",
+                "type": "bool",
+                "label": "Legs",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_GoldenPalace_G9_9694_GP_Urethra_vis",
+                "type": "bool",
+                "label": "GoldenPalace_G9_9694_GP_Urethra",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_Arms_vis",
+                "type": "bool",
+                "label": "Arms",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_GoldenPalace_G9_9694_GP_Rectum_vis",
+                "type": "bool",
+                "label": "GoldenPalace_G9_9694_GP_Rectum",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_Fingernails_vis",
+                "type": "bool",
+                "label": "Fingernails",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_GoldenPalace_G9_9694_GP_Vagina_vis",
+                "type": "bool",
+                "label": "GoldenPalace_G9_9694_GP_Vagina",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_GoldenPalace_G9_9694_GP_Torso_Back_vis",
+                "type": "bool",
+                "label": "GoldenPalace_G9_9694_GP_Torso_Back",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_Toenails_vis",
+                "type": "bool",
+                "label": "Toenails",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_Mouth Cavity_vis",
+                "type": "bool",
+                "label": "Mouth Cavity",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_GoldenPalace_G9_9694_GP_Labia Minora_vis",
+                "type": "bool",
+                "label": "GoldenPalace_G9_9694_GP_Labia Minora",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_Head_vis",
+                "type": "bool",
+                "label": "Head",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_Body_vis",
+                "type": "bool",
+                "label": "Body",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_GoldenPalace_G9_9694_GP_Torso_vis",
+                "type": "bool",
+                "label": "GoldenPalace_G9_9694_GP_Torso",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "material_group_BreastacularG9_8191_Body_vis",
+                "type": "bool",
+                "label": "BreastacularG9_8191_Body",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Surfaces"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_l_nipple_vis",
+                "type": "bool",
+                "label": "WG_0_l_nipple",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_spine4_vis",
+                "type": "bool",
+                "label": "WG_0_spine4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_l_Breast_vis",
+                "type": "bool",
+                "label": "WG_0_l_Breast",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_spine3_vis",
+                "type": "bool",
+                "label": "WG_0_spine3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_l_Breast2_vis",
+                "type": "bool",
+                "label": "WG_0_l_Breast2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_l_areola_vis",
+                "type": "bool",
+                "label": "WG_0_l_areola",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_r_nipple_vis",
+                "type": "bool",
+                "label": "WG_0_r_nipple",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_r_breast_vis",
+                "type": "bool",
+                "label": "WG_0_r_breast",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_r_breast2_vis",
+                "type": "bool",
+                "label": "WG_0_r_breast2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_0_r_areola_vis",
+                "type": "bool",
+                "label": "WG_0_r_areola",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_pelvis_vis",
+                "type": "bool",
+                "label": "WG_1_pelvis",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLabiumMajora4_vis",
+                "type": "bool",
+                "label": "WG_1_lLabiumMajora4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_LabiumMajoraBack_vis",
+                "type": "bool",
+                "label": "WG_1_LabiumMajoraBack",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_vagina_vis",
+                "type": "bool",
+                "label": "WG_1_vagina",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLabiumMinora4_vis",
+                "type": "bool",
+                "label": "WG_1_lLabiumMinora4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLabiumMinora2_vis",
+                "type": "bool",
+                "label": "WG_1_lLabiumMinora2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_monsVeneris_vis",
+                "type": "bool",
+                "label": "WG_1_monsVeneris",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLabiumMinora1_vis",
+                "type": "bool",
+                "label": "WG_1_lLabiumMinora1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLabiumMajora1_vis",
+                "type": "bool",
+                "label": "WG_1_lLabiumMajora1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitoris_vis",
+                "type": "bool",
+                "label": "WG_1_clitoris",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLabiumMajora2_vis",
+                "type": "bool",
+                "label": "WG_1_lLabiumMajora2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLabiumMajora3_vis",
+                "type": "bool",
+                "label": "WG_1_lLabiumMajora3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLabiumMinora3_vis",
+                "type": "bool",
+                "label": "WG_1_lLabiumMinora3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_urethra1_vis",
+                "type": "bool",
+                "label": "WG_1_urethra1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla14_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla14",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLabiumMinora4_vis",
+                "type": "bool",
+                "label": "WG_1_rLabiumMinora4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLabiumMajora4_vis",
+                "type": "bool",
+                "label": "WG_1_rLabiumMajora4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_urethra2_vis",
+                "type": "bool",
+                "label": "WG_1_urethra2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rectum01_vis",
+                "type": "bool",
+                "label": "WG_1_rectum01",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_anus2_vis",
+                "type": "bool",
+                "label": "WG_1_anus2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_anus1_vis",
+                "type": "bool",
+                "label": "WG_1_anus1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rectum06_vis",
+                "type": "bool",
+                "label": "WG_1_rectum06",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rectum02_vis",
+                "type": "bool",
+                "label": "WG_1_rectum02",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rectum03_vis",
+                "type": "bool",
+                "label": "WG_1_rectum03",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rectum04_vis",
+                "type": "bool",
+                "label": "WG_1_rectum04",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rectum05_vis",
+                "type": "bool",
+                "label": "WG_1_rectum05",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rectum07_vis",
+                "type": "bool",
+                "label": "WG_1_rectum07",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleD1_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleD1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleD2_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleD2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleD3_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleD3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleD2_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleD2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleD3_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleD3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleD1_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleD1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_mediumTentacleE2_vis",
+                "type": "bool",
+                "label": "WG_1_mediumTentacleE2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_mediumTentacleE3_vis",
+                "type": "bool",
+                "label": "WG_1_mediumTentacleE3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_mediumTentacleE1_vis",
+                "type": "bool",
+                "label": "WG_1_mediumTentacleE1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_mediumTentacleA2_vis",
+                "type": "bool",
+                "label": "WG_1_mediumTentacleA2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_mediumTentacleA3_vis",
+                "type": "bool",
+                "label": "WG_1_mediumTentacleA3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_mediumTentacleA1_vis",
+                "type": "bool",
+                "label": "WG_1_mediumTentacleA1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleA3_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleA3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleA4_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleA4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleA1_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleA1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleA2_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleA2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleB2_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleB2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleB3_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleB3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleB1_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleB1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleC2_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleC2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleC3_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleC3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lMediumTentacleC1_vis",
+                "type": "bool",
+                "label": "WG_1_lMediumTentacleC1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleB3_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleB3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleB4_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleB4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleB1_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleB1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleB2_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleB2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleB2_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleB2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleB3_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleB3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleB1_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleB1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleC2_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleC2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleC3_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleC3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleC1_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleC1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleA2_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleA2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleA3_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleA3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lHighTentacleA1_vis",
+                "type": "bool",
+                "label": "WG_1_lHighTentacleA1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleD3_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleD3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleD4_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleD4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleD1_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleD1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleD2_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleD2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleC3_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleC3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleC4_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleC4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleC1_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleC1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_lLowTentacleC2_vis",
+                "type": "bool",
+                "label": "WG_1_lLowTentacleC2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla13_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla13",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla07_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla07",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla09_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla09",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla03_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla03",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla04_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla04",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla05_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla05",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla12_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla12",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla01_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla01",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla02_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla02",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla06_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla06",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla11_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla11",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla10_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla10",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_clitzilla08_vis",
+                "type": "bool",
+                "label": "WG_1_clitzilla08",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLabiumMinora2_vis",
+                "type": "bool",
+                "label": "WG_1_rLabiumMinora2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLabiumMinora1_vis",
+                "type": "bool",
+                "label": "WG_1_rLabiumMinora1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLabiumMajora1_vis",
+                "type": "bool",
+                "label": "WG_1_rLabiumMajora1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLabiumMajora2_vis",
+                "type": "bool",
+                "label": "WG_1_rLabiumMajora2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLabiumMajora3_vis",
+                "type": "bool",
+                "label": "WG_1_rLabiumMajora3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLabiumMinora3_vis",
+                "type": "bool",
+                "label": "WG_1_rLabiumMinora3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleD1_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleD1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleD2_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleD2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleD3_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleD3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleD2_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleD2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleD3_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleD3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleD1_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleD1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleA3_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleA3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleA4_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleA4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleA1_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleA1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleA2_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleA2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleB2_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleB2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleB3_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleB3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleB1_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleB1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleC2_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleC2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleC3_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleC3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rMediumTentacleC1_vis",
+                "type": "bool",
+                "label": "WG_1_rMediumTentacleC1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleB3_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleB3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleB4_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleB4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleB1_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleB1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleB2_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleB2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleB2_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleB2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleB3_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleB3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleB1_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleB1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleC2_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleC2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleC3_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleC3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleC1_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleC1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleA2_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleA2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleA3_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleA3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rHighTentacleA1_vis",
+                "type": "bool",
+                "label": "WG_1_rHighTentacleA1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleD3_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleD3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleD4_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleD4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleD1_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleD1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleD2_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleD2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleC3_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleC3",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleC4_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleC4",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleC1_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleC1",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            },
+            {
+              "channel": {
+                "id": "facet_group_WG_1_rLowTentacleC2_vis",
+                "type": "bool",
+                "label": "WG_1_rLowTentacleC2",
+                "value": true
+              },
+              "group": "/Shell/Visibility/Face Groups"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

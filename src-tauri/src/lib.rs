@@ -18,7 +18,9 @@ pub mod vision_service;
 pub mod viewport_sync;
 pub mod ai_providers;
 pub mod asset_fixer;
+pub mod ai_tool_planner;
 
+use serde::{Deserialize, Serialize};
 use ollama_service::{check_ollama_status, get_ollama_models, pull_ollama_model, ollama_chat};
 use asset_fixer::{
     ConflictScanResult, AssetFixResult, ShellInfo
@@ -41,7 +43,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .manage(std::sync::Arc::new(viewport_sync::ViewportSyncState {
             enabled: std::sync::Mutex::new(false),
-            fps: std::sync::Mutex::new(2),
+            fps: std::sync::Mutex::new(5),
         }))
         .setup(|app| {
             info!("DazPilot App starting...");
@@ -182,6 +184,7 @@ pub fn run() {
             model_download::download_gguf_model,
             set_viewport_sync,
             set_viewport_fps,
+            capture_viewport_single,
             scan_conflicts,
             fix_shell_zones,
             auto_fix_all_conflicts,
@@ -1059,6 +1062,12 @@ fn build_sdk_context_for_message(message: &str) -> String {
     context
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatResponse {
+    pub content: String,
+    pub action: Option<ai_action::StructuredAiAction>,
+}
+
 #[tauri::command]
 async fn get_provider_models(provider: String) -> Result<Vec<String>, String> {
     let api_key = match provider.as_str() {
@@ -1089,8 +1098,59 @@ async fn process_chat_message(
     images: Option<Vec<String>>,
     provider: Option<String>,
     model: Option<String>,
-) -> Result<String, String> {
-    let action = ai_action::plan_validated_action(&message);
+) -> Result<ChatResponse, String> {
+    let heuristic_action = ai_action::plan_validated_action(&message);
+    let scene_context = ai_system::build_scene_context();
+    let scene_summary = format!(
+        "active_figure={:?}, selected={:?}, nodes={}",
+        scene_context.active_figure,
+        scene_context.selected_nodes,
+        scene_context.selected_nodes.len()
+    );
+
+    let action = if std::env::var("DAZPILOT_DEV_MOCK_AI").ok().as_deref() == Some("1") {
+        heuristic_action
+    } else {
+        let needs_llm = heuristic_action
+            .as_ref()
+            .map(|a| a.confidence < 0.95)
+            .unwrap_or(true);
+        let llm_plan = if needs_llm {
+            let active_provider = provider.clone().or_else(|| {
+                database::get_setting("ai_provider")
+                    .ok()
+                    .flatten()
+                    .or_else(|| std::env::var("DAZPILOT_AI_BACKEND").ok())
+            }).unwrap_or_else(|| "local-gguf".to_string());
+            let active_model = model.clone().or_else(|| {
+                database::get_setting("ai_model").ok().flatten()
+            }).unwrap_or_else(|| "phi-2-q4".to_string());
+            let api_key = match active_provider.as_str() {
+                "openai" | "custom-openai" => database::get_setting("openai_api_key").ok().flatten(),
+                "gemini" => database::get_setting("gemini_api_key").ok().flatten(),
+                "anthropic" => database::get_setting("anthropic_api_key").ok().flatten(),
+                _ => None,
+            };
+            let base_url = match active_provider.as_str() {
+                "ollama" => database::get_setting("ollama_host").ok().flatten(),
+                "openai" | "custom-openai" => database::get_setting("openai_base_url").ok().flatten(),
+                _ => None,
+            };
+            ai_tool_planner::plan_with_llm_tools(
+                &message,
+                &scene_summary,
+                &active_provider,
+                &active_model,
+                api_key,
+                base_url,
+            )
+            .await
+        } else {
+            None
+        };
+        ai_tool_planner::merge_plans(heuristic_action, llm_plan)
+    };
+
     let sdk_context = build_sdk_context_for_message(&message);
     
     let cleaned_images: Option<Vec<String>> = images.map(|imgs| {
@@ -1121,7 +1181,6 @@ async fn process_chat_message(
         spatial_context = vision_service::fetch_spatial_context();
     }
 
-    let scene_context = ai_system::build_scene_context();
     let conflicts = ai_action::ConflictResolver::detect_geoshell_conflicts(&scene_context);
     let conflict_info = if !conflicts.is_empty() {
         format!("\nSCENE CONFLICTS DETECTED:\n{}\n", conflicts.join("\n"))
@@ -1146,7 +1205,10 @@ async fn process_chat_message(
     };
 
     if std::env::var("DAZPILOT_DEV_MOCK_AI").ok().as_deref() == Some("1") {
-        return Ok(format!("Plan: {}\n{}{}{}{}", message, execution_summary, vision_context, spatial_context, conflict_info));
+        return Ok(ChatResponse {
+            content: format!("Plan: {}\n{}{}{}{}", message, execution_summary, vision_context, spatial_context, conflict_info),
+            action,
+        });
     }
 
     let prompt = format!(
@@ -1224,13 +1286,19 @@ async fn process_chat_message(
             "context": message,
             "timestamp": chrono::Utc::now().to_rfc3339()
         }));
-        return Ok(format!(
-            "AI suggested a DazScript macro. Please review and approve it in the Script Approval panel.\n\nScript ID: {}\n\n{}",
-            script_id, response_text
-        ));
+        return Ok(ChatResponse {
+            content: format!(
+                "AI suggested a DazScript macro. Please review and approve it in the Script Approval panel.\n\nScript ID: {}\n\n{}",
+                script_id, response_text
+            ),
+            action,
+        });
     }
-    
-    Ok(response_text)
+
+    Ok(ChatResponse {
+        content: response_text,
+        action,
+    })
 }
 
 fn extract_javascript_macro(text: &str) -> Option<String> {
@@ -1264,7 +1332,17 @@ fn set_viewport_sync(enabled: bool, state: tauri::State<'_, std::sync::Arc<viewp
 
 #[tauri::command]
 fn set_viewport_fps(fps: u32, state: tauri::State<'_, std::sync::Arc<viewport_sync::ViewportSyncState>>) {
-    *state.fps.lock().unwrap() = fps.clamp(1, 10);
+    *state.fps.lock().unwrap() = fps.clamp(1, 30);
+}
+
+#[tauri::command]
+fn capture_viewport_single() -> Result<String, String> {
+    let resp = mcp_client::send_mcp_request("capture_viewport", serde_json::json!({ "path": "stream" }))?;
+    resp.data.as_ref()
+        .and_then(|d| d.get("data"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+        .ok_or_else(|| "Viewport capture returned empty data".to_string())
 }
 
 #[tauri::command]

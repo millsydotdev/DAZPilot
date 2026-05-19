@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { invoke } from '@tauri-apps/api/core';
 import { computeAUs, FACS_MAP } from '../../utils/faceTracking';
+import { useWebcamStore } from '../../store';
+import { buildConstraints, enumerateVideoDevices } from '../../utils/webcam';
 import { X, Camera, RefreshCw } from 'lucide-react';
 import { Button } from '../ui';
 import styles from './LiveLinkPanel.module.css';
@@ -53,11 +55,23 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isActive, setIsActive] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(true);
+  const [availableCams, setAvailableCams] = useState<MediaDeviceInfo[]>([]);
   const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
   const requestRef = useRef<number>();
   const lastUpdateRef = useRef<number>(0);
   const emaAusRef = useRef<Record<string, number>>({});
   const lastDazPushRef = useRef<number>(0);
+
+  const {
+    selectedDeviceId,
+    resolutionMode,
+    customWidth,
+    customHeight,
+    framerateMode,
+    customFramerate,
+    mirrorEnabled,
+    setSelectedDeviceId,
+  } = useWebcamStore();
 
   useEffect(() => {
     async function loadModel() {
@@ -82,6 +96,8 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
     }
     loadModel();
 
+    enumerateVideoDevices().then(setAvailableCams);
+
     return () => {
       if (faceLandmarkerRef.current) {
         faceLandmarkerRef.current.close();
@@ -104,9 +120,15 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
     if (!faceLandmarkerRef.current) return;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480, facingMode: 'user' },
+      const constraints = buildConstraints({
+        selectedDeviceId,
+        resolutionMode,
+        customWidth,
+        customHeight,
+        framerateMode,
+        customFramerate,
       });
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
@@ -208,6 +230,23 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
       </div>
 
       <div className={styles.content}>
+        {availableCams.length > 1 && (
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <select
+              className={styles.camSelect}
+              value={selectedDeviceId || ''}
+              onChange={(e) => setSelectedDeviceId(e.target.value)}
+              disabled={isActive}
+            >
+              {availableCams.map((cam) => (
+                <option key={cam.deviceId} value={cam.deviceId}>
+                  {cam.label || `Camera ${cam.deviceId.slice(0, 8)}`}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className={styles.previewContainer}>
           <video
             ref={videoRef}
@@ -215,14 +254,14 @@ export default function LiveLinkPanel({ onClose }: LiveLinkPanelProps) {
             autoPlay
             playsInline
             muted
-            style={{ transform: 'scaleX(-1)' }} // Mirror view
+            style={{ transform: mirrorEnabled ? 'scaleX(-1)' : 'none' }}
           />
           <canvas
             ref={canvasRef}
             className={styles.canvas}
             width={640}
             height={480}
-            style={{ transform: 'scaleX(-1)' }} // Mirror canvas
+            style={{ transform: mirrorEnabled ? 'scaleX(-1)' : 'none' }}
           />
           {isActive && (
             <>

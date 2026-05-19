@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+pub mod vector_store;
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Mutex;

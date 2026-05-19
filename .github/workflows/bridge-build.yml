@@ -1,0 +1,53 @@
+name: Bridge Build and Package
+
+on:
+  push:
+    tags:
+      - 'plugin-v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag
+        required: true
+        type: string
+
+jobs:
+  build-bridge:
+    name: Build Bridge (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: DazPilotBridge.dll
+          - os: macos-latest
+            artifact_name: libDazPilotBridge.dylib
+          - os: ubuntu-22.04
+            artifact_name: libDazPilotBridge.so
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Daz SDK
+        uses: actions/cache@v4
+        with:
+          path: DAZStudio4.5+ SDK
+          key: ${{ runner.os }}-daz-sdk-${{ hashFiles('**/CMakeLists.txt') }}
+
+      - name: Install CMake/Qt
+        if: matrix.os == 'ubuntu-22.04'
+        run: sudo apt-get install -y cmake qt4-dev-tools
+
+      - name: Configure and Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DDAZ_SDK_ROOT="${{ github.workspace }}/DAZStudio4.5+ SDK"
+          cmake --build . --config Release
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge-${{ matrix.os }}
+          path: plugins/daz3d-bridge/build/${{ matrix.artifact_name }}

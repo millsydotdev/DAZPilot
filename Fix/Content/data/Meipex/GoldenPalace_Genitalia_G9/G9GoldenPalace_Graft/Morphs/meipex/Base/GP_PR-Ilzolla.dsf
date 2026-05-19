@@ -1,0 +1,356 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_PR-Ilzolla.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_PR-Ilzolla",
+			"name" : "GP_PR-Ilzolla",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 1, 0.8117647, 0.3647059 ], [ 0.7019608, 1, 0.7019608 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_PR-Ilzolla",
+				"label" : "GP_PR-Ilzolla",
+				"visible" : false,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/Hidden",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowD_Right_Twist.dsf#GP_Tentacle_LowD_Right_Twist?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -0.7666667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowD_Right_Bend.dsf#GP_Tentacle_LowD_Right_Bend?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.8916667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowD_Left_Twist.dsf#GP_Tentacle_LowD_Left_Twist?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -0.3916667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowD_Left_Side-Side.dsf#GP_Tentacle_LowD_Left_Side-Side?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -0.1333333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowD_Left_Bend.dsf#GP_Tentacle_LowD_Left_Bend?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.4 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowC_Right_Twist.dsf#GP_Tentacle_LowC_Right_Twist?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.5333333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowC_Right_Bend.dsf#GP_Tentacle_LowC_Right_Bend?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.275 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowC_Left_Twist.dsf#GP_Tentacle_LowC_Left_Twist?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -0.6166667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowC_Left_Bend.dsf#GP_Tentacle_LowC_Left_Bend?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.7916666 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowB_Right_Side-Side.dsf#GP_Tentacle_LowB_Right_Side-Side?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.0333333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowB_Right_Bend.dsf#GP_Tentacle_LowB_Right_Bend?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.5083333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowB_Left_Twist.dsf#GP_Tentacle_LowB_Left_Twist?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.45 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowB_Left_Side-Side.dsf#GP_Tentacle_LowB_Left_Side-Side?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.4083333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowB_Left_Bend.dsf#GP_Tentacle_LowB_Left_Bend?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.775 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowA_Right_Twist.dsf#GP_Tentacle_LowA_Right_Twist?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.575 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowA_Right_Bend.dsf#GP_Tentacle_LowA_Right_Bend?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.7166667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowA_Left_Bend.dsf#GP_Tentacle_LowA_Left_Bend?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.7 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacles_Low.dsf#GP_Tentacles_Low?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.6541666 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "tentacleA1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#tentacleA1?translation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -0.1471865 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "tentacleA1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#tentacleA1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -35 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB1?translation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -0.411707 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB1?translation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -0.3072412 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -29.5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 26.66667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB2?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -25.41666 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 22.83334 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -7.916667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC2?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -19.58333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 42 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA1?translation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -0.3202188 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 12.39235 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -37.91666 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 46.08333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC2?translation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 0.268836 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 17.83334 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD4?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -72.08334 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD4?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : -2.5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Open4.dsf#GP_Vagina_Open4?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Ilzolla?value" },
+						{ "op" : "push", "val" : 1 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_PR-Ilzolla-1",
+				"url" : "#GP_PR-Ilzolla"
+			}
+		]
+	}
+}

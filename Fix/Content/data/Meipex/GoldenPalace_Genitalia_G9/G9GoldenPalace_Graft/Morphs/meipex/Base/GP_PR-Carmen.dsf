@@ -1,0 +1,604 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_PR-Carmen.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_PR-Carmen",
+			"name" : "GP_PR-Carmen",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 1, 0.8117647, 0.3647059 ], [ 0.7019608, 1, 0.7019608 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_PR-Carmen",
+				"label" : "GP_PR-Carmen",
+				"visible" : false,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/Hidden",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Pinch2_Both.dsf#GP_Minora_Pinch2_Both?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.35 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Pinch1_Both.dsf#GP_Minora_Pinch1_Both?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.6083333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Majora_Pinch1_Both.dsf#GP_Majora_Pinch1_Both?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.8533334 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Majora_Inflate_Both.dsf#GP_Majora_Inflate_Both?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1.110833 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Majora_Flatten_Both.dsf#GP_Majora_Flatten_Both?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -0.2 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMajora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMajora1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -3.012051 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMajora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMajora1?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -12.27273 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMajora2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMajora2?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -11.04418 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMajora2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMajora2?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -2.208836 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMajora3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMajora3?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 5.421684 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMajora3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMajora3?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 5.823292 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMajora4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMajora4?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -17.87149 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMajora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMajora1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 5.421684 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMajora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMajora1?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 15.45454 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMajora2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMajora2?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 13.05221 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMajora3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMajora3?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -4.618473 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMinora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMinora1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 6.626503 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMinora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMinora1?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.2008018 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLabiumMinora4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLabiumMinora4?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -28.31325 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMinora1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMinora1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -11.81818 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLabiumMinora4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLabiumMinora4?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 19.87952 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Shrink6.dsf#GP_Vagina_Shrink6?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.75 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Shrink4.dsf#GP_Vagina_Shrink4?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.2791667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Open1.dsf#GP_Vagina_Open1?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.2916667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Urethra_Shrinken2.dsf#GP_Urethra_Shrinken2?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.5772727 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Urethra_Front-Back.dsf#GP_Urethra_Front-Back?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -1.636364 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move15_Right.dsf#GP_Minora_Move15_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.6666667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move15_Left.dsf#GP_Minora_Move15_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.3833334 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move14_Right.dsf#GP_Minora_Move14_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.3833334 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move14_Left.dsf#GP_Minora_Move14_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.4666667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move12_Right.dsf#GP_Minora_Move12_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.25 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move12_Left.dsf#GP_Minora_Move12_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.4833333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move11_Right.dsf#GP_Minora_Move11_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -0.06666672 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move11_Left.dsf#GP_Minora_Move11_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -0.1 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move10_Right.dsf#GP_Minora_Move10_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1.166667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move10_Left.dsf#GP_Minora_Move10_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1.116667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move09_Right.dsf#GP_Minora_Move09_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1.033333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move09_Left.dsf#GP_Minora_Move09_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.04999995 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move08_Right.dsf#GP_Minora_Move08_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move08_Left.dsf#GP_Minora_Move08_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1.166667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move07_Right.dsf#GP_Minora_Move07_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.6166666 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move07_Left.dsf#GP_Minora_Move07_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.3166666 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move06_Right.dsf#GP_Minora_Move06_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.6666667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move06_Left.dsf#GP_Minora_Move06_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1.266667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Length14.dsf#GP_Minora_Length14?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -0.085 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Length13.dsf#GP_Minora_Length13?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.38 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Length11.dsf#GP_Minora_Length11?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.015 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Length10.dsf#GP_Minora_Length10?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.9700001 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Length09.dsf#GP_Minora_Length09?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -0.09 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Length05.dsf#GP_Minora_Length05?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -0.2 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_BackRounder.dsf#GP_MinoraBack_Rounder?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.4541667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Majora_Pinch1_Right.dsf#GP_Majora_Pinch1_Right?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.1466666 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Majora_Pinch1_Left.dsf#GP_Majora_Pinch1_Left?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.1533332 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Majora_Pinch1_FrontA.dsf#GP_Majora_Pinch1_FrontA?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pull.dsf#GP_Hymen_Pull?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.3833333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pinch1.dsf#GP_Hymen_Pinch1?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.5083333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge10.dsf#GP_Hymen_Edge10?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.1166667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge06.dsf#GP_Hymen_Edge06?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.0125 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge05.dsf#GP_Hymen_Edge05?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.075 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge03.dsf#GP_Hymen_Edge03?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.03333334 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge01.dsf#GP_Hymen_Edge01?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.4666667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hood_Reduce2.dsf#GP_Hood_Reduce2?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.7136363 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hood_Reduce1.dsf#GP_Hood_Reduce1?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.1454545 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hood_Puffy2.dsf#GP_Hood_Puffy2?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.4872728 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hood_Pinch5.dsf#GP_Hood_Pinch5?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.9 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hood_Pinch4.dsf#GP_Hood_Pinch4?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 1 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hood_Pinch3.dsf#GP_Hood_Pinch3?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.2545455 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hood_Pinch1.dsf#GP_Hood_Pinch1?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : -0.4659091 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Clitoris_Pinch.dsf#GP_Clitoris_Pinch?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR-Carmen?value" },
+						{ "op" : "push", "val" : 0.5916667 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_PR-Carmen-1",
+				"url" : "#GP_PR-Carmen"
+			}
+		]
+	}
+}

@@ -9,6 +9,9 @@ import {
   Move,
   Camera,
   FolderOpen,
+  RefreshCw,
+  AlertCircle,
+  X,
 } from 'lucide-react';
 import { useViewportStore } from '../../store';
 import { Button } from '../ui';
@@ -28,6 +31,7 @@ export default function ViewportCanvas() {
     stop,
     toggleLoop,
     loadState,
+    syncFps,
   } = useViewportStore();
 
   const [zoom, setZoom] = useState(100);
@@ -35,26 +39,55 @@ export default function ViewportCanvas() {
   const [viewportImage, setViewportImage] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showLiveLink, setShowLiveLink] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'connected' | 'error'>('idle');
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [isCapturingFrame, setIsCapturingFrame] = useState(false);
   const loadStateRef = useRef(loadState);
 
   useEffect(() => {
     loadStateRef.current();
 
-    const unlisten = listen<{ image: string }>('viewport-update', (event) => {
+    const unlisten1 = listen<{ image: string }>('viewport-update', (event) => {
       setViewportImage(`data:image/png;base64,${event.payload.image}`);
+      setSyncStatus('connected');
+      setSyncError(null);
+    });
+
+    const unlisten2 = listen<{ error: string; failures: number }>('viewport-error', (event) => {
+      setSyncStatus('error');
+      setSyncError(event.payload.error);
     });
 
     return () => {
-      unlisten.then((fn) => fn());
+      unlisten1.then((fn) => fn());
+      unlisten2.then((fn) => fn());
     };
   }, []);
 
   const toggleSync = async () => {
     const newState = !isSyncing;
     setIsSyncing(newState);
-    await invoke('set_viewport_sync', { enabled: newState });
     if (newState) {
-      await invoke('set_viewport_fps', { fps: 2 });
+      setSyncStatus('idle');
+      await invoke('set_viewport_fps', { fps: syncFps });
+    } else {
+      setSyncStatus('idle');
+    }
+    await invoke('set_viewport_sync', { enabled: newState });
+  };
+
+  const captureFrame = async () => {
+    setIsCapturingFrame(true);
+    setSyncError(null);
+    try {
+      const base64 = await invoke<string>('capture_viewport_single');
+      setViewportImage(`data:image/png;base64,${base64}`);
+      setSyncStatus('connected');
+    } catch (err) {
+      setSyncStatus('error');
+      setSyncError(String(err));
+    } finally {
+      setIsCapturingFrame(false);
     }
   };
 
@@ -68,16 +101,18 @@ export default function ViewportCanvas() {
 
   const progress = (timeline.currentFrame / timeline.totalFrames) * 100;
 
-  const handleImageClick = async (e: React.MouseEvent<HTMLImageElement>) => {
+  const handleImageClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     if (activeTool !== 'select') return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
+    const img = e.currentTarget.querySelector('img');
+    if (!img) return;
+
+    const rect = img.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Convert to actual image coordinates if it's scaled
-    const scaleX = e.currentTarget.naturalWidth / rect.width;
-    const scaleY = e.currentTarget.naturalHeight / rect.height;
+    const scaleX = img.naturalWidth / rect.width;
+    const scaleY = img.naturalHeight / rect.height;
 
     const imageX = Math.round(x * scaleX);
     const imageY = Math.round(y * scaleY);
@@ -99,6 +134,7 @@ export default function ViewportCanvas() {
           <button
             className={`${styles.toolButton} ${activeTool === 'select' ? styles.active : ''}`}
             onClick={() => setActiveTool('select')}
+            aria-label="Select"
           >
             <Move size={16} />
             Select
@@ -106,6 +142,7 @@ export default function ViewportCanvas() {
           <button
             className={`${styles.toolButton} ${activeTool === 'rotate' ? styles.active : ''}`}
             onClick={() => setActiveTool('rotate')}
+            aria-label="Rotate"
           >
             <RotateCw size={16} />
             Rotate
@@ -113,6 +150,7 @@ export default function ViewportCanvas() {
           <button
             className={`${styles.toolButton} ${activeTool === 'zoom' ? styles.active : ''}`}
             onClick={() => setActiveTool('zoom')}
+            aria-label="Zoom"
           >
             <ZoomIn size={16} />
             Zoom
@@ -120,6 +158,7 @@ export default function ViewportCanvas() {
           <button
             className={`${styles.toolButton} ${activeTool === 'camera' ? styles.active : ''}`}
             onClick={() => setActiveTool('camera')}
+            aria-label="Camera"
           >
             <Camera size={16} />
             Camera
@@ -131,6 +170,7 @@ export default function ViewportCanvas() {
             className={`${styles.toolButton} ${showLiveLink ? styles.active : ''}`}
             onClick={() => setShowLiveLink(!showLiveLink)}
             title="Live Link: Face Tracking"
+            aria-label="Live Link"
           >
             <Camera size={16} />
             Live Link
@@ -156,16 +196,46 @@ export default function ViewportCanvas() {
 
       <div className={styles.viewport}>
         {viewportImage ? (
-          <img
-            src={viewportImage}
-            className={styles.viewportImage}
-            style={{
-              transform: `scale(${zoom / 100})`,
-              cursor: activeTool === 'select' ? 'crosshair' : 'default',
-            }}
-            alt="Daz Viewport"
-            onClick={handleImageClick}
-          />
+          <div className={styles.viewportImageContainer}>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleImageClick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  handleImageClick({
+                    ...e,
+                    clientX: rect.left + rect.width / 2,
+                    clientY: rect.top + rect.height / 2,
+                  } as unknown as React.MouseEvent<HTMLDivElement>);
+                }
+              }}
+            >
+              <img
+                src={viewportImage}
+                className={styles.viewportImage}
+                style={{
+                  transform: `scale(${zoom / 100})`,
+                  cursor: activeTool === 'select' ? 'crosshair' : 'default',
+                }}
+                alt="Daz Viewport"
+                aria-label="Daz Studio viewport"
+              />
+            </div>
+            {isSyncing && syncStatus === 'connected' && (
+              <div className={styles.viewportStatusBadge}>
+                <span className={styles.statusLiveDot} />
+                Live
+              </div>
+            )}
+            {isSyncing && syncStatus === 'error' && (
+              <div className={styles.viewportStatusBadgeError}>
+                <AlertCircle size={10} />
+                Sync Error
+              </div>
+            )}
+          </div>
         ) : (
           <div className={styles.syncHudContainer}>
             <div className={styles.radarRing}>
@@ -174,8 +244,18 @@ export default function ViewportCanvas() {
             </div>
             <h3 className={styles.hudTitle}>Viewport Streaming Offline</h3>
             <p className={styles.hudSubtitle}>
-              Parity sync between Daz Studio and DazPilot is currently inactive.
+              {syncStatus === 'error'
+                ? 'Bridge connection error. Check Daz Studio is running with the plugin loaded.'
+                : 'Parity sync between Daz Studio and DazPilot is currently inactive.'}
             </p>
+
+            {syncStatus === 'error' && syncError && (
+              <div className={styles.hudError}>
+                <AlertCircle size={14} />
+                {syncError}
+              </div>
+            )}
+
             <div className={styles.hudSteps}>
               <div className={styles.hudStep}>
                 <span className={styles.hudStepNum}>1</span>
@@ -185,12 +265,13 @@ export default function ViewportCanvas() {
               </div>
               <div className={styles.hudStep}>
                 <span className={styles.hudStepNum}>2</span>
-                <span>Verify Tauri port connection in Settings (Port 8765)</span>
+                <span>Verify port connection in Settings (Default: localhost:8765)</span>
               </div>
               <div className={styles.hudStep}>
                 <span className={styles.hudStepNum}>3</span>
                 <span>
-                  Click the <strong>Sync Viewport</strong> overlay button below
+                  Click <strong>Capture Frame</strong> to test, or <strong>Sync Viewport</strong>{' '}
+                  for live
                 </span>
               </div>
             </div>
@@ -200,8 +281,21 @@ export default function ViewportCanvas() {
         <div className={styles.syncOverlay}>
           <Button
             size="sm"
+            variant="ghost"
+            onClick={captureFrame}
+            disabled={isCapturingFrame}
+            aria-disabled={isCapturingFrame}
+            aria-label="Capture frame"
+            className={styles.captureButton}
+          >
+            <RefreshCw size={12} className={isCapturingFrame ? styles.spin : ''} />
+            {isCapturingFrame ? 'Capturing...' : 'Capture Frame'}
+          </Button>
+          <Button
+            size="sm"
             variant={isSyncing ? 'primary' : 'secondary'}
             onClick={toggleSync}
+            aria-label="Sync viewport"
             className={styles.syncButton}
           >
             {isSyncing ? 'Syncing...' : 'Sync Viewport'}
@@ -212,7 +306,9 @@ export default function ViewportCanvas() {
           <div className={styles.poseLibrary}>
             <div className={styles.poseHeader}>
               <span className={styles.poseTitle}>Pose Library</span>
-              <button onClick={togglePoseLibrary}>×</button>
+              <button onClick={togglePoseLibrary}>
+                <X size={16} />
+              </button>
             </div>
             <div className={styles.poseList}>
               {poses.length === 0 ? (
@@ -234,15 +330,16 @@ export default function ViewportCanvas() {
 
       <div className={styles.timeline}>
         <div className={styles.controls}>
-          <button className={styles.controlButton} onClick={stop}>
+          <button className={styles.controlButton} onClick={stop} aria-label="Stop">
             <Square size={14} />
           </button>
-          <button className={styles.controlButton} onClick={play}>
+          <button className={styles.controlButton} onClick={play} aria-label="Play">
             <Play size={14} />
           </button>
           <button
             className={`${styles.controlButton} ${playback.isLooping ? styles.active : ''}`}
             onClick={toggleLoop}
+            aria-label="Loop"
           >
             <Repeat size={14} />
           </button>

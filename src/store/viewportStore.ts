@@ -36,6 +36,7 @@ export interface ViewportState {
   showPoseLibrary: boolean;
   selectedFigure: string | null;
   cameraPreset: string;
+  syncFps: number;
   error: string | null;
 }
 
@@ -47,6 +48,7 @@ export interface ViewportActions {
   togglePoseLibrary: () => void;
   setSelectedFigure: (figure: string | null) => void;
   setCameraPreset: (preset: string) => void;
+  setSyncFps: (fps: number) => void;
   setError: (error: string | null) => void;
   play: () => void;
   pause: () => void;
@@ -80,6 +82,7 @@ const initialState: ViewportState = {
   showPoseLibrary: false,
   selectedFigure: null,
   cameraPreset: 'front',
+  syncFps: 5,
   error: null,
 };
 
@@ -93,6 +96,14 @@ export const useViewportStore = create<ViewportState & ViewportActions>((set, ge
     togglePoseLibrary: () => set((s) => ({ showPoseLibrary: !s.showPoseLibrary })),
     setSelectedFigure: (selectedFigure) => set({ selectedFigure }),
     setCameraPreset: (cameraPreset) => set({ cameraPreset }),
+    setSyncFps: (syncFps) => {
+      set({ syncFps });
+      import('@tauri-apps/api/core').then(({ invoke }) => {
+        invoke('save_app_setting', { key: 'viewport_sync_fps', value: String(syncFps) }).catch(
+          console.error
+        );
+      });
+    },
     setError: (error) => set({ error }),
     play: async () => {
       const current = get();

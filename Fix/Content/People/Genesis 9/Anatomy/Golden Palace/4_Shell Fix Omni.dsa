@@ -1,0 +1,51 @@
+// DAZ Studio version 4.12.1.118 filetype DAZ Script
+
+(function(){
+	function clearGeoShellOpacity (oNode)
+	{
+		// Shaders are ["DAZ Studio Default & many others", "Iray Uber", "4-Layer Uber PBR MDL"]
+		var aOpacityNames = ["Opacity Strength", "Cutout Opacity", "Base Cutout Opacity"];
+
+		// The opacity properties we are looking for belong to materials which belong to shapes
+		// which belong to objects which belong to nodes, one of which we were just given.
+		var oObject = oNode.getObject();
+		if (!oObject)
+			return;
+
+		var oShape = oObject.getCurrentShape();
+		if (!oShape)
+			return;
+
+		// For each material we have found
+		var nMaterials = oShape.getNumMaterials();
+		for (var i = 0; i < nMaterials; i++)
+		{
+			var oMaterial = oShape.getMaterial (i);
+
+			// Search for an opacity property with a known name
+			var oProperty = null;
+			for (var j = 0; !oProperty && j < aOpacityNames.length; j++)
+				oProperty = oMaterial.findProperty (aOpacityNames[j]);
+
+			// If we did not find an opacity property for this material
+			if (!oProperty)
+				debug ("Opacity property name not known for shader %1".arg (oMaterial.getMaterialName()))
+			
+			// If we found one and it is not mapped
+			else if (!oProperty.isMapped())
+				oProperty.setValue (0);
+		}
+	}
+
+	// Get selected geometry shells
+	var aNodes = Scene.getSelectedNodeList().filter (function (x) { return x.inherits ("DzGeometryShellNode") });
+
+	if (aNodes.length == 0)
+		MessageBox.warning (qsTr ("You must select one or more geometry shells to perform this action."), qsTr ("Selection Error"), qsTr ("&OK"), "");
+	else
+	{
+		beginUndo();
+		aNodes.forEach (clearGeoShellOpacity);
+		acceptUndo (qsTr ("Clear Opacity on Geometry Shell(s)"));
+	}
+})();

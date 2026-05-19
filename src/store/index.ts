@@ -80,3 +80,18 @@ export {
   type ScriptApprovalState,
   type ScriptApprovalActions,
 } from './scriptApprovalStore';
+
+export {
+  useAssetFixerStore,
+  type AssetFixerState,
+  type AssetFixerActions,
+  type AssetConflict,
+  type AssetFixResult,
+} from './assetFixerStore';
+
+export {
+  useWebcamStore,
+  type WebcamSettings,
+  type WebcamState,
+  type WebcamActions,
+} from './webcamStore';

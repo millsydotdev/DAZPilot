@@ -1,0 +1,55 @@
+{
+	"file_version" : "0.6.0.0",
+	"asset_info" : {
+		"id" : "/data/Meipex/GoldenPalace/Bonus%20Drip_G8F/Morphs/Meipex/Base/pJCMThighSide_85_L.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "Meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "0.0",
+		"modified" : "2020-07-21T08:17:07Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "pJCMThighSide_85_L",
+			"name" : "pJCMThighSide_85_L",
+			"parent" : "/data/Meipex/GoldenPalace/Bonus%20Drip_G8F/GP_Water%20Drip1_1449.dsf#GP_Water%20Drip1",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 0.3529412, 0.3529412, 0.3529412 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "pJCMThighSide_85_L",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : -1,
+				"max" : 1,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/Hidden",
+			"morph" : {
+				"vertex_count" : 1449,
+				"deltas" : {
+					"count" : -1
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "pJCMThighSide_85_L-1",
+				"url" : "#pJCMThighSide_85_L"
+			}
+		]
+	}
+}

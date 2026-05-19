@@ -1,5 +1,18 @@
 import { create } from 'zustand';
 
+export interface ActionParam {
+  key: string;
+  value: string;
+}
+
+export interface StructuredAiAction {
+  command: string;
+  args: any;
+  confidence: number;
+  sdk_refs: string[];
+  requires_confirmation: boolean;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -7,6 +20,7 @@ export interface ChatMessage {
   timestamp: number;
   loading?: boolean;
   images?: string[];
+  action?: StructuredAiAction;
 }
 
 export interface ChatHistory {
@@ -95,14 +109,28 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
     try {
       const { invoke } = await import('@tauri-apps/api/core');
-      const response = await invoke<string>('process_chat_message', {
-        message: content,
-        images,
-        provider: provider || null,
-        model: model || null,
-      });
+      const response = await invoke<{ content: string; action: StructuredAiAction }>(
+        'process_chat_message',
+        {
+          message: content,
+          images,
+          provider: provider || null,
+          model: model || null,
+        }
+      );
 
-      addMessage({ role: 'assistant', content: response, loading: false });
+      // If action is present and requires confirmation, we inject a marker that the UI recognizes
+      let finalContent = response.content;
+      if (response.action?.requires_confirmation) {
+        finalContent += `\n\n[ACTION_REQUIRED] Planned action '${response.action.command}' needs confirmation before execution.`;
+      }
+
+      addMessage({
+        role: 'assistant',
+        content: finalContent,
+        action: response.action,
+        loading: false,
+      });
     } catch (e) {
       setError(String(e));
       addMessage({

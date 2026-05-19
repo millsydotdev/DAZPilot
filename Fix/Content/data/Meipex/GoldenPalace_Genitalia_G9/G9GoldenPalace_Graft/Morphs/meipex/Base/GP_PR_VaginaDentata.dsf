@@ -1,0 +1,612 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_PR_VaginaDentata.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_PR_VaginaDentata",
+			"name" : "GP_PR_VaginaDentata",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 1, 0.8117647, 0.3647059 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_PR_VaginaDentata",
+				"label" : "GP_PR_Vagina Dentata",
+				"visible" : false,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/Hidden",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_Low_Thick.dsf#GP_Tentacle_Low_Thick?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.6587031 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacles_Low.dsf#GP_Tentacles_Low?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 0.2795275 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "tentacleA1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#tentacleA1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -31.52318 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "tentacleA1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#tentacleA1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -6.026489 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleA2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleA2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleA2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleA2?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleA2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleA2?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleA3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleA3?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleA3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleA3?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleA4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleA4?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleA4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleA4?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -32.91391 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -6.291389 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB2?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB2?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB3?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB3?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB4?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleB4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleB4?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 33 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 2.317879 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC2?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC2?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC3?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC3?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC4?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC4?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 33 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD2?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD2?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD3?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD3?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD4?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleD4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleD4?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -27.81457 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 4.635765 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -5.298012 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA2?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA2?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA3?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA3?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA4?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleA4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleA4?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -33 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB2?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB2?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB3?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB3?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB4?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleB4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleB4?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 33 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC1?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -4.635765 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC2?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC2?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC3?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC3?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC4?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleC4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleC4?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 33 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : 5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD2?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD2?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.1706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD3?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD3?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.2706485 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD4?scale/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "rLowTentacleD4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#rLowTentacleD4?scale/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_PR_VaginaDentata?value" },
+						{ "op" : "push", "val" : -0.3706484 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_PR_VaginaDentata-1",
+				"url" : "#GP_PR_VaginaDentata"
+			}
+		]
+	}
+}

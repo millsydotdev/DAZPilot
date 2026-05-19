@@ -1,12 +1,70 @@
-use crate::agents::{AgentRequest, AgentResponse, AgentAction};
+use crate::agents::{self, AgentRequest, AgentResponse, AgentAction};
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
-    let actions = parse_and_create_actions(&input);
+    
+    // 1. Check for conflicts first as a proactive step
+    let conflict_resp = agents::conflict_resolution::execute(request.clone());
+    
+    let mut actions = vec![];
+    let mut results = vec![];
+
+    if let Some(res) = conflict_resp.result {
+        if !res.contains("No conflicts") {
+            results.push(format!("Pre-task conflict check: {}", res));
+            actions.extend(conflict_resp.actions);
+        }
+    }
+
+    // 2. Delegate to specialized agents based on intent
+    if input.contains("simulate") || input.contains("dforce") || input.contains("physics") {
+        let resp = agents::physics_agent::execute(request.clone());
+        if resp.success {
+            results.push(resp.result.unwrap_or_default());
+            actions.extend(resp.actions);
+        }
+    }
+
+    if input.contains("load") || input.contains("apply") || input.contains("find") || input.contains("search") {
+        let resp = agents::asset_selection::execute(request.clone());
+        if resp.success {
+            results.push(resp.result.unwrap_or_default());
+            actions.extend(resp.actions);
+        }
+    }
+
+    if input.contains("render") || input.contains("light") || input.contains("lighting") {
+        let resp = agents::render_agent::execute(request.clone());
+        if resp.success {
+            results.push(resp.result.unwrap_or_default());
+            actions.extend(resp.actions);
+        }
+    }
+
+    if input.contains("pose") || input.contains("animation") || input.contains("timeline") {
+        let resp = agents::animation_agent::execute(request.clone());
+        if resp.success {
+            results.push(resp.result.unwrap_or_default());
+            actions.extend(resp.actions);
+        }
+    }
+
+    // 3. Fallback to general parsing if no specialized agent took over or for other intents
+    let general_actions = parse_and_create_actions(&input);
+    for action in general_actions {
+        // Avoid duplicates if a specialized agent already handled it
+        if !actions.iter().any(|a| a.command == action.command) {
+            actions.push(action);
+        }
+    }
+
+    if results.is_empty() && !actions.is_empty() {
+        results.push(format!("Decomposed into {} action(s)", actions.len()));
+    }
     
     AgentResponse {
         success: true,
-        result: Some(format!("Decomposed into {} action(s)", actions.len())),
+        result: Some(results.join("\n")),
         error: None,
         actions,
     }
@@ -20,30 +78,6 @@ fn parse_and_create_actions(input: &str) -> Vec<AgentAction> {
             action_type: "select_node".to_string(),
             command: "select_node".to_string(),
             args: vec!["genesis_8_female".to_string()],
-        });
-    }
-    
-    if input.contains("load") || input.contains("apply") {
-        if input.contains("pose") {
-            actions.push(AgentAction {
-                action_type: "apply_pose".to_string(),
-                command: "apply_pose".to_string(),
-                args: vec![],
-            });
-        } else if input.contains("asset") || input.contains("cloth") || input.contains("clothes") {
-            actions.push(AgentAction {
-                action_type: "load_asset".to_string(),
-                command: "load_asset".to_string(),
-                args: vec![],
-            });
-        }
-    }
-    
-    if input.contains("render") {
-        actions.push(AgentAction {
-            action_type: "render".to_string(),
-            command: "render_preview".to_string(),
-            args: vec![],
         });
     }
     

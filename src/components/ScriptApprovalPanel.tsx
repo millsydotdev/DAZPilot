@@ -75,7 +75,17 @@ export function ScriptApprovalPanel() {
 
   return (
     <>
-      <div className={styles.overlay} onClick={() => setOpen(false)} />
+      <div
+        className={styles.overlay}
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen(false)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            setOpen(false);
+          }
+        }}
+      />
       <div className={styles.panel}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
@@ -94,6 +104,7 @@ export function ScriptApprovalPanel() {
               className={styles.iconButton}
               onClick={() => setOpen(false)}
               title="Close panel"
+              aria-label="Close panel"
             >
               <X size={18} />
             </button>
@@ -127,7 +138,7 @@ export function ScriptApprovalPanel() {
                   {suggestion.context}
                 </div>
 
-                <div className={styles.scriptContainer}>
+                <div className={styles.scriptContainer} aria-live="polite">
                   <pre className={styles.scriptCode}>{suggestion.script}</pre>
                 </div>
 
@@ -136,6 +147,7 @@ export function ScriptApprovalPanel() {
                     <button
                       className={styles.approveButton}
                       onClick={() => approveScript(suggestion.id)}
+                      aria-label="Approve script"
                     >
                       <Check size={14} />
                       Approve & Execute
@@ -143,6 +155,7 @@ export function ScriptApprovalPanel() {
                     <button
                       className={styles.rejectButton}
                       onClick={() => rejectScript(suggestion.id)}
+                      aria-label="Deny script"
                     >
                       <XIcon size={14} />
                       Reject
@@ -151,6 +164,7 @@ export function ScriptApprovalPanel() {
                       className={styles.copyButton}
                       onClick={() => handleCopy(suggestion.script)}
                       title="Copy script"
+                      aria-label="Copy script"
                     >
                       <Copy size={14} />
                     </button>
@@ -163,6 +177,7 @@ export function ScriptApprovalPanel() {
                       className={styles.copyButton}
                       onClick={() => handleCopy(suggestion.script)}
                       title="Copy script"
+                      aria-label="Copy script"
                     >
                       <Copy size={14} />
                       Copy Script
@@ -176,7 +191,11 @@ export function ScriptApprovalPanel() {
 
         {suggestions.length > 0 && (
           <div className={styles.footer}>
-            <button className={styles.clearButton} onClick={clearHistory}>
+            <button
+              className={styles.clearButton}
+              onClick={clearHistory}
+              aria-label="Clear history"
+            >
               <Trash2 size={12} />
               Clear History
             </button>

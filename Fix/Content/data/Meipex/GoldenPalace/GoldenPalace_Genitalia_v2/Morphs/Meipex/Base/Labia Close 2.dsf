@@ -1,0 +1,171 @@
+{
+	"file_version" : "0.6.0.0",
+	"asset_info" : {
+		"id" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/Labia%20Close%202.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "Meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2021-10-18T07:03:25Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "Labia Close 2",
+			"name" : "Labia Close 2",
+			"parent" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#GoldenPalace_2254",
+			"presentation" : {
+				"type" : "Modifier/Pose",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/LabiaMajoraClose2.png",
+				"colors" : [ [ 0.9137255, 0.5921569, 1 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Labia Close 2",
+				"label" : "Labia Majora Close 2",
+				"value" : 0,
+				"min" : -1,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/2-Labia Majora",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMajora_Pinch2.dsf#LabiaMajora_Pinch2?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 0.877193 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMajora_Pinch1.dsf#LabiaMajora_Pinch1?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 0.7368422 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 20 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : -3 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 3 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 9 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : -20 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : -3 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?rotation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : -3 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?rotation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : -9 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/MonsVeneris_Forward.dsf#MonsVeneris_Forward?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : -0.5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMajora_Push%20Back.dsf#LabiaMajora_Push%20Back?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 0.5052632 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMajora_Length.dsf#LabiaMajora_Length?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 1.5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMajora_EdgeCrease2.dsf#LabiaMajora_EdgeCrease2?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 0.4 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMajora_EdgeCrease1.dsf#LabiaMajora_EdgeCrease1?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Close%202?value" },
+						{ "op" : "push", "val" : 0.2894737 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "Labia Close 2-1",
+				"url" : "#Labia%20Close%202"
+			}
+		]
+	}
+}

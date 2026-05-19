@@ -1,7 +1,20 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use crate::mcp_client;
 use crate::asset_fixer;
 use std::path::PathBuf;
+
+fn parse_scene_assets_response(data: Option<Value>) -> Vec<String> {
+    let Some(d) = data else {
+        return vec![];
+    };
+    if let Ok(list) = serde_json::from_value::<Vec<String>>(d.clone()) {
+        return list;
+    }
+    d.get("assets")
+        .and_then(|a| serde_json::from_value(a.clone()).ok())
+        .unwrap_or_default()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SceneAnalysis {
@@ -206,7 +219,7 @@ pub fn detect_asset_conflicts_from_scene() -> AssetConflictReport {
     
     // Get list of loaded assets from DAZ via MCP
     let loaded_assets: Vec<String> = match mcp_client::send_mcp_request("get_scene_assets", serde_json::json!({})) {
-        Ok(resp) => resp.data.and_then(|d| serde_json::from_value(d).ok()).unwrap_or_default(),
+        Ok(resp) => parse_scene_assets_response(resp.data),
         Err(_) => vec![],
     };
     

@@ -304,6 +304,17 @@ impl SqliteDatabase {
         let rows = stmt.query_map([], mapper)?;
         rows.collect()
     }
+
+    pub fn query_params<T, F, P>(&self, sql: &str, params: P, mapper: F) -> Result<Vec<T>, rusqlite::Error>
+    where
+        F: FnMut(&rusqlite::Row<'_>) -> rusqlite::Result<T>,
+        P: rusqlite::Params,
+    {
+        let conn = rusqlite::Connection::open(&self.path)?;
+        let mut stmt = conn.prepare(sql)?;
+        let rows = stmt.query_map(params, mapper)?;
+        rows.collect()
+    }
     
     pub fn execute_insert(&self, sql: &str) -> Result<usize, rusqlite::Error> {
         let conn = rusqlite::Connection::open(&self.path)?;

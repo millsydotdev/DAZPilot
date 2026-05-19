@@ -10,7 +10,7 @@ Comprehensive 3D animation and scene management suite with AI assistance. Design
 
 ### Components
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Daz3D Vibe Coding Suite                         │
 ├─────────────────────────────────────────────────────────────────────┤

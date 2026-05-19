@@ -72,7 +72,7 @@ The Daz Studio C++ SDK is proprietary and cannot be hosted on GitHub.
 Common local SDK include path:
 
 ```text
-E:\DazAI\DAZStudio4.5+ SDK\include
+DAZStudio4.5+ SDK\include
 ```
 
 ### 2. Build The Daz Bridge Plugin

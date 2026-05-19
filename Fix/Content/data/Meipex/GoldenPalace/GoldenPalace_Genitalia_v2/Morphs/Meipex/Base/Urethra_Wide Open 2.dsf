@@ -1,0 +1,1900 @@
+{
+	"file_version" : "0.6.0.0",
+	"asset_info" : {
+		"id" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base2/Urethra_Wide%20Open%202.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "Meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2021-10-18T07:03:25Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "Urethra_Wide Open 2",
+			"name" : "Urethra_Wide Open 2",
+			"parent" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#GoldenPalace",
+			"presentation" : {
+				"type" : "Modifier/Pose",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/UrethraOpen2.png",
+				"colors" : [ [ 0.7529412, 0.5333333, 0.7411765 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "Urethra_Wide Open 2",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/5-Hymen",
+			"formulas" : [
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.02466059 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.001846313 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.01544523 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.1364604 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.004638672 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.04778576 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 178.8552 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 3.899787 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 3.822693 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0005662441 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0007781982 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 4.649162e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.03529668 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.00138092 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.006718636 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.2745667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -1.407179 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Big%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Big%20Labia%202?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 1.400453 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.02437127 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.001876831 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.01489544 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.1378887 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.004676819 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.04841566 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 178.8283 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -3.922829 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%201?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -3.843476 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0008887053 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0003204346 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0001071692 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.03579688 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.001800537 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.006749749 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.2670898 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 1.343079 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Labium%20Majora%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Labium%20Majora%202?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -1.336833 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -1.156786e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.002243042 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.02648401 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -2.364904e-07 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0001220703 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.000120163 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 2.001038 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0009872407 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Clitoris:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Clitoris?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0006128076 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.5275768 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.009231567 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.1737893 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.5129157 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.01097107 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.08486366 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -172.091 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 10.22697 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia1:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia1?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 1.851439 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0396007 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0001449585 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.03041661 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.05618536 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0004196167 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.02607405 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -179.1343 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 17.00104 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%202?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -1.749727 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0002046227 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0003585815 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 9.310246e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -1.248717e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0001831055 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 1.91927e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.04979706 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -14.92857 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%203?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.08425808 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -8.562207e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 3.814697e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 8.432521e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 7.271767e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 7.629395e-06 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -2.577808e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -179.7445 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 9.627185 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Right%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Right%20Small%20Labia%204?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 2.639638 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.5239746 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.009620667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.1705027 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.5157827 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.01078796 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.08593607 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -172.289 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -9.923667 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%201:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%201?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -1.324333 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.03703269 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.00100708 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.02975953 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.05605602 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0003585815 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.02591252 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -2.065201 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 8.484895 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%202:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%202?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -6.814518 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0001696646 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0001068115 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 8.231401e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 2.670288e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0003356934 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 2.69413e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.03268433 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 14.96593 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%203:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%203?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0425024 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 8.717179e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0004653931 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -1.763552e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -9.942055e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -4.577637e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0001168782 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -179.7879 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -9.599098 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Left%20Small%20Labia%204:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Left%20Small%20Labia%204?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -2.655405 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -7.530129e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 5.340576e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.00204587 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -2.906548e-07 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.001434326 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 1.132488e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.01423645 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0006389003 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Vagina:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Vagina?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0006197594 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -3.043562e-06 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -8.392334e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 8.106232e-06 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -1.588836e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0001220703 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0001102686 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0007209778 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0004309279 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Rectum:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Rectum?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0001654689 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?center_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 1.765881e-05 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?center_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0001678467 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?center_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0002189875 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?end_point/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 1.155171e-06 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?end_point/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0002288818 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?end_point/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : -0.0001049042 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?orientation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.002037048 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?orientation/y",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0002128006 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "Colon:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#Colon?orientation/z",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Urethra_Wide%20Open%202?value" },
+						{ "op" : "push", "val" : 0.0001348332 },
+						{ "op" : "mult" }
+					]
+				}
+			],
+			"morph" : {
+				"vertex_count" : 2254,
+				"deltas" : {
+					"count" : 688,
+					"values" : [
+						[ 250, 0.00473699, 3.814697e-05, -0.0004990101 ],
+						[ 277, -0.001350015, -1.525879e-05, -0.0008889437 ],
+						[ 526, -0.003872007, 4.577637e-05, -0.0004050732 ],
+						[ 532, 0.012095, -0.0004577637, -0.03305614 ],
+						[ 533, 0.002537996, -9.918213e-05, -0.007125974 ],
+						[ 534, 0.009614989, -0.0003585815, -0.02724004 ],
+						[ 535, 0.005382001, -0.0005340576, -0.03769505 ],
+						[ 536, 0.01171801, -0.0007324219, -0.04735494 ],
+						[ 549, 0.00143902, -2.288818e-05, -0.001003027 ],
+						[ 550, 0.002500996, -3.814697e-05, -0.003031015 ],
+						[ 551, 0.003233992, -0.0002288818, -0.01668417 ],
+						[ 552, 0.008780986, -0.0002975464, -0.02290094 ],
+						[ 553, 0.005687006, -0.0003585815, -0.02701306 ],
+						[ 554, 0.004577998, -0.0004348755, -0.03274608 ],
+						[ 555, 0.02295399, -0.0006408691, -0.04048896 ],
+						[ 556, 0.03100401, -0.0009384155, -0.0590961 ],
+						[ 557, 0.005759992, -0.0006713867, -0.04465389 ],
+						[ 558, 0.0006770007, -0.000617981, -0.04158795 ],
+						[ 559, 0.02221599, -0.0008239746, -0.05278897 ],
+						[ 560, 0.02070601, -0.0007247925, -0.04579675 ],
+						[ 561, 0.009873003, -0.0009002686, -0.06222701 ],
+						[ 562, 0.002551004, -0.0009078979, -0.06241393 ],
+						[ 563, 0.01135302, -0.0004272461, -0.03121483 ],
+						[ 564, 0.015715, -0.0002746582, -0.02121985 ],
+						[ 565, 0.007394001, -0.0001754761, -0.01287103 ],
+						[ 566, 0.001937002, -1.525879e-05, -0.001280904 ],
+						[ 567, 0.003536999, -3.814697e-05, -0.003566146 ],
+						[ 580, 0.005894005, -0.0002975464, -0.02221286 ],
+						[ 582, 0.0004750006, -6.103516e-05, -0.004682064 ],
+						[ 583, 1.600003e-05, -0.000213623, -0.01617503 ],
+						[ 584, 0.005667999, -0.0002746582, -0.02088296 ],
+						[ 585, 0.002385002, -0.0002670288, -0.01996911 ],
+						[ 586, -0.001259001, -0.000328064, -0.02504098 ],
+						[ 587, 0.0008110004, -0.0004882812, -0.03502619 ],
+						[ 588, 0.01356103, -0.0006408691, -0.04218078 ],
+						[ 589, 0.01397702, -0.0006866455, -0.04371393 ],
+						[ 590, 0.007569, -0.0005874634, -0.03928089 ],
+						[ 591, 0.002793003, -0.0005264282, -0.03596199 ],
+						[ 592, 0.0002350002, -0.0004806519, -0.03431916 ],
+						[ 606, 0.011224, -0.000289917, -0.02112997 ],
+						[ 608, 0.002112001, -5.340576e-05, -0.003401875 ],
+						[ 609, -0.0001130002, -0.0001296997, -0.00953722 ],
+						[ 610, 0.008542016, -0.0002441406, -0.01887608 ],
+						[ 611, 0.004377, -0.0002670288, -0.02012992 ],
+						[ 612, 0.0005600005, -0.0003051758, -0.02362895 ],
+						[ 613, 0.004180007, -0.0003662109, -0.02744401 ],
+						[ 614, 0.015828, -0.000541687, -0.03420985 ],
+						[ 615, 0.01470301, -0.0005264282, -0.03442192 ],
+						[ 616, 0.008593999, -0.00050354, -0.03376412 ],
+						[ 617, 0.00457301, -0.0004272461, -0.03161502 ],
+						[ 618, 0.001800001, -0.0003967285, -0.02926397 ],
+						[ 632, 0.006880999, -0.0001525879, -0.01193905 ],
+						[ 634, -0.001762994, -3.051758e-05, -0.002485871 ],
+						[ 635, 0.002808005, -9.918213e-05, -0.007375002 ],
+						[ 636, 0.005863011, -0.0001449585, -0.01071095 ],
+						[ 637, 0.007935002, -0.0001983643, -0.01499617 ],
+						[ 638, 0.01114298, -0.0002593994, -0.01955998 ],
+						[ 639, 0.012768, -0.0003128052, -0.02180684 ],
+						[ 640, 0.01678202, -0.0003433228, -0.02299416 ],
+						[ 641, 0.01643398, -0.0003509521, -0.02305913 ],
+						[ 642, 0.007505998, -0.0002670288, -0.02134311 ],
+						[ 643, 0.003116, -0.0002670288, -0.02075505 ],
+						[ 644, 0.002717003, -0.0003585815, -0.02613914 ],
+						[ 656, 0.00108999, 0, -0.0007140636 ],
+						[ 657, 0.001115978, 7.629395e-06, -0.000731945 ],
+						[ 682, -0.02287903, -0.000541687, -0.0345459 ],
+						[ 683, 0.000217, -4.577637e-05, -0.003538966 ],
+						[ 684, -0.01100799, -0.0003051758, -0.02377796 ],
+						[ 685, -0.01361699, -0.0005493164, -0.03651786 ],
+						[ 686, -0.01858501, -0.0007171631, -0.04630888 ],
+						[ 687, -0.003400002, -0.0006103516, -0.04096282 ],
+						[ 702, -0.001129996, -0.0001144409, -0.008482099 ],
+						[ 703, -0.006901026, -0.0001678467, -0.01335204 ],
+						[ 704, -0.006499, -0.0003128052, -0.02386093 ],
+						[ 705, -0.008497, -0.0004196167, -0.03117299 ],
+						[ 706, -0.02599204, -0.0007324219, -0.04585099 ],
+						[ 707, -0.029496, -0.001014709, -0.06606412 ],
+						[ 708, -0.009847, -0.0006256104, -0.04147601 ],
+						[ 709, -0.02172101, -0.0008087158, -0.05165291 ],
+						[ 710, -0.019402, -0.0006942749, -0.04395092 ],
+						[ 711, -0.007019997, -0.0009155273, -0.06270075 ],
+						[ 712, -0.01375902, -0.0004425049, -0.03129089 ],
+						[ 713, -0.011666, -0.0003585815, -0.02666497 ],
+						[ 714, -0.008996993, -0.0001983643, -0.01496804 ],
+						[ 715, -0.003969014, -9.155273e-05, -0.006653905 ],
+						[ 717, -0.001100995, -2.288818e-05, -0.00128293 ],
+						[ 730, -0.003070995, -0.0001983643, -0.01557791 ],
+						[ 732, 0.001280002, -3.051758e-05, -0.002221942 ],
+						[ 733, 0.002636999, -0.0001220703, -0.009374142 ],
+						[ 734, -0.003012002, -0.0001831055, -0.01462913 ],
+						[ 735, -0.001133002, -0.00025177, -0.01864517 ],
+						[ 736, -0.001564002, -0.0003662109, -0.02823412 ],
+						[ 737, -0.006756999, -0.0004882812, -0.03481007 ],
+						[ 738, -0.01477198, -0.0006103516, -0.03922999 ],
+						[ 739, -0.014779, -0.000617981, -0.0397439 ],
+						[ 740, -0.011007, -0.0005569458, -0.03711295 ],
+						[ 741, -0.005696014, -0.0005111694, -0.03516102 ],
+						[ 742, -0.002071004, -0.0004730225, -0.03428614 ],
+						[ 756, -0.006506994, -0.0001983643, -0.01459002 ],
+						[ 758, -0.0005640052, -2.288818e-05, -0.002077937 ],
+						[ 759, -0.0008610003, -0.0001220703, -0.008344054 ],
+						[ 760, -0.004137002, -0.0001525879, -0.01152408 ],
+						[ 761, -0.005606994, -0.0002441406, -0.01929593 ],
+						[ 762, -0.004848011, -0.0003356934, -0.02553213 ],
+						[ 763, -0.009035021, -0.0004348755, -0.0303241 ],
+						[ 764, -0.01478601, -0.0004882812, -0.03237402 ],
+						[ 765, -0.01456301, -0.0004959106, -0.03318512 ],
+						[ 766, -0.01092501, -0.0004653931, -0.032107 ],
+						[ 767, -0.005183995, -0.0004043579, -0.02983487 ],
+						[ 768, -0.001224004, -0.0003890991, -0.02896404 ],
+						[ 782, -0.008899003, -0.0001525879, -0.01136792 ],
+						[ 784, -0.001584992, -2.288818e-05, -0.001099944 ],
+						[ 785, -0.004163995, -9.918213e-05, -0.007550955 ],
+						[ 786, -0.006304994, -0.0001068115, -0.008008003 ],
+						[ 787, -0.007194996, -0.0001754761, -0.01416099 ],
+						[ 788, -0.006985009, -0.00025177, -0.01818514 ],
+						[ 789, -0.009514019, -0.0003051758, -0.0212779 ],
+						[ 790, -0.01419601, -0.000328064, -0.02300012 ],
+						[ 791, -0.004014999, -0.0002212524, -0.01634407 ],
+						[ 792, 0.001582, -0.0002059937, -0.01521194 ],
+						[ 793, -0.0002030001, -0.0003356934, -0.02471912 ],
+						[ 794, 0.002330001, -0.0003356934, -0.02391613 ],
+						[ 806, -0.001224011, -7.629395e-06, -0.0008461475 ],
+						[ 807, -0.003553033, -3.051758e-05, -0.003218055 ],
+						[ 808, 0.001243994, -2.288818e-05, -0.00101614 ],
+						[ 811, -0.001953006, -3.814697e-05, -0.002368927 ],
+						[ 824, 0.002542004, -3.051758e-05, -0.001886129 ],
+						[ 829, -0.001758009, -3.051758e-05, -0.00222683 ],
+						[ 830, -0.01320602, -0.000328064, -0.02413297 ],
+						[ 839, 0.004383013, -7.629395e-05, -0.006676912 ],
+						[ 840, 0.02017802, -0.0004272461, -0.03005505 ],
+						[ 841, 0.02396199, -0.001068115, -0.07553005 ],
+						[ 842, -0.01431, -0.001022339, -0.07235408 ],
+						[ 843, -0.002164003, -0.0008773804, -0.05972099 ],
+						[ 844, 0.06252301, -0.00113678, -0.08643532 ],
+						[ 846, 0.03354003, -0.001152039, -0.1064303 ],
+						[ 847, 0.01035299, -0.001457214, -0.1302221 ],
+						[ 848, -0.001176001, -0.001548767, -0.1379452 ],
+						[ 855, -0.03040102, -0.0006561279, -0.04129601 ],
+						[ 856, -0.09102899, -0.006195068, -0.171479 ],
+						[ 857, -0.002890006, -2.288818e-05, -0.002071977 ],
+						[ 858, -0.01604503, -0.00025177, -0.01962388 ],
+						[ 861, -0.272944, 1.116844, 0.03367472 ],
+						[ 862, -0.014452, -0.001396179, -0.1243122 ],
+						[ 863, -0.00296399, -3.814697e-05, -0.002638936 ],
+						[ 864, -0.00527899, -9.155273e-05, -0.006541967 ],
+						[ 865, -0.001049995, -7.629395e-06, -0.0006870031 ],
+						[ 874, 0.00209102, -1.525879e-05, -0.00138402 ],
+						[ 875, -0.04930103, -0.0006713867, -0.04279506 ],
+						[ 876, 0.309741, 1.145844, 0.428767 ],
+						[ 913, 0.003047109, 0.0001220703, 0.00120306 ],
+						[ 927, 0.2941479, 0.008888245, 0.1021199 ],
+						[ 928, 0.02391207, 0.0009536743, 0.009664059 ],
+						[ 929, 0.05685103, 0.00226593, 0.02261925 ],
+						[ 930, 0.1064179, 0.003921509, 0.03879118 ],
+						[ 941, 0.01292703, 0.0006256104, 0.006194115 ],
+						[ 942, 0.2378482, 0.01023102, 0.1015463 ],
+						[ 943, 0.140238, 0.007171631, 0.07020378 ],
+						[ 944, 0.355589, 0.01288605, 0.1544738 ],
+						[ 946, 0.006577998, 0.0004348755, 0.004290104 ],
+						[ 947, 0.02001901, 0.001060486, 0.01065063 ],
+						[ 948, 0.186438, 0.01021576, 0.1000242 ],
+						[ 949, 0.237977, 0.006851196, 0.07865906 ],
+						[ 952, 0.0121181, 0.0004501343, 0.004620075 ],
+						[ 953, 0.3172929, 0.01491547, 0.1510878 ],
+						[ 954, 0.326955, 0.0164032, 0.1661162 ],
+						[ 955, 0.22502, 0.009277344, -0.03766394 ],
+						[ 956, 0.1208599, 0.004966736, -0.01922679 ],
+						[ 957, 0.06003189, 0.001365662, -0.007957935 ],
+						[ 959, 0.283438, 0.009757996, -0.0484879 ],
+						[ 960, 0.335902, 0.005554199, -0.06771898 ],
+						[ 961, 0.03079796, 0.0004348755, -0.004080296 ],
+						[ 964, 0.001412034, -2.288818e-05, -0.0009298325 ],
+						[ 965, 0.001848936, 0.000617981, -0.002911925 ],
+						[ 966, 0.471305, 0.01141357, 0.2005632 ],
+						[ 967, 0.4493989, -0.00289917, 0.1093171 ],
+						[ 968, 0.435268, 0.01178741, 0.18577 ],
+						[ 969, 0.4750649, -0.006484985, 0.1045909 ],
+						[ 970, 0.357817, 0.007865906, -0.05959344 ],
+						[ 971, 0.499526, 0.01179504, 0.2112551 ],
+						[ 972, 0.4952158, 0.0007705688, 0.08669782 ],
+						[ 973, 0.366892, 0.0111084, -0.05622411 ],
+						[ 974, 0.508392, 0.01121521, 0.2038453 ],
+						[ 975, 0.5024121, 0.01048279, 0.05295992 ],
+						[ 976, 0.3694178, 0.01446533, -0.05216527 ],
+						[ 977, 0.5020871, 0.0105896, 0.1913562 ],
+						[ 978, 0.483985, 0.01312256, 0.03831196 ],
+						[ 979, 0.3619848, 0.01744843, -0.04889894 ],
+						[ 981, 0.04379106, 0.0006408691, -0.006930113 ],
+						[ 982, 0.03808203, 0.00176239, 0.01759577 ],
+						[ 983, 0.06186503, 0.003158569, 0.03096581 ],
+						[ 989, 0.001676142, 0.001281738, -0.004599929 ],
+						[ 994, 0.334783, 1.124626, 0.02415133 ],
+						[ 995, 0.4939751, 0.01094818, 0.1890268 ],
+						[ 996, 0.482617, 0.01347351, 0.03921771 ],
+						[ 997, 0.509336, 0.01254272, 0.2110202 ],
+						[ 998, 0.5165561, 0.01393127, 0.04352903 ],
+						[ 999, 0.531359, 0.01537323, 0.2555003 ],
+						[ 1000, 0.576245, 0.01278687, 0.06350493 ],
+						[ 1001, 0.4848331, 0.02223206, 0.3754537 ],
+						[ 1002, 0.635397, -0.003913879, 0.1417301 ],
+						[ 1003, 0.310907, 0.03160095, 0.5195067 ],
+						[ 1004, 0.7200451, 0.003036499, 0.194989 ],
+						[ 1005, 0.358577, 0.01856232, -0.04684639 ],
+						[ 1006, 0.371875, 0.01835632, -0.04933333 ],
+						[ 1007, 0.4130001, 0.01695251, -0.05568933 ],
+						[ 1008, 0.482279, 0.01193237, -0.08229399 ],
+						[ 1009, 0.562724, 0.01091003, -0.152442 ],
+						[ 1010, 0.343014, 0.01643372, 0.1734385 ],
+						[ 1011, 0.3146631, 0.01634979, 0.1714253 ],
+						[ 1012, 0.35168, 0.01711273, 0.1787853 ],
+						[ 1013, 0.3292359, 0.0166626, 0.1692762 ],
+						[ 1014, 0.341433, 0.01715088, 0.1760368 ],
+						[ 1015, 0.304609, 0.01789093, 0.1889253 ],
+						[ 1016, 0.130816, 0.00995636, 0.09775972 ],
+						[ 1017, 0.113327, 0.01081848, 0.1061926 ],
+						[ 1018, 0.147208, 0.009819031, 0.09621859 ],
+						[ 1019, 0.1673, 0.01052094, 0.1029434 ],
+						[ 1020, 0.174504, 0.01071167, 0.1047034 ],
+						[ 1021, 0.293212, 0.02006531, 0.210763 ],
+						[ 1022, 0.217431, 0.02606201, 0.264957 ],
+						[ 1023, 0.09346499, 0.03077698, 0.3066883 ],
+						[ 1024, 0.09203902, 0.01142883, 0.1122656 ],
+						[ 1025, 0.06002101, 0.01239777, 0.1207442 ],
+						[ 1026, 0.02855, 0.01252747, 0.1212606 ],
+						[ 1027, 0.138489, -0.0008850098, -0.0584743 ],
+						[ 1028, 0.01741105, 0.001441956, -0.01707911 ],
+						[ 1029, 0.01741397, 0.002227783, -0.01888895 ],
+						[ 1030, 0.158461, -0.0004119873, -0.05816579 ],
+						[ 1031, -0.002539039, 0.004333496, -0.009976029 ],
+						[ 1032, 0.176545, 0.0005111694, -0.05582404 ],
+						[ 1033, 0.186473, 0.001602173, -0.05355072 ],
+						[ 1034, 0.182047, 0.002876282, -0.0484271 ],
+						[ 1035, 0.020787, 0.0009689331, -0.01634991 ],
+						[ 1036, 0.02232283, -0.0001602173, -0.01366806 ],
+						[ 1037, 0.02167994, -0.0001602173, -0.01332796 ],
+						[ 1038, 0.001572132, 0.001304626, -0.00460887 ],
+						[ 1039, 0.003044069, 3.051758e-05, -0.002179861 ],
+						[ 1040, 0.002674043, -2.288818e-05, -0.001774073 ],
+						[ 1041, 0.183335, 0.002334595, -0.04993486 ],
+						[ 1042, 0.018408, 0.002212524, -0.01882398 ],
+						[ 1043, -0.001001954, 0.003158569, -0.007848859 ],
+						[ 1061, 0.182074, 0.002540588, -0.05059981 ],
+						[ 1062, 0.02040988, -0.0001831055, -0.01352489 ],
+						[ 1063, 0.002546966, -2.288818e-05, -0.001688957 ],
+						[ 1067, 0.1952271, 0.002113342, -0.05831885 ],
+						[ 1068, 0.214076, 0.01119995, -0.08662391 ],
+						[ 1069, 0.198384, 0.01758575, -0.1538758 ],
+						[ 1070, 0.02063605, -0.0001983643, -0.01547396 ],
+						[ 1071, 0.02010602, -0.0002441406, -0.01727593 ],
+						[ 1072, 0.003028899, -3.814697e-05, -0.002011895 ],
+						[ 1073, 0.003304034, -3.051758e-05, -0.002197981 ],
+						[ 1074, 0.01816902, -0.0002441406, -0.01958609 ],
+						[ 1080, 0.03223701, 0.00378418, 0.0373559 ],
+						[ 1081, 0.05054601, 0.00428009, 0.04194975 ],
+						[ 1082, 0.02519999, 0.003898621, 0.0383687 ],
+						[ 1083, 0.022699, 0.004020691, 0.03963661 ],
+						[ 1084, 0.013556, 0.004013062, 0.03960419 ],
+						[ 1085, 0.06892502, 0.004341125, 0.04258442 ],
+						[ 1086, 0.068813, 0.005111694, 0.04993057 ],
+						[ 1087, 0.167838, 0.01025391, 0.100431 ],
+						[ 1088, 0.06462899, 0.003768921, 0.03687716 ],
+						[ 1089, 0.120159, 0.04200745, 0.5879862 ],
+						[ 1090, 0.05202601, 0.03762054, 0.4348168 ],
+						[ 1091, 0.688054, 0.05190277, 0.5145891 ],
+						[ 1092, 0.294582, -0.00743103, -0.2894909 ],
+						[ 1093, 0.361725, 0.1693115, -0.417402 ],
+						[ 1094, 0.208445, 0.03600311, 0.5329947 ],
+						[ 1095, 0.6646299, 0.216568, 0.6968951 ],
+						[ 1096, 0.406327, 0.6294327, -0.481616 ],
+						[ 1097, 0.772594, 0.6660004, -0.2476552 ],
+						[ 1098, 0.9095941, 0.697319, 0.3763778 ],
+						[ 1099, 0.6945399, 0.6798248, 0.9168859 ],
+						[ 1100, 0.375664, 0.9960861, -0.3277822 ],
+						[ 1101, 0.588657, 1.046532, -0.1007371 ],
+						[ 1102, 0.701157, 1.051941, 0.4568009 ],
+						[ 1103, 0.5033619, 1.00708, 0.827136 ],
+						[ 1104, 0.625774, 0.02773285, -0.1292183 ],
+						[ 1105, 0.370281, 0.002571106, -0.2770383 ],
+						[ 1108, 0.003479034, -3.051758e-05, -0.002319098 ],
+						[ 1109, 0.200976, 0.001396179, -0.06911898 ],
+						[ 1110, 0.07447501, 0.01199341, 0.1174755 ],
+						[ 1111, 0.266396, 0.02297974, 0.2381945 ],
+						[ 1112, 0.526171, 0.01863861, 0.3111279 ],
+						[ 1113, 0.442836, 0.0144043, -0.06768608 ],
+						[ 1114, 0.6160399, 0.00579834, 0.1007361 ],
+						[ 1116, 0.001609012, 6.866455e-05, 0.0007624626 ],
+						[ 1117, 0.005410001, 0.0002822876, 0.002704144 ],
+						[ 1118, 0.01596002, 0.0009536743, 0.009548187 ],
+						[ 1119, 0.017784, 0.001426697, 0.01403904 ],
+						[ 1120, 0.014327, 0.001861572, 0.01842356 ],
+						[ 1122, 0.001410007, 6.866455e-05, 0.0006680489 ],
+						[ 1123, 0.006607994, 0.0003356934, 0.003309727 ],
+						[ 1124, 0.01869498, 0.001091003, 0.01092815 ],
+						[ 1125, 0.02069999, 0.001525879, 0.01515007 ],
+						[ 1126, 0.016537, 0.001937866, 0.0191555 ],
+						[ 1128, 0.001160994, 6.103516e-05, 0.0005512238 ],
+						[ 1129, 0.005858019, 0.0003128052, 0.003036022 ],
+						[ 1130, 0.01654501, 0.001106262, 0.01101112 ],
+						[ 1131, 0.017914, 0.001564026, 0.01547718 ],
+						[ 1132, 0.018654, 0.002166748, 0.02156258 ],
+						[ 1135, 0.002967007, 0.000213623, 0.002141953 ],
+						[ 1136, 0.009388, 0.001052856, 0.01036882 ],
+						[ 1137, 0.009798013, 0.00151062, 0.01502609 ],
+						[ 1138, 0.008927006, 0.002044678, 0.02031183 ],
+						[ 1139, 0.016945, 0.0009231567, 0.009199142 ],
+						[ 1140, 0.004979014, 0.0003128052, 0.003202915 ],
+						[ 1141, 0.08879802, 0.004234314, 0.04154205 ],
+						[ 1142, 0.01607898, 0.0007705688, 0.007659435 ],
+						[ 1147, 0.01376303, 0.0007324219, 0.007267952 ],
+						[ 1149, 0.012621, 0.0007019043, 0.006863594 ],
+						[ 1150, 0.01044601, 0.0005645752, 0.005610466 ],
+						[ 1153, 0.001559004, 9.918213e-05, 0.0009980202 ],
+						[ 1155, 0.005568996, 0.0002822876, 0.002957821 ],
+						[ 1156, 0.01009099, 0.000541687, 0.005250454 ],
+						[ 1157, 0.00150001, 6.866455e-05, 0.0007123947 ],
+						[ 1158, 0.005236998, 0.00025177, 0.00250721 ],
+						[ 1159, 0.01105599, 0.0006637573, 0.006602287 ],
+						[ 1160, 0.005945988, 0.0005645752, 0.005461216 ],
+						[ 1161, 0.026897, 0.001419067, 0.01411629 ],
+						[ 1162, 0.04486501, 0.002502441, 0.02491713 ],
+						[ 1163, 0.02486102, 0.001289368, 0.01285791 ],
+						[ 1164, 0.04282199, 0.002449036, 0.02412415 ],
+						[ 1165, 0.2812269, 0.01309204, 0.1300616 ],
+						[ 1166, 0.003810048, 0.0001678467, 0.001825809 ],
+						[ 1167, 0.05978101, 0.002731323, 0.02672672 ],
+						[ 1168, 0.1557011, 0.00756073, 0.07395649 ],
+						[ 1170, 0.02511895, 0.001068115, 0.01064157 ],
+						[ 1171, 0.23313, 0.01055908, 0.1041884 ],
+						[ 1172, 0.01918608, 0.000869751, 0.008493423 ],
+						[ 1173, 0.2799481, 0.01084137, 0.1113949 ],
+						[ 1174, 0.02298903, 0.001068115, 0.01074314 ],
+						[ 1175, 0.3847039, 0.01035309, 0.1537552 ],
+						[ 1176, 0.3521349, 0.01407623, 0.1604571 ],
+						[ 1177, 0.3763729, 0.01163483, 0.1338181 ],
+						[ 1178, 0.262477, 0.004142761, -0.06083012 ],
+						[ 1179, 0.3807819, 0.001434326, 0.121166 ],
+						[ 1180, 0.414741, 0.002059937, 0.1142793 ],
+						[ 1181, 0.3879129, 0.01425934, 0.1438799 ],
+						[ 1182, 0.3049708, 0.007492065, -0.05225515 ],
+						[ 1183, 0.301717, 0.004882812, -0.06612396 ],
+						[ 1184, 0.2697239, 0.005065918, -0.06378317 ],
+						[ 1185, 0.121424, -0.001022339, -0.05667496 ],
+						[ 1186, 0.04806513, -0.0004959106, -0.03157699 ],
+						[ 1187, 0.04294807, -0.0005569458, -0.0318079 ],
+						[ 1188, 0.01865906, -7.629395e-06, -0.01392817 ],
+						[ 1190, 0.017368, 0.004020691, 0.0395093 ],
+						[ 1191, 0.430795, 0.02671051, 0.4376242 ],
+						[ 1192, 0.650733, -0.01146698, 0.1742401 ],
+						[ 1193, 0.5179859, 0.01065826, -0.1126883 ],
+						[ 1194, 0.175079, 0.02757263, 0.2789974 ],
+						[ 1195, 0.04850601, 0.01251984, 0.1215935 ],
+						[ 1196, 0.213262, 0.02878571, -0.09235811 ],
+						[ 1197, 0.009729004, 0.004104614, 0.04050732 ],
+						[ 1198, 0.375645, 0.03022766, 0.4885314 ],
+						[ 1199, 0.5444289, 0.01177979, -0.1483123 ],
+						[ 1200, 0.135035, 0.02850342, 0.2903953 ],
+						[ 1201, 0.038411, 0.01256561, 0.1216769 ],
+						[ 1202, 0.2121199, 0.02950287, -0.127744 ],
+						[ 1203, 0.005728001, 0.004180908, 0.04084587 ],
+						[ 1204, 0.675083, -0.01190186, 0.1971807 ],
+						[ 1205, 0.052616, 0.03303528, 0.3160462 ],
+						[ 1206, 0.788491, 0.1018906, 0.1933267 ],
+						[ 1207, 0.008014002, 0.00643158, 0.06315708 ],
+						[ 1208, 0.8145241, 0.2665558, 0.266789 ],
+						[ 1209, 0.637814, 0.06949615, -0.130913 ],
+						[ 1210, 0.677105, 0.2314301, -0.199291 ],
+						[ 1211, 0.7634401, 0.03527832, 0.1885741 ],
+						[ 1212, 0.021176, 0.01712036, 0.1650634 ],
+						[ 1215, 4.398823e-05, 0.002151489, -0.005840898 ],
+						[ 1216, 0.000624001, 0.001876831, -0.005506992 ],
+						[ 1219, 0.05695599, -0.0004959106, -0.03246295 ],
+						[ 1220, 0.06559408, -0.0004959106, -0.03220522 ],
+						[ 1221, 0.07190704, -0.0004501343, -0.03106594 ],
+						[ 1222, 0.07324797, -0.0004272461, -0.029351 ],
+						[ 1223, 0.07396394, -0.0004272461, -0.02918196 ],
+						[ 1224, 0.07587606, -0.0004653931, -0.03111994 ],
+						[ 1225, 0.07890201, -0.000541687, -0.03530991 ],
+						[ 1226, 0.07660902, -0.000617981, -0.038975 ],
+						[ 1227, 0.050235, -0.000579834, -0.03864598 ],
+						[ 1228, -0.0009800196, 0.003204346, -0.007965922 ],
+						[ 1230, 0.04706204, -0.0005569458, -0.03233993 ],
+						[ 1231, 0.01865602, 7.629395e-05, -0.01380408 ],
+						[ 1232, 0.06345397, -0.0006256104, -0.03554702 ],
+						[ 1233, 0.01777601, 0.0006027222, -0.01439905 ],
+						[ 1234, 0.480243, 0.001213074, 0.2229781 ],
+						[ 1235, 0.5131431, 0.001045227, 0.225507 ],
+						[ 1236, 0.5504001, 0.003189087, 0.2043083 ],
+						[ 1237, 0.5613289, 0.006164551, 0.169523 ],
+						[ 1238, 0.540566, 0.006965637, 0.1501141 ],
+						[ 1239, 0.536019, 0.007148743, 0.148289 ],
+						[ 1240, 0.5748121, 0.007514954, 0.1631908 ],
+						[ 1241, 0.63293, 0.007652283, 0.1932278 ],
+						[ 1242, 0.6745191, -0.003204346, 0.3115702 ],
+						[ 1243, 0.6530221, -0.0173645, 0.439594 ],
+						[ 1244, 0.683964, -0.007194519, 0.4402118 ],
+						[ 1245, 0.4366099, 0.003822327, 0.2021718 ],
+						[ 1246, 0.659603, 0.00478363, 0.2480578 ],
+						[ 1247, 0.679775, -0.01080322, 0.3582401 ],
+						[ 1248, 0.671073, -0.01992035, 0.4044678 ],
+						[ 1252, 0.130931, 0.006217957, 0.06073427 ],
+						[ 1253, 0.03693801, 0.001602173, 0.01584625 ],
+						[ 1255, 0.248789, -0.02983093, -0.2672191 ],
+						[ 1256, 0.05345599, -0.01863098, -0.2310171 ],
+						[ 1257, 0.139673, 0.02741241, -0.2039008 ],
+						[ 1311, -0.003047109, 0.0001220703, 0.00120306 ],
+						[ 1326, -0.294148, 0.008903503, 0.102119 ],
+						[ 1327, -0.02391207, 0.0009536743, 0.009664059 ],
+						[ 1328, -0.05685103, 0.00226593, 0.0226202 ],
+						[ 1329, -0.1064179, 0.00390625, 0.03879118 ],
+						[ 1345, -0.012927, 0.0006256104, 0.006194115 ],
+						[ 1346, -0.237841, 0.01025391, 0.1015434 ],
+						[ 1347, -0.140239, 0.007171631, 0.07020378 ],
+						[ 1348, -0.355584, 0.01288605, 0.1544728 ],
+						[ 1350, 0, 0.0001373291, 0.00135231 ],
+						[ 1351, -0.006577, 0.0004348755, 0.004290104 ],
+						[ 1352, -0.02001798, 0.001075745, 0.01064968 ],
+						[ 1353, -0.186438, 0.01021576, 0.1000242 ],
+						[ 1354, -0.237977, 0.006851196, 0.07865906 ],
+						[ 1357, -0.01211905, 0.0004501343, 0.004620075 ],
+						[ 1358, -0.3172939, 0.01490784, 0.1510906 ],
+						[ 1359, -0.326956, 0.01639557, 0.1661172 ],
+						[ 1360, -0.2250199, 0.009277344, -0.03766394 ],
+						[ 1361, -0.1208628, 0.004966736, -0.01922798 ],
+						[ 1362, -0.06002998, 0.001365662, -0.007956743 ],
+						[ 1364, -0.2834449, 0.009757996, -0.04848695 ],
+						[ 1365, -0.335903, 0.005554199, -0.06771898 ],
+						[ 1366, -0.03079796, 0.0004348755, -0.004080296 ],
+						[ 1369, -0.001412034, -3.051758e-05, -0.0009298325 ],
+						[ 1370, -0.001848936, 0.0006103516, -0.002910972 ],
+						[ 1371, -0.4713051, 0.01141357, 0.2005641 ],
+						[ 1372, -0.448976, -0.002929688, 0.108773 ],
+						[ 1373, -0.4353169, 0.01180267, 0.1857839 ],
+						[ 1374, -0.4755461, -0.006561279, 0.1050777 ],
+						[ 1375, -0.357816, 0.007873535, -0.05959344 ],
+						[ 1376, -0.499527, 0.01178741, 0.211256 ],
+						[ 1377, -0.4952379, 0.0007629395, 0.08671784 ],
+						[ 1378, -0.3668931, 0.0111084, -0.05622315 ],
+						[ 1379, -0.5083919, 0.01122284, 0.2038462 ],
+						[ 1380, -0.502412, 0.01048279, 0.05296111 ],
+						[ 1381, -0.369414, 0.01446533, -0.05216527 ],
+						[ 1382, -0.5020881, 0.0105896, 0.1913571 ],
+						[ 1383, -0.483984, 0.01311493, 0.03831077 ],
+						[ 1384, -0.3619849, 0.01744843, -0.04889894 ],
+						[ 1386, -0.04379106, 0.0006408691, -0.006930113 ],
+						[ 1388, -0.03808203, 0.00176239, 0.01759577 ],
+						[ 1389, -0.06186503, 0.003158569, 0.03096581 ],
+						[ 1397, -0.001676023, 0.001281738, -0.004598975 ],
+						[ 1410, -0.4939751, 0.01094818, 0.1890268 ],
+						[ 1411, -0.4826109, 0.01346588, 0.0392158 ],
+						[ 1412, -0.509335, 0.01254272, 0.2110221 ],
+						[ 1413, -0.516557, 0.01393127, 0.04352903 ],
+						[ 1414, -0.5313581, 0.01537323, 0.2555003 ],
+						[ 1415, -0.5762479, 0.01279449, 0.0635078 ],
+						[ 1416, -0.484831, 0.02223206, 0.3754537 ],
+						[ 1417, -0.6346641, -0.003845215, 0.1414843 ],
+						[ 1418, -0.310905, 0.03160095, 0.5195067 ],
+						[ 1419, -0.720045, 0.002906799, 0.1949229 ],
+						[ 1420, -0.35858, 0.01856995, -0.04684639 ],
+						[ 1421, -0.371875, 0.01835632, -0.04933214 ],
+						[ 1422, -0.4130001, 0.01695251, -0.05569029 ],
+						[ 1423, -0.4822809, 0.01194763, -0.08229494 ],
+						[ 1424, -0.562791, 0.009918213, -0.1532993 ],
+						[ 1425, -0.343012, 0.01641846, 0.1734366 ],
+						[ 1426, -0.3146631, 0.01634979, 0.1714263 ],
+						[ 1427, -0.35168, 0.01711273, 0.1787853 ],
+						[ 1428, -0.3292339, 0.01667786, 0.1692762 ],
+						[ 1429, -0.341434, 0.01714325, 0.1760368 ],
+						[ 1430, -0.304606, 0.01787567, 0.1889243 ],
+						[ 1431, -0.130819, 0.00995636, 0.09776449 ],
+						[ 1432, -0.113326, 0.01081848, 0.1061926 ],
+						[ 1433, -0.147208, 0.009819031, 0.09621859 ],
+						[ 1434, -0.167299, 0.01052094, 0.1029449 ],
+						[ 1435, -0.174505, 0.01069641, 0.1047034 ],
+						[ 1436, -0.29321, 0.02005768, 0.210762 ],
+						[ 1437, -0.217429, 0.02606201, 0.264957 ],
+						[ 1438, -0.09346299, 0.03077698, 0.3066883 ],
+						[ 1439, -0.09203801, 0.01142883, 0.1122656 ],
+						[ 1440, -0.06001901, 0.0124054, 0.1207452 ],
+						[ 1441, -0.028549, 0.01252747, 0.1212597 ],
+						[ 1442, -0.1384929, -0.0009002686, -0.0584743 ],
+						[ 1443, -0.01741105, 0.001441956, -0.01707911 ],
+						[ 1444, -0.01741302, 0.002227783, -0.01888895 ],
+						[ 1445, -0.158465, -0.0004348755, -0.05816579 ],
+						[ 1446, 0.002538979, 0.004333496, -0.009976029 ],
+						[ 1447, -0.1765461, 0.00050354, -0.05582404 ],
+						[ 1448, -0.186468, 0.001602173, -0.05355191 ],
+						[ 1449, -0.182046, 0.002868652, -0.0484271 ],
+						[ 1450, -0.02078593, 0.0009765625, -0.01634991 ],
+						[ 1451, -0.02232295, -0.0001602173, -0.01366699 ],
+						[ 1452, -0.02167904, -0.0001678467, -0.01332796 ],
+						[ 1453, -0.001572132, 0.001304626, -0.00460887 ],
+						[ 1454, -0.003044069, 3.051758e-05, -0.002179861 ],
+						[ 1455, -0.002674043, -2.288818e-05, -0.001774073 ],
+						[ 1456, -0.183335, 0.002334595, -0.04993486 ],
+						[ 1457, -0.01840889, 0.002204895, -0.01882398 ],
+						[ 1458, 0.001001954, 0.003166199, -0.007848859 ],
+						[ 1481, -0.182078, 0.002563477, -0.05060077 ],
+						[ 1482, -0.02040997, -0.0001831055, -0.01352489 ],
+						[ 1483, -0.002546996, -2.288818e-05, -0.001688957 ],
+						[ 1488, -0.1952271, 0.00213623, -0.05831981 ],
+						[ 1489, -0.214872, 0.009315491, -0.08390999 ],
+						[ 1490, -0.192118, 0.01270294, -0.1608632 ],
+						[ 1491, -0.02063605, -0.0001983643, -0.01547396 ],
+						[ 1492, -0.02010602, -0.0002288818, -0.01727593 ],
+						[ 1493, -0.003029019, -3.814697e-05, -0.002011895 ],
+						[ 1494, -0.003646016, 3.814697e-05, -0.002618909 ],
+						[ 1495, -0.01885101, -0.0002441406, -0.01908112 ],
+						[ 1503, -0.03223701, 0.00378418, 0.0373559 ],
+						[ 1504, -0.050538, 0.00428009, 0.04194307 ],
+						[ 1505, -0.02519999, 0.003898621, 0.0383687 ],
+						[ 1506, -0.02269799, 0.00403595, 0.03963566 ],
+						[ 1507, -0.013556, 0.004013062, 0.03960419 ],
+						[ 1508, 0, 0.004150391, 0.04090977 ],
+						[ 1509, -0.06892402, 0.004341125, 0.04258442 ],
+						[ 1510, -0.06881298, 0.005111694, 0.04993057 ],
+						[ 1511, -0.167834, 0.01025391, 0.1004272 ],
+						[ 1512, -0.06462902, 0.003768921, 0.03687811 ],
+						[ 1513, -0.12016, 0.04199982, 0.5879853 ],
+						[ 1514, -0.05203301, 0.03761292, 0.434823 ],
+						[ 1515, 0, 0.01236725, 0.1193099 ],
+						[ 1516, 0, 0.04209137, 0.5986495 ],
+						[ 1517, -0.6880531, 0.05190277, 0.51459 ],
+						[ 1518, 0, 0.02387238, 0.8611631 ],
+						[ 1519, -0.307654, -0.006324768, -0.276222 ],
+						[ 1520, 0, 0.03400421, -0.337574 ],
+						[ 1521, 0, 0.1613541, -0.4821968 ],
+						[ 1522, -0.334063, 1.147926, 0.4377663 ],
+						[ 1523, -0.361727, 0.1693115, -0.4174042 ],
+						[ 1524, -0.208443, 0.03600311, 0.5329967 ],
+						[ 1525, -0.664632, 0.216568, 0.6968961 ],
+						[ 1526, 0, 0.1311646, 0.9431398 ],
+						[ 1527, 0, 0.6043396, -0.6342685 ],
+						[ 1528, -0.406225, 0.629425, -0.4817069 ],
+						[ 1529, -0.739725, 0.6659622, -0.2496331 ],
+						[ 1530, -0.886167, 0.6973343, 0.3750069 ],
+						[ 1531, -0.661137, 0.6797867, 0.9166121 ],
+						[ 1532, -9.000001e-06, 0.7075653, 1.233524 ],
+						[ 1533, -0.0006190001, 0.977951, -0.4312568 ],
+						[ 1534, -0.373703, 0.9590988, -0.3396339 ],
+						[ 1535, -0.60193, 1.028069, -0.02788997 ],
+						[ 1536, -0.7012759, 1.053848, 0.447782 ],
+						[ 1537, -0.531615, 1.008713, 0.8023231 ],
+						[ 1538, 0.011664, 1.009361, 1.021896 ],
+						[ 1539, -0.62609, 0.02749634, -0.1291602 ],
+						[ 1540, -0.370283, 0.002571106, -0.2770374 ],
+						[ 1544, -0.003479064, -3.051758e-05, -0.002319098 ],
+						[ 1545, -0.200976, 0.00138855, -0.06911802 ],
+						[ 1546, -0.07447398, 0.01199341, 0.1174755 ],
+						[ 1547, -0.266395, 0.02297974, 0.2381964 ],
+						[ 1548, -0.526171, 0.01863861, 0.3111279 ],
+						[ 1549, -0.442839, 0.01441193, -0.06768703 ],
+						[ 1550, -0.6160179, 0.00579834, 0.1007249 ],
+						[ 1551, 0, 0.002334595, 0.02302694 ],
+						[ 1552, 0, 0.00276947, 0.02759266 ],
+						[ 1553, 0, 0.006477356, 0.0635004 ],
+						[ 1555, -0.001608998, 6.866455e-05, 0.0007624626 ],
+						[ 1556, -0.005410999, 0.0002670288, 0.002704144 ],
+						[ 1557, -0.01596002, 0.0009536743, 0.009548187 ],
+						[ 1558, -0.017784, 0.001419067, 0.01403999 ],
+						[ 1559, -0.014327, 0.001869202, 0.0184226 ],
+						[ 1561, -0.001410007, 6.103516e-05, 0.0006680489 ],
+						[ 1562, -0.006607994, 0.0003356934, 0.003309727 ],
+						[ 1563, -0.01869498, 0.001091003, 0.01092815 ],
+						[ 1564, -0.02069898, 0.001525879, 0.01515007 ],
+						[ 1565, -0.01653699, 0.001937866, 0.0191555 ],
+						[ 1567, -0.001160994, 6.103516e-05, 0.0005512238 ],
+						[ 1568, -0.005859017, 0.0003051758, 0.003036022 ],
+						[ 1569, -0.01654503, 0.001091003, 0.01101112 ],
+						[ 1570, -0.017914, 0.001556396, 0.01547813 ],
+						[ 1571, -0.01865399, 0.002166748, 0.02156258 ],
+						[ 1574, -0.002967015, 0.000213623, 0.002141953 ],
+						[ 1575, -0.009388007, 0.001060486, 0.01036978 ],
+						[ 1576, -0.009798013, 0.00151062, 0.01502609 ],
+						[ 1577, -0.008927003, 0.002044678, 0.02031279 ],
+						[ 1580, 0, 0.0001754761, 0.001669884 ],
+						[ 1581, 0, 0.0009918213, 0.009976387 ],
+						[ 1582, 0, 0.001426697, 0.01425838 ],
+						[ 1583, 0, 0.00189209, 0.01868057 ],
+						[ 1584, -0.016945, 0.0009231567, 0.009199142 ],
+						[ 1585, -0.004979014, 0.0003051758, 0.003201962 ],
+						[ 1587, -0.08879703, 0.004234314, 0.04154301 ],
+						[ 1588, -0.01607898, 0.0007705688, 0.007659435 ],
+						[ 1595, -0.01376301, 0.0007324219, 0.007267952 ],
+						[ 1598, -0.012621, 0.0006866455, 0.006863594 ],
+						[ 1599, -0.01044601, 0.0005645752, 0.005610466 ],
+						[ 1602, -0.001558006, 9.918213e-05, 0.0009980202 ],
+						[ 1604, -0.005567998, 0.0002822876, 0.002957821 ],
+						[ 1605, -0.01009099, 0.000541687, 0.005250454 ],
+						[ 1606, -0.00150001, 6.866455e-05, 0.0007109642 ],
+						[ 1607, -0.005238995, 0.00025177, 0.002509117 ],
+						[ 1608, -0.01105599, 0.0006637573, 0.006602287 ],
+						[ 1609, -0.005945995, 0.0005493164, 0.005461216 ],
+						[ 1610, 0, 0.0004959106, 0.004955292 ],
+						[ 1611, -0.02689698, 0.001419067, 0.01411629 ],
+						[ 1612, -0.04485804, 0.00252533, 0.02491331 ],
+						[ 1613, -0.02486204, 0.001281738, 0.01285791 ],
+						[ 1614, -0.042822, 0.002449036, 0.02412415 ],
+						[ 1615, -0.2812239, 0.01309204, 0.1300607 ],
+						[ 1616, -0.003810048, 0.0001678467, 0.001825809 ],
+						[ 1617, -0.05978402, 0.002716064, 0.02672768 ],
+						[ 1618, -0.1556981, 0.007568359, 0.07395458 ],
+						[ 1620, -0.02511787, 0.001083374, 0.01064157 ],
+						[ 1621, -0.233134, 0.01055145, 0.1041903 ],
+						[ 1622, -0.01918703, 0.0008621216, 0.008493423 ],
+						[ 1623, -0.2799541, 0.01081848, 0.1113968 ],
+						[ 1624, -0.02298701, 0.001091003, 0.01074219 ],
+						[ 1625, -0.3847079, 0.01033783, 0.1537571 ],
+						[ 1626, -0.3521348, 0.01407623, 0.1604571 ],
+						[ 1627, -0.3763711, 0.01164246, 0.1338181 ],
+						[ 1628, -0.262475, 0.004150391, -0.06083012 ],
+						[ 1629, -0.3807809, 0.001434326, 0.1211669 ],
+						[ 1630, -0.414697, 0.002037048, 0.1142621 ],
+						[ 1631, -0.387911, 0.01426697, 0.1438799 ],
+						[ 1632, -0.30497, 0.007499695, -0.05225515 ],
+						[ 1633, -0.301715, 0.004890442, -0.06612301 ],
+						[ 1634, -0.269729, 0.005058289, -0.06378412 ],
+						[ 1635, -0.121424, -0.001022339, -0.05667591 ],
+						[ 1636, -0.04806399, -0.0004882812, -0.03157699 ],
+						[ 1637, -0.04294807, -0.0005569458, -0.0318079 ],
+						[ 1638, -0.018659, -7.629395e-06, -0.01392817 ],
+						[ 1640, -0.017367, 0.004020691, 0.0395093 ],
+						[ 1641, 0, 0.002067566, 0.02032375 ],
+						[ 1642, -0.430791, 0.02671814, 0.437628 ],
+						[ 1643, -0.651568, -0.01159668, 0.1746299 ],
+						[ 1644, -0.5179859, 0.01065826, -0.1126893 ],
+						[ 1645, -0.175077, 0.02757263, 0.2789974 ],
+						[ 1646, -0.04850499, 0.01251984, 0.1215935 ],
+						[ 1647, -0.211176, 0.02357483, -0.1076841 ],
+						[ 1648, -0.009728001, 0.004119873, 0.04050732 ],
+						[ 1649, 0, 0.002624512, 0.02573109 ],
+						[ 1650, -0.375644, 0.03022766, 0.4885304 ],
+						[ 1651, -0.544429, 0.01177216, -0.1483121 ],
+						[ 1652, -0.135033, 0.02850342, 0.2903953 ],
+						[ 1653, -0.03840901, 0.01257324, 0.1216731 ],
+						[ 1654, -0.214395, 0.03057861, -0.148195 ],
+						[ 1655, -0.005728, 0.00415802, 0.04084778 ],
+						[ 1656, -0.6751351, -0.01193237, 0.197202 ],
+						[ 1657, -0.052613, 0.03304291, 0.3160472 ],
+						[ 1658, -0.788456, 0.1019135, 0.1933081 ],
+						[ 1659, -0.008014001, 0.00643158, 0.06315708 ],
+						[ 1660, -0.813599, 0.2665787, 0.2667589 ],
+						[ 1661, -0.63783, 0.06947327, -0.1309161 ],
+						[ 1662, -0.676983, 0.2314224, -0.1993098 ],
+						[ 1663, -0.763468, 0.03521729, 0.188586 ],
+						[ 1664, 0, 0.0385437, 0.448807 ],
+						[ 1665, 0, 0.03533936, 0.3343806 ],
+						[ 1666, -0.021175, 0.01711273, 0.1650653 ],
+						[ 1667, 0, 0.01821136, 0.1741748 ],
+						[ 1671, -4.392862e-05, 0.002151489, -0.005840898 ],
+						[ 1672, -0.0006229877, 0.001869202, -0.005506992 ],
+						[ 1676, -0.05695599, -0.0004959106, -0.03246295 ],
+						[ 1677, -0.06559509, -0.00050354, -0.03220522 ],
+						[ 1678, -0.071908, -0.0004501343, -0.03106594 ],
+						[ 1679, -0.07324797, -0.0004272461, -0.029351 ],
+						[ 1680, -0.07396406, -0.0004196167, -0.02918196 ],
+						[ 1681, -0.07587618, -0.0004653931, -0.03111994 ],
+						[ 1682, -0.07890198, -0.000541687, -0.03530991 ],
+						[ 1683, -0.07661101, -0.0006256104, -0.038975 ],
+						[ 1684, -0.07103601, -0.0006713867, -0.04293799 ],
+						[ 1685, 0.00097996, 0.003196716, -0.007965922 ],
+						[ 1687, -0.04706204, -0.0005569458, -0.03234088 ],
+						[ 1688, -0.01865602, 9.155273e-05, -0.0138061 ],
+						[ 1689, -0.06345594, -0.0006408691, -0.03554797 ],
+						[ 1690, -0.01777595, 0.0005950928, -0.01440001 ],
+						[ 1691, -0.4802778, 0.001205444, 0.2229891 ],
+						[ 1692, -0.5131431, 0.001045227, 0.2255092 ],
+						[ 1693, -0.5504001, 0.003189087, 0.2043083 ],
+						[ 1694, -0.5613289, 0.006156921, 0.169523 ],
+						[ 1695, -0.5405639, 0.006950378, 0.1501141 ],
+						[ 1696, -0.536072, 0.007141113, 0.148309 ],
+						[ 1697, -0.57482, 0.007507324, 0.1631947 ],
+						[ 1698, -0.6329359, 0.007675171, 0.1932328 ],
+						[ 1699, -0.674523, -0.003204346, 0.3116152 ],
+						[ 1700, -0.6530221, -0.0173645, 0.439594 ],
+						[ 1701, -0.6839669, -0.007278442, 0.4402099 ],
+						[ 1702, -0.43662, 0.003807068, 0.2021739 ],
+						[ 1703, -0.659604, 0.004798889, 0.2480638 ],
+						[ 1704, -0.6797751, -0.01079559, 0.3582451 ],
+						[ 1705, -0.671073, -0.01992035, 0.4044678 ],
+						[ 1710, -0.130933, 0.006210327, 0.06073523 ],
+						[ 1711, -0.03693801, 0.001602173, 0.0158453 ],
+						[ 1713, 0.037646, -0.02545166, -0.2640331 ],
+						[ 1714, -0.244565, 0.00202179, -0.2312849 ],
+						[ 1715, -0.02024399, -0.01169586, -0.2183568 ],
+						[ 1716, 0.07160091, -0.001037598, -0.06196189 ],
+						[ 1717, -0.01749101, -0.0002365112, -0.01949 ],
+						[ 1718, -0.004394054, 0.0001068115, -0.003587961 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "Urethra_Wide Open 2-1",
+				"url" : "#Urethra_Wide%20Open%202"
+			}
+		]
+	}
+}

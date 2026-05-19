@@ -35,12 +35,14 @@ export default function ScratchpadPanel() {
           <button
             className={`${styles.tab} ${activeTab === 'notes' ? styles.active : ''}`}
             onClick={() => setActiveTab('notes')}
+            aria-label="Notes tab"
           >
             Notes
           </button>
           <button
             className={`${styles.tab} ${activeTab === 'todos' ? styles.active : ''}`}
             onClick={() => setActiveTab('todos')}
+            aria-label="Todos tab"
           >
             Todos
           </button>
@@ -56,8 +58,14 @@ export default function ScratchpadPanel() {
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addNote()}
+              aria-label="Add a note"
             />
-            <Button className={styles.addButton} onClick={addNote} icon={<Plus size={16} />}>
+            <Button
+              className={styles.addButton}
+              onClick={addNote}
+              icon={<Plus size={16} />}
+              aria-label="Add note"
+            >
               Add
             </Button>
           </div>
@@ -70,7 +78,11 @@ export default function ScratchpadPanel() {
                 <div key={note.id} className={styles.note}>
                   <div className={styles.noteContent}>{note.content}</div>
                   <div className={styles.noteTime}>{formatTime(note.timestamp)}</div>
-                  <button className={styles.deleteButton} onClick={() => deleteNote(note.id)}>
+                  <button
+                    className={styles.deleteButton}
+                    onClick={() => deleteNote(note.id)}
+                    aria-label="Delete note"
+                  >
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -89,8 +101,14 @@ export default function ScratchpadPanel() {
               value={newTodo}
               onChange={(e) => setNewTodo(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addTodo()}
+              aria-label="Add a todo"
             />
-            <Button className={styles.addButton} onClick={addTodo} icon={<Plus size={16} />}>
+            <Button
+              className={styles.addButton}
+              onClick={addTodo}
+              icon={<Plus size={16} />}
+              aria-label="Add todo"
+            >
               Add
             </Button>
           </div>
@@ -106,6 +124,7 @@ export default function ScratchpadPanel() {
                     className={styles.todoCheckbox}
                     checked={todo.completed}
                     onChange={() => toggleTodo(todo.id)}
+                    aria-label={todo.content}
                   />
                   <span
                     className={`${styles.todoContent} ${todo.completed ? styles.completed : ''}`}
@@ -115,7 +134,11 @@ export default function ScratchpadPanel() {
                   <span className={`${styles.priority} ${styles[todo.priority]}`}>
                     {todo.priority}
                   </span>
-                  <button className={styles.deleteButton} onClick={() => deleteTodo(todo.id)}>
+                  <button
+                    className={styles.deleteButton}
+                    onClick={() => deleteTodo(todo.id)}
+                    aria-label="Delete todo"
+                  >
                     <Trash2 size={14} />
                   </button>
                 </div>

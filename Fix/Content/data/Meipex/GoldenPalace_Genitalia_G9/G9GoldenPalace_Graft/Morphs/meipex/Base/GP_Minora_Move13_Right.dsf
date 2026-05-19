@@ -1,0 +1,84 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move13_Right.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:14Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_Minora_Move13_Right",
+			"name" : "GP_Minora_Move13_Right",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Icons/G9Minora_Move13R.png",
+				"colors" : [ [ 0, 0.5019608, 1 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "GPL_Minora_Move 13_Right",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : -3,
+				"max" : 3,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/2-Labia Minora/4-Edge Move",
+			"morph" : {
+				"vertex_count" : 9694,
+				"deltas" : {
+					"count" : 26,
+					"values" : [
+						[ 4399, -0.032841, -2.288818e-05, -0.002310038 ],
+						[ 4407, -0.003557995, 7.629395e-06, -0.0002519488 ],
+						[ 4411, -0.006789997, -7.629395e-06, -0.0004670024 ],
+						[ 4555, -0.14361, -9.918213e-05, -0.01014495 ],
+						[ 4558, -0.03294599, -1.525879e-05, -0.002316982 ],
+						[ 4562, -0.05912003, -3.814697e-05, -0.004168987 ],
+						[ 4563, -0.110491, -6.866455e-05, -0.00780201 ],
+						[ 4564, -0.135688, -9.918213e-05, -0.00958395 ],
+						[ 4565, -0.07673001, -5.340576e-05, -0.005413979 ],
+						[ 4574, -0.143637, -9.155273e-05, -0.01014698 ],
+						[ 4575, -0.00213398, 0, -0.0001379848 ],
+						[ 4584, -0.00410901, 0, -0.0002779961 ],
+						[ 4587, -0.05177601, -3.051758e-05, -0.003663003 ],
+						[ 4588, -0.133994, -8.392334e-05, -0.009464979 ],
+						[ 4666, -0.09840697, -6.103516e-05, -0.006946921 ],
+						[ 4697, -0.03935301, -1.525879e-05, -0.002770036 ],
+						[ 4909, -0.023839, -1.525879e-05, -0.001686037 ],
+						[ 4914, -0.004051998, 0, -0.0002729893 ],
+						[ 4915, -0.02199701, -2.288818e-05, -0.001542956 ],
+						[ 6359, -0.006507993, -7.629395e-06, -0.000447005 ],
+						[ 6361, -0.04079, -2.288818e-05, -0.00287199 ],
+						[ 6362, -0.064117, -2.288818e-05, -0.004535019 ],
+						[ 6363, -0.04879102, -3.051758e-05, -0.003437996 ],
+						[ 6364, -0.08696602, -4.577637e-05, -0.006137997 ],
+						[ 6376, -0.02413699, -3.051758e-05, -0.001707971 ],
+						[ 6377, -0.007502019, 0, -0.0005310178 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_Minora_Move13_Right-1",
+				"url" : "#GP_Minora_Move13_Right"
+			}
+		]
+	}
+}

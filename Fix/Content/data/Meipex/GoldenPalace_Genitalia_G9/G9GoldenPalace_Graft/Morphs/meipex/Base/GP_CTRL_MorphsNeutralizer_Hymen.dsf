@@ -1,0 +1,236 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_CTRL_MorphsNeutralizer_Hymen.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_CTRL_MorphsNeutralizer_Hymen",
+			"name" : "GP_CTRL_MorphsNeutralizer_Hymen",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 0.1607843, 0.1607843, 0.1607843 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_CTRL_MorphsNeutralizer_Hymen",
+				"label" : "GP_CTRL_MorphsNeutralizer_Hymen",
+				"visible" : false,
+				"value" : 1,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/Hidden",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_PR_Vagina_Open_MorphsNeutralizer.dsf#GP_PR_Vagina_Open_NeutralizerDeactivate?value" },
+						{ "op" : "push", "val" : 1 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_PR_Vagina_Open.dsf#GP_Vagina_Open?value" },
+						{ "op" : "push", "val" : -5 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Shrink6.dsf#GP_Vagina_Shrink6?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Shrink5.dsf#GP_Vagina_Shrink5?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Shrink4.dsf#GP_Vagina_Shrink4?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Shrink3.dsf#GP_Vagina_Shrink3?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Shrink2.dsf#GP_Vagina_Shrink2?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Vagina_Shrink1.dsf#GP_Vagina_Shrink1?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pull.dsf#GP_Hymen_Pull?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pinch3_Move.dsf#GP_Hymen_Pinch3_Move?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pinch3.dsf#GP_Hymen_Pinch3?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pinch2_Move.dsf#GP_Hymen_Pinch2_Move?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pinch2.dsf#GP_Hymen_Pinch2?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pinch1_Move.dsf#GP_Hymen_Pinch1_Move?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Pinch1.dsf#GP_Hymen_Pinch1?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge10.dsf#GP_Hymen_Edge10?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge09.dsf#GP_Hymen_Edge09?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge08.dsf#GP_Hymen_Edge08?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge07.dsf#GP_Hymen_Edge07?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge06.dsf#GP_Hymen_Edge06?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge05.dsf#GP_Hymen_Edge05?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge04.dsf#GP_Hymen_Edge04?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge03.dsf#GP_Hymen_Edge03?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge02.dsf#GP_Hymen_Edge02?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_Edge01.dsf#GP_Hymen_Edge01?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_G9_9694:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Hymen_AsymStretch.dsf#GP_Hymen_AsymStretch?value",
+					"stage" : "mult",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_CTRL_MorphsNeutralizer_Hymen?value" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_CTRL_MorphsNeutralizer_Hymen-1",
+				"url" : "#GP_CTRL_MorphsNeutralizer_Hymen"
+			}
+		]
+	}
+}

@@ -1,0 +1,82 @@
+{
+	"file_version" : "0.6.0.0",
+	"asset_info" : {
+		"id" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMinora_MoveLeft11.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "Meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2021-10-18T07:03:25Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "LabiaMinora_MoveLeft11",
+			"name" : "LabiaMinora_MoveLeft11",
+			"parent" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#GoldenPalace",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/MinoraMoveLeft11.png",
+				"colors" : [ [ 1, 0.5019608, 1 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "Labia Minora_Move Left 11",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : -1,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/3-Labia Minora",
+			"morph" : {
+				"vertex_count" : 2254,
+				"deltas" : {
+					"count" : 24,
+					"values" : [
+						[ 871, 0.07826199, 0.01284027, -0.04318798 ],
+						[ 993, 0.004536986, 0.0001678467, -0.001781017 ],
+						[ 1044, 0.134184, 0.004272461, -0.04642699 ],
+						[ 1046, 0.03548399, -0.005004883, -0.05087699 ],
+						[ 1047, -0.009828985, -0.003791809, -0.04684499 ],
+						[ 1049, 0.11591, 0.009788513, -0.048356 ],
+						[ 1050, 0.07824701, 0.004402161, -0.05055299 ],
+						[ 1051, 0.006074041, -0.006332397, -0.04953 ],
+						[ 1056, 0.07824799, 0.003036499, -0.03042802 ],
+						[ 1057, 0.07297502, 0.002891541, -0.02901706 ],
+						[ 1058, 0.06355199, 0.002532959, -0.02550101 ],
+						[ 1059, 0.04011001, 0.001602173, -0.016103 ],
+						[ 1060, 0.01890601, 0.0007400513, -0.007508993 ],
+						[ 1065, 0.154779, -0.0079422, -0.041898 ],
+						[ 1066, 0.08047402, 0.00302887, -0.030413 ],
+						[ 1075, 0.117049, -0.02826691, -0.03230199 ],
+						[ 1076, 0.079514, 0.002944946, -0.029513 ],
+						[ 1077, 0.043051, 0.0009384155, -0.009757005 ],
+						[ 1078, 0.003090009, -7.629395e-06, -3.200769e-05 ],
+						[ 1106, 0.06972399, 0.002326965, -0.02350903 ],
+						[ 1107, 0.11402, -0.01016235, -0.039735 ],
+						[ 1189, 0.001801997, 0, -1.001358e-05 ],
+						[ 1217, 0.005198017, 0.0002059937, -0.002089024 ],
+						[ 1218, -0.01855597, -0.002288818, -0.04454199 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "LabiaMinora_MoveLeft11-1",
+				"url" : "#LabiaMinora_MoveLeft11"
+			}
+		]
+	}
+}

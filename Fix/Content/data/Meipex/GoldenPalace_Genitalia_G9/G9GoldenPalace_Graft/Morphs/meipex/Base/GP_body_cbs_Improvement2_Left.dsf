@@ -1,0 +1,79 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_body_cbs_Improvement2_Left.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:15Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_body_cbs_Improvement2_Left",
+			"name" : "GP_body_cbs_Improvement2_Left",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "",
+				"colors" : [ [ 1, 0.5019608, 1 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "GP_body_cbs_Improvement2_Left",
+				"visible" : false,
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : 0,
+				"max" : 5,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/Hidden",
+			"morph" : {
+				"vertex_count" : 9694,
+				"deltas" : {
+					"count" : 20,
+					"values" : [
+						[ 2, 0, -0.1060867, 0 ],
+						[ 3, 5.960464e-08, -0.1430664, -1.192093e-07 ],
+						[ 5, -0.1062899, -0.2668076, 0 ],
+						[ 7, -5.960464e-08, 0.003364563, 0 ],
+						[ 41, 0, -0.3154678, 4.768372e-07 ],
+						[ 85, -2.384186e-07, -0.1844025, 4.768372e-07 ],
+						[ 86, 1.192093e-07, -0.1937485, -2.384186e-07 ],
+						[ 95, 0, -0.1763077, -2.384186e-07 ],
+						[ 352, 0.3680296, -1.525879e-05, 4.768372e-07 ],
+						[ 402, 1.788139e-07, 0.001861572, 0 ],
+						[ 406, -5.960464e-08, -0.02080536, 1.192093e-07 ],
+						[ 407, -5.960464e-08, -0.1524124, 1.192093e-07 ],
+						[ 426, 5.960464e-08, -0.05561829, 1.192093e-07 ],
+						[ 429, 0, -0.03993988, 0 ],
+						[ 735, 0, -0.04444885, 0 ],
+						[ 1409, -0.0502919, -0.1097717, -2.384186e-07 ],
+						[ 1410, 0, -0.06772614, -4.768372e-07 ],
+						[ 3579, 5.960464e-08, -0.03504944, 0 ],
+						[ 3583, 0, -0.1989899, 0 ],
+						[ 8792, 0, -0.1341171, 0 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_body_cbs_Improvement2_Left-1",
+				"url" : "#GP_body_cbs_Improvement2_Left"
+			}
+		]
+	}
+}

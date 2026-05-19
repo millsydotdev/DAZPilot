@@ -1,0 +1,83 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Tentacle_LowC_Left_Bend.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:12Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_Tentacle_LowC_Left_Bend",
+			"name" : "GP_Tentacle_LowC_Left_Bend",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9_9694",
+			"presentation" : {
+				"type" : "Modifier/Pose",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Icons/G9_Gold.png",
+				"colors" : [ [ 0, 0.5019608, 1 ], [ 1, 0, 0 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "GP_Tentacle_LowC_Left_Bend",
+				"label" : "GPT_Tentacle_LowC_Left_Bend",
+				"value" : 0,
+				"min" : -1,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/5-Vagina/4-Tentacles/2-Tentacles",
+			"formulas" : [
+				{
+					"output" : "lLowTentacleC1:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC1?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_LowC_Left_Bend?value" },
+						{ "op" : "push", "val" : 50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC2:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC2?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_LowC_Left_Bend?value" },
+						{ "op" : "push", "val" : 50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC3:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC3?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_LowC_Left_Bend?value" },
+						{ "op" : "push", "val" : 50 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "lLowTentacleC4:/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#lLowTentacleC4?rotation/x",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_G9_9694:#GP_Tentacle_LowC_Left_Bend?value" },
+						{ "op" : "push", "val" : 50 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_Tentacle_LowC_Left_Bend-1",
+				"url" : "#GP_Tentacle_LowC_Left_Bend"
+			}
+		]
+	}
+}

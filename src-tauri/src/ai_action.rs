@@ -346,6 +346,100 @@ pub fn plan_validated_action(input: &str) -> Option<StructuredAiAction> {
         });
     }
 
+    // 5a. set_morph
+    if lower.contains("morph") || lower.contains("dial") {
+        let node_id = extract_node_id(input);
+        let value = extract_frame_and_value(input).1;
+        let morph = {
+            let words: Vec<&str> = lower.split_whitespace().collect();
+            words
+                .iter()
+                .find(|w| !["set", "morph", "dial", "to", "the", "on", "at", "frame"].contains(w))
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "Fitness".to_string())
+        };
+        return Some(StructuredAiAction {
+            command: "set_morph".to_string(),
+            args: serde_json::json!({
+                "node_id": node_id,
+                "morph": morph,
+                "value": value.to_string(),
+            }),
+            confidence: 0.88,
+            sdk_refs: vec!["DzMorph".to_string()],
+            requires_confirmation: false,
+        });
+    }
+
+    // 5b. set_light intensity/color
+    if (lower.contains("light") || lower.contains("lighting"))
+        && (lower.contains("intensity") || lower.contains("brightness") || lower.contains("color"))
+    {
+        let node_id = extract_node_id(input);
+        let property = if lower.contains("color") || lower.contains("colour") {
+            "Color"
+        } else {
+            "Intensity"
+        };
+        let value = if property == "Color" {
+            extract_color(input)
+        } else {
+            extract_numeric_value(input)
+        };
+        return Some(StructuredAiAction {
+            command: "set_light".to_string(),
+            args: serde_json::json!({
+                "node_id": node_id,
+                "property": property,
+                "value": value,
+            }),
+            confidence: 0.88,
+            sdk_refs: vec!["DzLight".to_string()],
+            requires_confirmation: false,
+        });
+    }
+
+    // 5c. render settings
+    if lower.contains("render") && (lower.contains("resolution") || lower.contains("size") || lower.contains("1920") || lower.contains("4k")) {
+        let numbers: Vec<i32> = lower
+            .split_whitespace()
+            .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
+            .collect();
+        let (width, height) = if numbers.len() >= 2 {
+            (numbers[0], numbers[1])
+        } else {
+            (1920, 1080)
+        };
+        return Some(StructuredAiAction {
+            command: "set_render_settings".to_string(),
+            args: serde_json::json!({
+                "width": width.to_string(),
+                "height": height.to_string(),
+            }),
+            confidence: 0.85,
+            sdk_refs: vec!["DzRenderMgr".to_string()],
+            requires_confirmation: false,
+        });
+    }
+
+    // 5d. add figure
+    if (lower.contains("add") || lower.contains("create") || lower.contains("load"))
+        && (lower.contains("figure") || lower.contains("genesis") || lower.contains("character"))
+    {
+        let figure_type = if lower.contains("genesis 9") || lower.contains("g9") || lower.contains("genesis9") {
+            "genesis9"
+        } else {
+            "genesis8"
+        };
+        return Some(StructuredAiAction {
+            command: "add_figure".to_string(),
+            args: serde_json::json!({ "figure_type": figure_type }),
+            confidence: 0.9,
+            sdk_refs: vec!["DzFigure".to_string()],
+            requires_confirmation: false,
+        });
+    }
+
     // 5. load_asset using Full-Text Search
     if lower.contains("load") || lower.contains("apply") || lower.contains("add") || lower.contains("put on") || lower.contains("equip") || lower.contains("use") || lower.contains("import") {
         if let Some(target) = extract_asset_search_query(input) {
@@ -396,11 +490,14 @@ pub fn plan_validated_action(input: &str) -> Option<StructuredAiAction> {
 }
 
 pub fn execute_structured_action(action: StructuredAiAction) -> Result<String, String> {
-    crate::mcp_client::validate_command(&action.command, &action.args)?;
-    
+    let (command, args) = resolve_action_for_bridge(&action)?;
+    crate::mcp_client::validate_command(&command, &args)?;
+
     // Start undo batch for modifying commands
-    let is_modifying = match action.command.as_str() {
-        "load_asset" | "apply_pose" | "add_node" | "set_property" | "set_material_property" | "delete_node" => true,
+    let is_modifying = match command.as_str() {
+        "load_asset" | "apply_pose" | "add_node" | "add_figure" | "set_property"
+        | "set_material_property" | "set_morph" | "set_light" | "set_render_settings"
+        | "delete_node" => true,
         _ => false,
     };
 
@@ -408,11 +505,11 @@ pub fn execute_structured_action(action: StructuredAiAction) -> Result<String, S
         let _ = crate::mcp_client::send_mcp_request("begin_undo_batch", serde_json::json!({}));
     }
 
-    let result = match crate::mcp_client::send_mcp_request(&action.command, action.args.clone()) {
+    let result = match crate::mcp_client::send_mcp_request(&command, args) {
         Ok(response) => {
             if is_modifying {
-                let _ = crate::mcp_client::send_mcp_request("accept_undo_batch", serde_json::json!({ "caption": format!("AI: {}", action.command) }));
-                crate::ai_system::enqueue_summary_event(format!("Command executed successfully: {} with args {}", action.command, action.args));
+                let _ = crate::mcp_client::send_mcp_request("accept_undo_batch", serde_json::json!({ "caption": format!("AI: {}", command) }));
+                crate::ai_system::enqueue_summary_event(format!("Command executed successfully: {} with args {}", command, action.args));
             }
             Ok(response.result.or_else(|| response.data.map(|d| d.to_string())).unwrap_or_else(|| "ok".to_string()))
         }
@@ -426,6 +523,34 @@ pub fn execute_structured_action(action: StructuredAiAction) -> Result<String, S
     result
 }
 
+fn resolve_action_for_bridge(action: &StructuredAiAction) -> Result<(String, serde_json::Value), String> {
+    if action.command != "add_figure" {
+        return Ok((action.command.clone(), action.args.clone()));
+    }
+    if let Some(path) = action.args.get("path").and_then(|v| v.as_str()) {
+        if !path.is_empty() {
+            return Ok(("load_asset".to_string(), serde_json::json!({ "path": path })));
+        }
+    }
+    let figure_type = action
+        .args
+        .get("figure_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("genesis8");
+    let query = if figure_type.contains('9') {
+        "Genesis 9 Female"
+    } else {
+        "Genesis 8 Female"
+    };
+    if let Some(path) = search_best_matching_asset(query) {
+        return Ok(("load_asset".to_string(), serde_json::json!({ "path": path })));
+    }
+    Err(format!(
+        "No indexed figure found for '{}'. Scan your Daz content library in Assets, then retry.",
+        figure_type
+    ))
+}
+
 fn sdk_refs_for_command(command: &str) -> Vec<String> {
     match command {
         "get_scene_info" | "list_nodes" | "get_selected_nodes" | "select_node" => {
@@ -436,6 +561,11 @@ fn sdk_refs_for_command(command: &str) -> Vec<String> {
         "load_asset" | "import_model" | "export_scene" => vec!["DzContentMgr".to_string(), "DzAsset".to_string()],
         "apply_pose" => vec!["DzFigure".to_string(), "DzPose".to_string()],
         "run_script" => vec!["DzScript".to_string()],
+        "set_morph" => vec!["DzMorph".to_string(), "DzFloatProperty".to_string()],
+        "set_light" => vec!["DzLight".to_string(), "DzProperty".to_string()],
+        "set_render_settings" => vec!["DzRenderMgr".to_string()],
+        "add_figure" => vec!["DzFigure".to_string(), "DzContentMgr".to_string()],
+        "get_scene_assets" => vec!["DzScene".to_string()],
         _ => vec![],
     }
 }
@@ -734,11 +864,18 @@ fn execute_add_light(action: &AiAction) -> ActionResult {
 }
 
 fn execute_add_figure(action: &AiAction) -> ActionResult {
-    match crate::mcp_client::send_mcp_request("add_figure", serde_json::json!({ "type": action.target })) {
-        Ok(resp) => ActionResult {
-            success: resp.status == "ok",
-            message: format!("Added {} figure to Daz3D scene", action.target),
-            results: vec![resp.result.unwrap_or_default()],
+    let structured = StructuredAiAction {
+        command: "add_figure".to_string(),
+        args: serde_json::json!({ "figure_type": action.target }),
+        confidence: action.confidence,
+        sdk_refs: vec!["DzFigure".to_string()],
+        requires_confirmation: false,
+    };
+    match execute_structured_action(structured) {
+        Ok(msg) => ActionResult {
+            success: true,
+            message: format!("Added {} figure to Daz3D scene: {}", action.target, msg),
+            results: vec![msg],
         },
         Err(e) => ActionResult {
             success: false,

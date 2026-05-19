@@ -1,118 +1,121 @@
 /* Design Tokens - CSS Custom Properties */
-/* These are the base design decisions the app follows */
+/* DazPilot cyberpunk red/black theme */
 
 :root {
   /* ==================== COLORS ==================== */
-  
-  /* Primary */
-  --color-primary: #00d4ff;
-  --color-primary-hover: #00b8e6;
-  --color-primary-foreground: #000000;
-  
+
+  /* Primary — signal red */
+  --color-primary: #ef4444;
+  --color-primary-hover: #f87171;
+  --color-primary-foreground: #ffffff;
+
   /* Backgrounds */
-  --color-background: #1a1a1a;
-  --color-surface: #252525;
-  --color-surface-elevated: #2a2a2a;
-  
+  --color-background: #0a0a0a;
+  --color-surface: #111111;
+  --color-surface-elevated: #1a1a1a;
+
   /* Borders */
-  --color-border: #333333;
-  --color-border-hover: #444444;
-  
+  --color-border: #262626;
+  --color-border-hover: #404040;
+
   /* Text */
-  --color-text: #e0e0e0;
-  --color-text-muted: #666666;
-  --color-text-disabled: #444444;
-  
+  --color-text: #e5e5e5;
+  --color-text-muted: #71717a;
+  --color-text-disabled: #52525b;
+
   /* Semantic */
-  --color-success: #00ff88;
-  --color-warning: #ffaa00;
-  --color-error: #ff4444;
-  --color-info: #00d4ff;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #22d3ee;
 
   /* ==================== UNIFIED APP-WIDE CSS MODULE TOKENS ==================== */
-  /* These map directly to the custom properties used in DazPilot CSS Modules */
-  --color-bg-primary: #0b0b0f;            /* Obsidian workspace background */
-  --color-bg-elevated: #13131b;           /* Card, panel and tab backgrounds */
-  --color-bg-subtle: #0f0f14;             /* Sidebar and list item backgrounds */
-  --color-border-subtle: rgba(255, 255, 255, 0.08); /* Clean glassy border dividers */
-  --color-primary-bg: rgba(0, 212, 255, 0.12); /* Translucent glow highlight for active states */
-  --color-primary-glow: rgba(0, 212, 255, 0.4);
-  --color-primary-contrast: #000000;      /* Dark contrast text on top of cyan button */
-  --color-accent: #a855f7;                /* Neon purple accent */
-  --color-accent-bg: rgba(168, 85, 247, 0.12);
-  --color-accent-glow: rgba(168, 85, 247, 0.4);
-  --color-text-primary: #f8fafc;          /* Ultra-clean Slate-50 primary text */
-  --color-text-secondary: #cbd5e1;        /* Soft Slate-300 secondary text */
-  
-  /* Glassmorphism primitives */
-  --color-glass-bg: rgba(19, 19, 27, 0.75);
+  --color-bg-primary: #0a0a0a;
+  --color-bg-elevated: #111111;
+  --color-bg-subtle: #1a1a1a;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-primary-bg: rgba(239, 68, 68, 0.12);
+  --color-primary-glow: rgba(239, 68, 68, 0.35);
+  --color-primary-contrast: #ffffff;
+  --color-accent: #22d3ee;
+  --color-accent-bg: rgba(34, 211, 238, 0.1);
+  --color-accent-glow: rgba(34, 211, 238, 0.35);
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+
+  /* Glassmorphism */
+  --color-glass-bg: rgba(17, 17, 17, 0.75);
   --color-glass-border: rgba(255, 255, 255, 0.08);
   --color-glass-blur: blur(16px);
-  
+
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
-  --gradient-card: linear-gradient(145deg, rgba(25, 25, 35, 0.6) 0%, rgba(15, 15, 22, 0.8) 100%);
-  
-  /* Semantic Glow Colors */
-  --color-success-bg: rgba(0, 255, 136, 0.1);
-  --color-success-text: #00ff88;
-  --color-warning-bg: rgba(255, 170, 0, 0.1);
-  --color-warning-text: #ffaa00;
-  --color-error-bg: rgba(255, 68, 68, 0.1);
-  --color-error-text: #ff5555;
-  --color-info-bg: rgba(0, 212, 255, 0.1);
-  --color-info-text: #00d4ff;
-  
+  --gradient-primary: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-card: linear-gradient(145deg, rgba(26, 26, 26, 0.6) 0%, rgba(10, 10, 10, 0.9) 100%);
+
+  /* Semantic glow */
+  --color-success-bg: rgba(34, 197, 94, 0.1);
+  --color-success-text: #22c55e;
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-warning-text: #f59e0b;
+  --color-error-bg: rgba(239, 68, 68, 0.1);
+  --color-error-text: #f87171;
+  --color-info-bg: rgba(34, 211, 238, 0.1);
+  --color-info-text: #22d3ee;
+
   /* ==================== SPACING ==================== */
-  
+
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
-  
+
   /* ==================== BORDER RADIUS ==================== */
-  
+
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
-  
+
   /* ==================== TYPOGRAPHY ==================== */
-  
-  --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', 'source-code-pro', Menlo, Monaco, Consolas, monospace;
-  
-  --font-size-xs: 0.75rem;    /* 12px */
-  --font-size-sm: 0.875rem;   /* 14px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-lg: 1.125rem;   /* 18px */
-  --font-size-xl: 1.25rem;    /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
-  
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  
+
   /* ==================== SHADOWS ==================== */
-  
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
-  
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.7);
+  --shadow-glow-red: 0 0 24px rgba(239, 68, 68, 0.15);
+  --shadow-glow-red-sm: 0 0 12px rgba(239, 68, 68, 0.25);
+  --shadow-glow-cyan: 0 0 16px rgba(34, 211, 238, 0.2);
+
   /* ==================== TRANSITIONS ==================== */
-  
+
   --transition-fast: 150ms ease;
   --transition-normal: 200ms ease;
   --transition-slow: 300ms ease;
-  
+
   /* ==================== Z-INDEX ==================== */
-  
+
   --z-dropdown: 100;
   --z-sticky: 200;
   --z-modal: 300;
@@ -120,4 +123,29 @@
   --z-tooltip: 500;
 }
 
-/* Dark mode is the default (already set above in :root) */
+[data-theme='light'] {
+  --color-background: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-border: #e5e5e5;
+  --color-border-hover: #d4d4d4;
+  --color-text: #171717;
+  --color-text-muted: #737373;
+  --color-primary: #dc2626;
+  --color-primary-hover: #ef4444;
+  --color-primary-bg: rgba(220, 38, 38, 0.12);
+  --color-primary-glow: rgba(220, 38, 38, 0.25);
+  --color-bg-primary: #fafafa;
+  --color-bg-elevated: #ffffff;
+  --color-bg-subtle: #f5f5f5;
+  --color-border-subtle: rgba(0, 0, 0, 0.08);
+  --color-text-primary: #171717;
+  --color-text-secondary: #525252;
+  --color-glass-bg: rgba(255, 255, 255, 0.85);
+  --color-glass-border: rgba(0, 0, 0, 0.08);
+  --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.95) 100%);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+}

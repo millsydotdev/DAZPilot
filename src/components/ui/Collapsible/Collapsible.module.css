@@ -1,0 +1,40 @@
+.container {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.header:hover {
+  background: var(--bg-tertiary);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.title {
+  flex: 1;
+}
+
+.content {
+  padding: 12px;
+  border-top: 1px solid var(--border-color);
+}

@@ -1,6 +1,10 @@
 pub mod task_planner;
 pub mod asset_selection;
 pub mod animation_agent;
+pub mod conflict_resolution;
+pub mod render_agent;
+pub mod physics_agent;
+pub mod scene_composer;
 
 use serde::{Deserialize, Serialize};
 
@@ -39,6 +43,10 @@ pub fn execute_agent(request: AgentRequest) -> AgentResponse {
         "task_planner" => task_planner::execute(request),
         "asset_selection" => asset_selection::execute(request),
         "animation" => animation_agent::execute(request),
+        "conflict_resolution" => conflict_resolution::execute(request),
+        "render" => render_agent::execute(request),
+        "physics" => physics_agent::execute(request),
+        "scene_composer" => scene_composer::execute(request),
         _ => AgentResponse {
             success: false,
             result: None,

@@ -31,6 +31,56 @@
 #include <string>
 #include <thread>
 
+#include "dzpane.h"
+#include <QtGui/QLabel>
+#include <QtGui/QVBoxLayout>
+#include <QtGui/QTextEdit>
+
+class DazPilotPane : public DzPane {
+    Q_OBJECT
+public:
+    DazPilotPane() : DzPane("DazPilot Bridge") {
+        QVBoxLayout* layout = new QVBoxLayout(this);
+        
+        QLabel* titleLabel = new QLabel("DazPilot AI Bridge", this);
+        QFont titleFont = titleLabel->font();
+        titleFont.setBold(true);
+        titleFont.setPointSize(12);
+        titleLabel->setFont(titleFont);
+        layout->addWidget(titleLabel);
+
+        m_statusLabel = new QLabel("Status: Disconnected", this);
+        layout->addWidget(m_statusLabel);
+
+        layout->addWidget(new QLabel("Last Commands:", this));
+        m_logArea = new QTextEdit(this);
+        m_logArea->setReadOnly(true);
+        layout->addWidget(m_logArea);
+
+        QTimer* timer = new QTimer(this);
+        connect(timer, SIGNAL(timeout()), this, SLOT(updateStatus()));
+        timer->start(1000);
+    }
+
+public slots:
+    void updateStatus() {
+        if (g_serverRunning.load()) {
+            m_statusLabel->setText(QString("Status: Listening on %1:%2")
+                .arg(g_state.host).arg(g_state.port));
+            m_statusLabel->setStyleSheet("color: #00ff00;");
+        } else {
+            m_statusLabel->setText("Status: Stopped");
+            m_statusLabel->setStyleSheet("color: #ff0000;");
+        }
+    }
+
+private:
+    QLabel* m_statusLabel;
+    QTextEdit* m_logArea;
+};
+
+#include "DazPilotBridgePlugin.moc"
+
 #ifdef _WIN32
 using BridgeSocket = SOCKET;
 static constexpr BridgeSocket INVALID_BRIDGE_SOCKET = INVALID_SOCKET;
@@ -524,23 +574,92 @@ static bool SetMaterialProperty(const QString& nodeId, const QString& propName, 
     return setAny;
 }
 
-static std::string GetNodeProperties(const QString& nodeId) {
-    if (!dzScene) return "{}";
+static std::string GetMaterialProperties(const QString& nodeId) {
+    if (!dzScene) return "{\"materials\":[]}";
     DzNode* node = dzScene->findNode(nodeId);
     if (!node) node = dzScene->getPrimarySelection();
-    if (!node) return "{}";
+    if (!node) return "{\"materials\":[]}";
+
+    DzObject* obj = node->getObject();
+    if (!obj) return "{\"materials\":[]}";
+
+    std::ostringstream oss;
+    oss << "{\"materials\":[";
+    bool firstMat = true;
+
+    for (int i = 0; i < obj->getNumShapes(); ++i) {
+        DzShape* shape = obj->getShape(i);
+        if (!shape) continue;
+
+        for (int j = 0; j < shape->getNumMaterials(); ++j) {
+            DzMaterial* mat = shape->getMaterial(j);
+            if (!mat) continue;
+
+            if (!firstMat) oss << ",";
+            firstMat = false;
+
+            oss << "{";
+            oss << "\"name\":\"" << JsonEscape(mat->getName()) << "\",";
+            oss << "\"label\":\"" << JsonEscape(mat->getLabel()) << "\",";
+            oss << "\"properties\":[";
+            
+            bool firstProp = true;
+            for (int k = 0; k < mat->getNumProperties(); ++k) {
+                DzProperty* prop = mat->getProperty(k);
+                if (!prop) continue;
+                
+                DzFloatProperty* fProp = qobject_cast<DzFloatProperty*>(prop);
+                if (!fProp) continue;
+
+                if (!firstProp) oss << ",";
+                firstProp = false;
+
+                oss << "{";
+                oss << "\"name\":\"" << JsonEscape(prop->getName()) << "\",";
+                oss << "\"label\":\"" << JsonEscape(prop->getLabel()) << "\",";
+                oss << "\"value\":" << fProp->getValue() << ",";
+                oss << "\"min\":" << fProp->getMin() << ",";
+                oss << "\"max\":" << fProp->getMax();
+                oss << "}";
+            }
+            oss << "]";
+            oss << "}";
+        }
+    }
+    oss << "]}";
+    return oss.str();
+}
+
+static std::string GetNodeProperties(const QString& nodeId) {
+    if (!dzScene) return "{\"properties\":[]}";
+    DzNode* node = dzScene->findNode(nodeId);
+    if (!node) node = dzScene->getPrimarySelection();
+    if (!node) return "{\"properties\":[]}";
 
     std::ostringstream oss;
     oss << "{\"properties\":[";
     bool first = true;
+    
+    // We want to collect numeric properties, especially morphs and transform properties
     for (int i = 0; i < node->getNumProperties(); ++i) {
         DzProperty* prop = node->getProperty(i);
-        if (prop && prop->canAnimate()) {
-            if (!first) oss << ",";
-            first = false;
-            oss << "{\"name\":\"" << JsonEscape(prop->getName()) << "\",";
-            oss << "\"type\":\"" << JsonEscape(prop->className()) << "\"}";
-        }
+        if (!prop) continue;
+        
+        DzFloatProperty* fProp = qobject_cast<DzFloatProperty*>(prop);
+        if (!fProp) continue;
+
+        if (!first) oss << ",";
+        first = false;
+        
+        oss << "{";
+        oss << "\"name\":\"" << JsonEscape(prop->getName()) << "\",";
+        oss << "\"label\":\"" << JsonEscape(prop->getLabel()) << "\",";
+        oss << "\"value\":" << fProp->getValue() << ",";
+        oss << "\"min\":" << fProp->getMin() << ",";
+        oss << "\"max\":" << fProp->getMax() << ",";
+        oss << "\"path\":\"" << JsonEscape(prop->getPath()) << "\",";
+        oss << "\"is_morph\":" << (prop->getPath().contains("Morphs") ? "true" : "false");
+        oss << "}";
     }
     oss << "]}";
     return oss.str();
@@ -573,6 +692,73 @@ static std::string GetGeoshellsData() {
     }
     oss << "]}";
     return oss.str();
+}
+
+static std::string GetSceneAssetsData() {
+    if (!dzScene) return "{\"assets\":[]}";
+    std::ostringstream oss;
+    oss << "{\"assets\":[";
+    bool first = true;
+    DzNodeListIterator it = dzScene->nodeListIterator();
+    while (it.hasNext()) {
+        DzNode* node = it.next();
+        if (!node) continue;
+        QString label = node->getLabel();
+        if (label.isEmpty()) label = node->getName();
+        if (label.isEmpty()) continue;
+        if (!first) oss << ",";
+        first = false;
+        oss << "\"" << JsonEscape(label) << "\"";
+    }
+    oss << "]}";
+    return oss.str();
+}
+
+static bool SetMorphValue(const QString& nodeId, const QString& morphName, const QString& valueStr) {
+    if (!dzScene) return false;
+    DzNode* node = dzScene->findNode(nodeId);
+    if (!node) node = dzScene->getPrimarySelection();
+    if (!node) return false;
+
+    DzProperty* prop = node->findProperty(morphName, false);
+    if (!prop) {
+        for (int i = 0; i < node->getNumProperties(); ++i) {
+            DzProperty* candidate = node->getProperty(i);
+            if (!candidate) continue;
+            if (candidate->getName().compare(morphName, Qt::CaseInsensitive) == 0 ||
+                candidate->getLabel().compare(morphName, Qt::CaseInsensitive) == 0) {
+                prop = candidate;
+                break;
+            }
+        }
+    }
+    if (!prop) return false;
+
+    if (DzFloatProperty* fProp = qobject_cast<DzFloatProperty*>(prop)) {
+        fProp->setValue(valueStr.toFloat());
+        return true;
+    }
+    return SetProperty(nodeId, morphName, valueStr);
+}
+
+static bool ApplyRenderSettings(const QString& widthStr, const QString& heightStr) {
+    if (!dzApp) return false;
+    int width = widthStr.toInt();
+    int height = heightStr.toInt();
+    if (width <= 0) width = 1920;
+    if (height <= 0) height = 1080;
+
+    QString script = QString(
+        "var rm = App.getRenderMgr();\n"
+        "if (rm) {\n"
+        "  rm.setRenderImgSize(%1, %2);\n"
+        "  true;\n"
+        "} else { false; }\n"
+    ).arg(width).arg(height);
+
+    DzScript dzScript;
+    dzScript.addLine(script);
+    return dzScript.execute();
 }
 
 static std::string GetBoundingBoxesData() {
@@ -627,7 +813,12 @@ static std::string CommandsData() {
         "{\"name\":\"accept_undo_batch\",\"description\":\"Accept the current undo batch\",\"category\":\"Scene\",\"parameters\":[\"caption\"]},"
         "{\"name\":\"cancel_undo_batch\",\"description\":\"Cancel the current undo batch\",\"category\":\"Scene\",\"parameters\":[]},"
         "{\"name\":\"get_bounding_boxes\",\"description\":\"Get world-space 3D bounding boxes of all scene nodes\",\"category\":\"Vision\",\"parameters\":[]},"
-        "{\"name\":\"run_script\",\"description\":\"Evaluate arbitrary DazScript\",\"category\":\"Scripting\",\"parameters\":[\"script\",\"args\"]}"
+        "{\"name\":\"run_script\",\"description\":\"Evaluate arbitrary DazScript\",\"category\":\"Scripting\",\"parameters\":[\"script\",\"args\"]},"
+        "{\"name\":\"get_scene_assets\",\"description\":\"List loaded scene node labels\",\"category\":\"Scene\",\"parameters\":[]},"
+        "{\"name\":\"add_figure\",\"description\":\"Add Genesis figure (requires path or content)\",\"category\":\"Scene\",\"parameters\":[\"figure_type\",\"path\"]},"
+        "{\"name\":\"set_morph\",\"description\":\"Set morph dial value\",\"category\":\"Properties\",\"parameters\":[\"node_id\",\"morph\",\"value\"]},"
+        "{\"name\":\"set_light\",\"description\":\"Set light property\",\"category\":\"Lighting\",\"parameters\":[\"node_id\",\"property\",\"value\"]},"
+        "{\"name\":\"set_render_settings\",\"description\":\"Set render image size\",\"category\":\"Render\",\"parameters\":[\"width\",\"height\"]}"
     "]}";
 }
 
@@ -787,6 +978,10 @@ static std::string DispatchRequest(const std::string& line) {
         QString nodeId = ExtractArgString(line, "node_id");
         return OkResponse(id, GetNodeProperties(nodeId));
     }
+    if (command == "get_material_properties") {
+        QString nodeId = ExtractArgString(line, "node_id");
+        return OkResponse(id, GetMaterialProperties(nodeId));
+    }
     if (command == "delete_node") {
         QString nodeId = ExtractArgString(line, "node_id");
         if (DeleteNode(nodeId)) {
@@ -796,6 +991,45 @@ static std::string DispatchRequest(const std::string& line) {
     }
     if (command == "get_geoshells") {
         return OkResponse(id, GetGeoshellsData());
+    }
+    if (command == "get_scene_assets") {
+        return OkResponse(id, GetSceneAssetsData());
+    }
+    if (command == "add_figure") {
+        QString path = ExtractArgString(line, "path");
+        if (!path.isEmpty()) {
+            if (OpenContentFile(path, true)) {
+                return OkResponse(id, std::string("{\"path\":\"") + JsonEscape(path) + "\"}");
+            }
+            return ErrorResponse(id, QString("Figure load failed: %1").arg(path));
+        }
+        return ErrorResponse(id, "add_figure requires a content path; index library and use load_asset or pass path");
+    }
+    if (command == "set_morph") {
+        QString nodeId = ExtractArgString(line, "node_id");
+        QString morph = ExtractArgString(line, "morph");
+        QString val = ExtractArgString(line, "value");
+        if (SetMorphValue(nodeId, morph, val)) {
+            return OkResponse(id, "{\"set\":true}");
+        }
+        return ErrorResponse(id, QString("Failed to set morph %1").arg(morph));
+    }
+    if (command == "set_light") {
+        QString nodeId = ExtractArgString(line, "node_id");
+        QString prop = ExtractArgString(line, "property");
+        QString val = ExtractArgString(line, "value");
+        if (SetProperty(nodeId, prop, val)) {
+            return OkResponse(id, "{\"set\":true}");
+        }
+        return ErrorResponse(id, QString("Failed to set light property %1").arg(prop));
+    }
+    if (command == "set_render_settings") {
+        QString width = ExtractArgString(line, "width");
+        QString height = ExtractArgString(line, "height");
+        if (ApplyRenderSettings(width, height)) {
+            return OkResponse(id, std::string("{\"width\":\"") + JsonEscape(width) + "\",\"height\":\"" + JsonEscape(height) + "\"}");
+        }
+        return ErrorResponse(id, "Failed to apply render settings");
     }
 
     if (command == "apply_phy_modifier") {
@@ -1182,6 +1416,7 @@ protected:
 };
 
 DZ_CUSTOM_PLUGIN_DEFINITION(DazPilotBridgeDzPlugin);
+DZ_PLUGIN_CLASS_GUID(DazPilotPane, 2D5B8E01-A301-48CD-AF81-C3BB80EC4AA6);
 DZ_PLUGIN_CLASS_GUID(DazPilotPhyModifier, F9EC5E01-A301-48CD-AF81-C3BB80EC4AA6);
 DZ_PLUGIN_CLASS_GUID(DazPilotPhyModifierIO, 1C884DA8-6C3C-4364-81B4-272501D5DDD8);
 DZ_PLUGIN_REGISTER_MODIFIER_EXTRA_OBJECT_IO("dazpilot_phy", DazPilotPhyModifierIO, DazPilotPhyModifier);

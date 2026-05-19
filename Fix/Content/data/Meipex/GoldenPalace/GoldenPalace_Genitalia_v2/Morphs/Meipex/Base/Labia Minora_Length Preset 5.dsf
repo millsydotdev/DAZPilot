@@ -1,0 +1,99 @@
+{
+	"file_version" : "0.6.0.0",
+	"asset_info" : {
+		"id" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/Labia%20Minora_Length%20Preset%205.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "Meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2021-10-18T07:03:25Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "Labia Minora_Length Preset 5",
+			"name" : "Labia Minora_Length Preset 5",
+			"parent" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_2254_R.dsf#GoldenPalace_2254",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/MinoraLengthPreset5.png",
+				"colors" : [ [ 1, 0.5019608, 1 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Labia Minora_Length Preset 5",
+				"label" : "Labia Minora_Length Preset 5",
+				"value" : 0,
+				"min" : 0,
+				"max" : 1,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.04
+			},
+			"group" : "/3-Labia Minora",
+			"formulas" : [
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMinora_Length5b.dsf#LabiaMinora_Length5?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Minora_Length%20Preset%205?value" },
+						{ "op" : "push", "val" : 1 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMinora_Length4.dsf#LabiaMinora_Length4?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Minora_Length%20Preset%205?value" },
+						{ "op" : "push", "val" : -0.26703 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMinora_Length3.dsf#LabiaMinora_Length2?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Minora_Length%20Preset%205?value" },
+						{ "op" : "push", "val" : -0.1525885 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMinora_Length2.dsf#LabiaMinora_Length3?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Minora_Length%20Preset%205?value" },
+						{ "op" : "push", "val" : 0.7711172 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMinora_Length1.dsf#LabiaMinora_Length1?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Minora_Length%20Preset%205?value" },
+						{ "op" : "push", "val" : 0.4564033 },
+						{ "op" : "mult" }
+					]
+				},
+				{
+					"output" : "GoldenPalace_2254:/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/Morphs/Meipex/Base/LabiaMinora_Inflate_Front.dsf#LabiaMinora_Inflate_Front?value",
+					"operations" : [
+						{ "op" : "push", "url" : "GoldenPalace_2254:#Labia%20Minora_Length%20Preset%205?value" },
+						{ "op" : "push", "val" : 2 },
+						{ "op" : "mult" }
+					]
+				}
+			]
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "Labia Minora_Length Preset 5-1",
+				"url" : "#Labia%20Minora_Length%20Preset%205"
+			}
+		]
+	}
+}

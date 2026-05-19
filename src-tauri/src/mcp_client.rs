@@ -248,9 +248,37 @@ const COMMAND_SCHEMAS: &[CommandSchema] = &[
     },
     CommandSchema {
         name: "get_scene_assets",
-        description: "Get list of loaded assets in the current scene",
+        description: "Get list of loaded asset labels currently in the Daz Studio scene",
         category: "Scene",
         parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "add_figure",
+        description: "Add a Genesis figure (8 or 9) to the scene. Use 'genesis8' or 'genesis9'.",
+        category: "Scene",
+        parameters: &["figure_type"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_morph",
+        description: "Set a morph dial value on a figure (0.0–1.0)",
+        category: "Properties",
+        parameters: &["node_id", "morph", "value"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_light",
+        description: "Set a light property (intensity, color, etc.)",
+        category: "Lighting",
+        parameters: &["node_id", "property", "value"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_render_settings",
+        description: "Apply render resolution and quality presets",
+        category: "Render",
+        parameters: &["width", "height"],
         high_risk: false,
     },
 ];
@@ -508,6 +536,11 @@ fn dev_mock_response(command: &str, args: &Value) -> Result<McpResponse, String>
         }),
         "list_nodes" | "get_selected_nodes" => serde_json::json!({ "nodes": [], "dev_mock": true }),
         "get_cameras" => serde_json::json!({ "cameras": [], "dev_mock": true }),
+        "capture_viewport" => serde_json::json!({
+            "result": "base64",
+            "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+            "dev_mock": true
+        }),
         _ => serde_json::json!({ "command": command, "args": args, "dev_mock": true }),
     };
 
@@ -555,8 +588,10 @@ pub fn send_daz3d_command(command: String, args: Value) -> Result<McpResponse, S
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     #[test]
+    #[serial]
     fn status_never_reports_mock() {
         std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
         assert!(matches!(
@@ -577,6 +612,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn connection_fails_with_useful_error_when_bridge_not_running() {
         std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
         let result = McpConnection::connect("127.0.0.1", 19999);
@@ -594,6 +630,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn mock_bridge_provides_valid_responses() {
         std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
         let resp = send_mcp_request("get_scene_info", serde_json::json!({}));
@@ -618,6 +655,58 @@ mod tests {
         let raw = r#"{"status":"error","error":"something broke"}"#;
         let resp = parse_bridge_response(raw).unwrap();
         assert_eq!(resp.status, "error");
+    }
+
+    #[test]
+    #[serial]
+    fn acceptance_mock_bridge_core_commands() {
+        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
+        let commands = [
+            ("get_scene_info", serde_json::json!({})),
+            ("list_nodes", serde_json::json!({})),
+            ("get_scene_assets", serde_json::json!({})),
+            ("add_figure", serde_json::json!({ "figure_type": "genesis9" })),
+            ("set_morph", serde_json::json!({
+                "node_id": "Genesis",
+                "morph": "Fitness",
+                "value": "0.5"
+            })),
+            ("set_light", serde_json::json!({
+                "node_id": "Light 1",
+                "property": "Intensity",
+                "value": "1.2"
+            })),
+            ("set_render_settings", serde_json::json!({
+                "width": "1920",
+                "height": "1080"
+            })),
+        ];
+        for (cmd, args) in commands {
+            let resp = send_mcp_request(cmd, args);
+            assert!(resp.is_ok(), "acceptance failed for {}", cmd);
+            assert_eq!(resp.unwrap().status, "ok");
+        }
+        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
+    }
+
+    #[test]
+    fn acceptance_schema_includes_workflow_commands() {
+        let names: Vec<&str> = COMMAND_SCHEMAS.iter().map(|s| s.name).collect();
+        for required in [
+            "get_scene_assets",
+            "add_figure",
+            "set_morph",
+            "set_light",
+            "set_render_settings",
+        ] {
+            assert!(names.contains(&required), "missing schema {}", required);
+        }
+    }
+
+    #[test]
+    fn bridge_response_parser_error_has_message() {
+        let raw = r#"{"status":"error","error":"something broke"}"#;
+        let resp = parse_bridge_response(raw).unwrap();
         assert_eq!(resp.error, Some("something broke".to_string()));
     }
 

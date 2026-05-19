@@ -330,7 +330,14 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
           {MODEL_PRESETS.map((preset) => (
             <div
               key={preset.id}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelectedPreset(preset)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  setSelectedPreset(preset);
+                }
+              }}
               className={`${styles.presetItem} ${selectedPreset.id === preset.id ? styles.selected : ''}`}
             >
               <div className={styles.presetHeader}>
@@ -476,7 +483,14 @@ export function FirstLaunchWizard({ onComplete }: FirstLaunchWizardProps) {
         {models.map((model) => (
           <div
             key={model.name}
+            role="button"
+            tabIndex={0}
             onClick={() => setSelectedLocalModel(model)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                setSelectedLocalModel(model);
+              }
+            }}
             className={`${styles.readyItem} ${selectedLocalModel?.name === model.name ? styles.selected : ''}`}
           >
             <span className={styles.readyName}>{model.name}</span>

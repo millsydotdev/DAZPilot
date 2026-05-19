@@ -14,6 +14,17 @@
   border: 1px solid var(--color-border-subtle);
   position: relative;
   min-height: 400px;
+  overflow: hidden;
+}
+
+.viewportImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.syncButton {
+  font-size: 11px !important;
 }
 
 .placeholder {
@@ -295,4 +306,93 @@
   font-size: var(--font-size-xs);
   text-align: center;
   padding: var(--spacing-md);
+}
+
+.viewportImageContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.viewportStatusBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.25);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  color: #00ff88;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.viewportStatusBadgeError {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.25);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  color: #ff4444;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusLiveDot {
+  width: 6px;
+  height: 6px;
+  background: #00ff88;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #00ff88;
+  animation: pulse 1.5s infinite;
+}
+
+.syncOverlay {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.captureButton {
+  font-size: 11px !important;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.hudError {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 11px;
+  color: #ff4444;
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid rgba(255, 68, 68, 0.15);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  width: 100%;
+  word-break: break-all;
+  text-align: left;
+  line-height: 1.4;
 }

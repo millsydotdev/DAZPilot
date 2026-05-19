@@ -1,0 +1,412 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/People/Genesis%208%20Female/Make%20Nude/Millsy_Make_Nude_G8F.dsf",
+		"type" : "preset",
+		"name" : "Millsy's Make Nude G8F",
+		"contributor" : {
+			"author" : "Millsy",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "2.0",
+		"modified" : "2025-01-01T00:00:00Z",
+		"description" : "Millsy's Make Nude - One-click complete Genesis 8 Female nude setup. Loads Golden Palace v2 (genitalia + shell + materials + UVs) + Realistic Breasts (breasts + shell + nipples + areolas + all materials)"
+	},
+	"scene" : {
+		"nodes" : [
+			{
+				"id" : "Genesis 8 Female",
+				"type" : "node",
+				"name" : "Genesis 8 Female",
+				"visible" : true,
+				"locked" : false,
+				"children" : []
+			}
+		]
+	},
+	"modifier_library" : [
+		{
+			"id" : "Millsy_GoldenPalace_Complete",
+			"name" : "Millsy's Make Nude - Golden Palace v2 Complete",
+			"parent" : "Genesis 8 Female",
+			"extra" : [
+				{
+					"type" : "studio/modifier/stacking_order",
+					"order" : 10
+				},
+				{
+					"type" : "studio_modifier_channels",
+					"channels" : [
+						{
+							"channel" : {
+								"id" : "Millsy_Load_GoldenPalace",
+								"type" : "bool",
+								"label" : "Load Golden Palace v2",
+								"value" : true,
+								"current_value" : true
+							},
+							"group" : "/Millsy/Make Nude/Golden Palace"
+						}
+					]
+				},
+				{
+					"type" : "studio/asset/bundle",
+					"assets" : [
+						{
+							"asset_type" : "wearable",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/Golden%20Palace%20v2/9-Genesis%208_1/1-GoldenPalace_Genitalia_v2.duf",
+							"load_as_hidden" : false
+						},
+						{
+							"asset_type" : "wearable",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/Golden%20Palace%20v2/9-Genesis%208_1/2-GoldenPalace_Shell_v2-G8F%208_1.duf",
+							"load_as_hidden" : false
+						},
+						{
+							"asset_type" : "geometry_shell",
+							"asset_path" : "/data/Millsy/Fixed_Shells/Millsy_Fixed_GoldenPalace_Shell.dsf",
+							"shell_source" : "/data/Meipex/GoldenPalace/GoldenPalace_Genitalia_v2/GoldenPalace_Genitalia_v2.dsf"
+						}
+					],
+					"name" : "Golden Palace v2 Complete (Genitalia + FIXED Shell + Materials + UVs)"
+				}
+			]
+		},
+		{
+			"id" : "Millsy_RealisticBreasts_Complete",
+			"name" : "Millsy's Make Nude - Realistic Breasts G8F Complete",
+			"parent" : "Genesis 8 Female",
+			"extra" : [
+				{
+					"type" : "studio/modifier/stacking_order",
+					"order" : 20
+				},
+				{
+					"type" : "studio_modifier_channels",
+					"channels" : [
+						{
+							"channel" : {
+								"id" : "Millsy_Load_Breasts",
+								"type" : "bool",
+								"label" : "Load Realistic Breasts",
+								"value" : true,
+								"current_value" : true
+							},
+							"group" : "/Millsy/Make Nude/Breasts"
+						},
+						{
+							"channel" : {
+								"id" : "Millsy_Breast_Size",
+								"type" : "float",
+								"label" : "Breast Size",
+								"value" : 0.5,
+								"current_value" : 0.5,
+								"min" : 0,
+								"max" : 1,
+								"step_size" : 0.01
+							},
+							"group" : "/Millsy/Make Nude/Breasts"
+						},
+						{
+							"channel" : {
+								"id" : "Millsy_Breast_Firmness",
+								"type" : "float",
+								"label" : "Firmness",
+								"value" : 0.5,
+								"current_value" : 0.5,
+								"min" : 0,
+								"max" : 1,
+								"step_size" : 0.01
+							},
+							"group" : "/Millsy/Make Nude/Breasts"
+						}
+					]
+				},
+				{
+					"type" : "studio/asset/bundle",
+					"assets" : [
+						{
+							"asset_type" : "wearable",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Breasts G8F/Graft/Realistic Breasts G8F.dsf",
+							"load_as_hidden" : false
+						},
+						{
+							"asset_type" : "wearable",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/01-Manual%20Loading/02-Shell.duf",
+							"load_as_hidden" : false
+						}
+					],
+					"name" : "Realistic Breasts G8F (Breasts + Shell)"
+				}
+			]
+		},
+		{
+			"id" : "Millsy_RealisticNipples_Complete",
+			"name" : "Millsy's Make Nude - Realistic Nipples G8F",
+			"parent" : "Genesis 8 Female",
+			"extra" : [
+				{
+					"type" : "studio/modifier/stacking_order",
+					"order" : 22
+				},
+				{
+					"type" : "studio_modifier_channels",
+					"channels" : [
+						{
+							"channel" : {
+								"id" : "Millsy_Load_RealisticNipples",
+								"type" : "bool",
+								"label" : "Load Realistic Nipples",
+								"value" : true,
+								"current_value" : true
+							},
+							"group" : "/Millsy/Make Nude/Nipples"
+						}
+					]
+				},
+				{
+					"type" : "studio/asset/bundle",
+					"assets" : [
+						{
+							"asset_type" : "wearable",
+							"asset_path" : "/People/Genesis%208%20Female/DragiHadzitosic/DragiHadzitosic-Realistic%20Nipples/DragiHadzitosic-Realistic%20Nipples.duf",
+							"load_as_hidden" : false
+						},
+						{
+							"asset_type" : "wearable",
+							"asset_path" : "/People/Genesis%208%20Female/DragiHadzitosic/DragiHadzitosic-Realistic%20Nipples/DragiHadzitosic-Realistic%20Nipples%20Shell.duf",
+							"load_as_hidden" : false
+						},
+						{
+							"asset_type" : "wearable",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Nipples/Realistic nipples/Realistic Nipples.dsf",
+							"load_as_hidden" : false
+						}
+					],
+					"name" : "Realistic Nipples G8F (Standalone + Shell)"
+				}
+			]
+		},
+		{
+			"id" : "Millsy_Nipples_Shapes",
+			"name" : "Millsy's Make Nude - Nipple Shapes G8F",
+			"parent" : "Genesis 8 Female",
+			"extra" : [
+				{
+					"type" : "studio/modifier/stacking_order",
+					"order" : 25
+				},
+				{
+					"type" : "studio_modifier_channels",
+					"channels" : [
+						{
+							"channel" : {
+								"id" : "Millsy_Nipple_Shape",
+								"type" : "enum",
+								"label" : "Nipple Shape",
+								"value" : 0,
+								"current_value" : 0,
+								"enum_values" : [ "Zero", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "Pointy", "Puffy", "Big", "Small", "Flat", "Tall", "Inverted" ]
+							},
+							"group" : "/Millsy/Make Nude/Nipples"
+						},
+						{
+							"channel" : {
+								"id" : "Millsy_Nipple_Size",
+								"type" : "float",
+								"label" : "Nipple Size",
+								"value" : 0,
+								"current_value" : 0,
+								"min" : 0,
+								"max" : 1,
+								"step_size" : 0.01
+							},
+							"group" : "/Millsy/Make Nude/Nipples"
+						},
+						{
+							"channel" : {
+								"id" : "Millsy_Nipple_Tall",
+								"type" : "float",
+								"label" : "Nipple Height",
+								"value" : 0,
+								"current_value" : 0,
+								"min" : 0,
+								"max" : 1,
+								"step_size" : 0.01
+							},
+							"group" : "/Millsy/Make Nude/Nipples"
+						}
+					]
+				},
+				{
+					"type" : "studio/asset/bundle",
+					"name" : "Nipple Shapes G8F",
+					"assets" : [
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/03-Custom%20Nipples%20Shapes/Custom%20Shape%2001.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/03-Custom%20Nipples%20Shapes/Custom%20Shape%2002.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/03-Custom%20Nipples%20Shapes/Custom%20Shape%2003.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/03-Custom%20Nipples%20Shapes/Custom%20Shape%2004.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/03-Custom%20Nipples%20Shapes/Custom%20Shape%2005.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/03-Custom%20Nipples%20Shapes/Custom%20Shape%2006.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/03-Custom%20Nipples%20Shapes/Custom%20Shape%2007.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/03-Custom%20Nipples%20Shapes/Custom%20Shape%2008.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Nipples/Realistic nipples/Morphs/DragiHadzitosic/Base/Pointy Nipples.dsf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Nipples/Realistic nipples/Morphs/DragiHadzitosic/Base/Puffy Nipples 01.dsf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Nipples/Realistic nipples/Morphs/DragiHadzitosic/Base/Big Nipples.dsf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Nipples/Realistic nipples/Morphs/DragiHadzitosic/Base/Small Nipples.dsf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Nipples/Realistic nipples/Morphs/DragiHadzitosic/Base/Flat Nipples.dsf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Nipples/Realistic nipples/Morphs/DragiHadzitosic/Base/Tall Nipples.dsf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/data/DragiHadzitosic/Realistic Nipples/Realistic nipples/Morphs/DragiHadzitosic/Base/Inverted Nipples.dsf"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id" : "Millsy_Areola_Shapes",
+			"name" : "Millsy's Make Nude - Areola Shapes G8F",
+			"parent" : "Genesis 8 Female",
+			"extra" : [
+				{
+					"type" : "studio/modifier/stacking_order",
+					"order" : 26
+				},
+				{
+					"type" : "studio_modifier_channels",
+					"channels" : [
+						{
+							"channel" : {
+								"id" : "Millsy_Areola_Shape",
+								"type" : "enum",
+								"label" : "Areola Shape",
+								"value" : 0,
+								"current_value" : 0,
+								"enum_values" : [ "Zero", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10" ]
+							},
+							"group" : "/Millsy/Make Nude/Areolas"
+						},
+						{
+							"channel" : {
+								"id" : "Millsy_Areola_Size",
+								"type" : "float",
+								"label" : "Areola Size",
+								"value" : 0,
+								"current_value" : 0,
+								"min" : 0,
+								"max" : 1,
+								"step_size" : 0.01
+							},
+							"group" : "/Millsy/Make Nude/Areolas"
+						}
+					]
+				},
+				{
+					"type" : "studio/asset/bundle",
+					"name" : "Areola Shapes G8F",
+					"assets" : [
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/01-Areolas%20Shapes/Areola%2001.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/01-Areolas%20Shapes/Areola%2002.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/01-Areolas%20Shapes/Areola%2003.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/01-Areolas%20Shapes/Areola%2004.duf"
+						},
+						{
+							"asset_type" : "shape",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/01-Areolas%20Shapes/Areola%2005.duf"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id" : "Millsy_Materials",
+			"name" : "Millsy's Make Nude - Materials G8F",
+			"parent" : "Genesis 8 Female",
+			"extra" : [
+				{
+					"type" : "studio/modifier/stacking_order",
+					"order" : 30
+				},
+				{
+					"type" : "studio/asset/bundle",
+					"assets" : [
+						{
+							"asset_type" : "material",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/02-Materials/DragiHadzitosic-Realistic%20Breasts%20G8F-Materials.duf"
+						},
+						{
+							"asset_type" : "material",
+							"asset_path" : "/People/Genesis%208%20Female/Anatomy/DragiHadzitosic/DragiHadzitosic-Realistic%20Breasts%20G8F/04-Nipples%20and%20Areolas%20Shapes/01-Areolas%20Shapes/Areola%2001.duf"
+						}
+					],
+					"name" : "Breast Materials G8F"
+				}
+			]
+		}
+	],
+	"extra" : [
+		{
+			"type" : "studio/preset_info",
+			"version" : "2.0",
+			"created" : "2025-01-01T00:00:00Z",
+			"modified" : "2025-01-01T00:00:00Z",
+			"author" : "Millsy",
+			"description" : "Millsy's Make Nude G8F - One-click complete Genesis 8 Female nude setup. Loads: Golden Palace v2 genitalia + shell + materials + UVs + Realistic Breasts + Breast Shell + Nipple shapes + Areola shapes + All materials"
+		}
+	]
+}

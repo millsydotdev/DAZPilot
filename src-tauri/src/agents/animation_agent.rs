@@ -1,51 +1,43 @@
+//! Animation Agent: handles posing and timeline sequences.
+
 use crate::agents::{AgentRequest, AgentResponse, AgentAction};
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
-    let actions = parse_animation_commands(&input);
-    
+    let mut actions = vec![];
+    let mut messages = vec![];
+
+    if input.contains("pose") || input.contains("animation") {
+        if input.contains("sequence") || input.contains("play") {
+            actions.push(AgentAction {
+                action_type: "timeline_play".to_string(),
+                command: "play_timeline".to_string(),
+                args: vec![],
+            });
+            messages.push("Playing animation timeline.");
+        } else if input.contains("reset") {
+            actions.push(AgentAction {
+                action_type: "timeline_reset".to_string(),
+                command: "seek_to_frame".to_string(),
+                args: vec!["0".to_string()],
+            });
+            messages.push("Resetting timeline to frame 0.");
+        }
+    }
+
+    if actions.is_empty() {
+        return AgentResponse {
+            success: false,
+            result: None,
+            error: Some("No animation intents identified.".to_string()),
+            actions: vec![],
+        };
+    }
+
     AgentResponse {
         success: true,
-        result: Some(format!("Animation: {} action(s) planned", actions.len())),
+        result: Some(messages.join(" ")),
         error: None,
         actions,
     }
-}
-
-fn parse_animation_commands(input: &str) -> Vec<AgentAction> {
-    let mut actions = vec![];
-    
-    if input.contains("pose") {
-        actions.push(AgentAction {
-            action_type: "apply_pose".to_string(),
-            command: "apply_pose".to_string(),
-            args: vec![],
-        });
-    }
-    
-    if input.contains("key") || input.contains("animate") || input.contains("animation") {
-        actions.push(AgentAction {
-            action_type: "set_keyframe".to_string(),
-            command: "set_keyframe".to_string(),
-            args: vec!["current".to_string()],
-        });
-    }
-    
-    if input.contains("play") || input.contains("timeline") {
-        actions.push(AgentAction {
-            action_type: "play_timeline".to_string(),
-            command: "play_timeline".to_string(),
-            args: vec![],
-        });
-    }
-    
-    if input.contains("bounce") || input.contains("spring") || input.contains("physics") {
-        actions.push(AgentAction {
-            action_type: "enable_physics".to_string(),
-            command: "enable_physics".to_string(),
-            args: vec![],
-        });
-    }
-    
-    actions
 }

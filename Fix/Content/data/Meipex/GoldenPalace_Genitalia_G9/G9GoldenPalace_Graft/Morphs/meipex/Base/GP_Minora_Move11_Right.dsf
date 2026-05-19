@@ -1,0 +1,77 @@
+{
+	"file_version" : "0.6.1.0",
+	"asset_info" : {
+		"id" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/Morphs/meipex/Base/GP_Minora_Move11_Right.dsf",
+		"type" : "modifier",
+		"contributor" : {
+			"author" : "meipex",
+			"email" : "",
+			"website" : ""
+		},
+		"revision" : "1.0",
+		"modified" : "2023-05-05T12:16:14Z"
+	},
+	"modifier_library" : [
+		{
+			"id" : "GP_Minora_Move11_Right",
+			"name" : "GP_Minora_Move11_Right",
+			"parent" : "/data/meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Graft/GoldenPalace_G9_9694.dsf#GoldenPalace_G9",
+			"presentation" : {
+				"type" : "Modifier/Shape",
+				"label" : "",
+				"description" : "",
+				"icon_large" : "/data/Meipex/GoldenPalace_Genitalia_G9/G9GoldenPalace_Icons/G9Minora_Move11R.png",
+				"colors" : [ [ 0, 0.5019608, 1 ], [ 1, 1, 1 ] ]
+			},
+			"channel" : {
+				"id" : "value",
+				"type" : "float",
+				"name" : "Value",
+				"label" : "GPL_Minora_Move 11_Right",
+				"auto_follow" : true,
+				"value" : 0,
+				"min" : -4,
+				"max" : 4,
+				"clamped" : true,
+				"display_as_percent" : true,
+				"step_size" : 0.01
+			},
+			"group" : "/2-Labia Minora/4-Edge Move",
+			"morph" : {
+				"vertex_count" : 9694,
+				"deltas" : {
+					"count" : 19,
+					"values" : [
+						[ 4541, -0.019346, -1.525879e-05, -0.001745105 ],
+						[ 4548, -0.105613, -9.155273e-05, -0.009586096 ],
+						[ 4549, -0.1306081, -9.918213e-05, -0.01185799 ],
+						[ 4550, -0.136624, -0.0001220703, -0.01240408 ],
+						[ 4553, -0.05865201, -4.577637e-05, -0.005318046 ],
+						[ 4573, -0.141334, -0.0001296997, -0.01283205 ],
+						[ 4582, -0.1394091, -0.0001144409, -0.01265693 ],
+						[ 4614, -0.102403, -7.629395e-05, -0.009293914 ],
+						[ 4696, -0.001545012, 0, -0.0001269579 ],
+						[ 4899, -0.004858002, -7.629395e-06, -0.0004280806 ],
+						[ 6355, -0.005889013, -1.525879e-05, -0.0005348921 ],
+						[ 6372, -0.02094601, -2.288818e-05, -0.001891136 ],
+						[ 6373, -0.006654993, -7.629395e-06, -0.0005921125 ],
+						[ 6374, -0.05740799, -3.814697e-05, -0.005218029 ],
+						[ 6375, -0.02538298, -3.051758e-05, -0.002305984 ],
+						[ 6380, -0.001670986, 0, -0.0001521111 ],
+						[ 6382, -0.001545981, 0, -0.0001410246 ],
+						[ 6393, -0.005747005, 7.629395e-06, -0.0005221367 ],
+						[ 8791, -0.02991301, -1.525879e-05, -0.002705932 ]
+					]
+				}
+			}
+		}
+	],
+	"scene" : {
+		"modifiers" : [
+			{
+				"id" : "GP_Minora_Move11_Right-1",
+				"url" : "#GP_Minora_Move11_Right"
+			}
+		]
+	}
+}

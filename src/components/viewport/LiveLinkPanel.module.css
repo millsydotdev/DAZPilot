@@ -228,3 +228,14 @@
   letter-spacing: 0.5px;
   animation: pulse 2s infinite;
 }
+
+.camSelect {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 11px;
+  outline: none;
+}

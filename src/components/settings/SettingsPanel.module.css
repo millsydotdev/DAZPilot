@@ -227,9 +227,16 @@
 }
 
 .indicator {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bridgeHeroCard {
+  background: var(--gradient-card);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-glow-red);
 }
 
 .connected {
@@ -238,8 +245,8 @@
 }
 
 .connecting {
-  background: var(--color-warning);
-  box-shadow: 0 0 8px var(--color-warning);
+  background: var(--color-info);
+  box-shadow: 0 0 8px var(--color-info);
   animation: pulse 1.5s infinite;
 }
 
@@ -387,7 +394,7 @@
 }
 
 .tag-system {
-  color: #00d4ff;
+  color: var(--color-info);
 }
 
 .tag-ai {
