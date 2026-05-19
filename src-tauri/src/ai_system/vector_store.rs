@@ -1,6 +1,5 @@
 //! Asset Vector Store: handles semantic embedding and retrieval.
 
-use crate::database;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

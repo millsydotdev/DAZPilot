@@ -1,5 +1,4 @@
 use crate::agents::{AgentRequest, AgentResponse, AgentAction};
-use crate::database;
 use crate::ai_system::vector_store;
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
@@ -19,7 +18,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
     let semantic_results = vector_store::get_semantic_matches(&search_query);
     
     let mut actions = vec![];
-    let mut result_msg = if semantic_results.is_empty() {
+    let result_msg = if semantic_results.is_empty() {
         "No semantic matches found. Defaulting to keyword search...".to_string()
     } else {
         format!("Found {} semantic match(es).", semantic_results.len())

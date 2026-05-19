@@ -67,6 +67,7 @@ const CATEGORY_PATTERNS: &[(&str, &[&str])] = &[
 ];
 
 fn get_daz_content_dirs_from_registry() -> Vec<String> {
+    #[allow(unused_mut)]
     let mut dirs = vec![];
     #[cfg(target_os = "windows")]
     {
