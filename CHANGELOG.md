@@ -2,18 +2,38 @@
 
 All notable changes to DazPilot will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Comprehensive documentation overhaul with badges, getting started guide, and roadmap
+
 ## [0.1.0] - 2024-01-01
 
 ### Added
 
 - Initial DazPilot application with Tauri 2 + React + TypeScript
-- Daz Studio bridge plugin (VibeBridgePlugin) for TCP communication
+- Daz Studio bridge plugin (DazPilotBridge) for TCP communication on `127.0.0.1:8765`
 - AI Scripting Co-Pilot with multi-provider support (OpenAI, Anthropic, Gemini, Ollama, Local GGUF)
+- Local GGUF AI backend via bundled `llama-server.exe`
 - Viewport sync with Daz Studio (screenshot-based polling)
 - Face tracking Live Link via MediaPipe
-- Asset browser with library scanning
+- Asset browser with recursive library scanning and SQLite indexing
+- SDK header indexer for Daz API knowledge base
 - Scene management and animation controls
 - Physics simulation (dForce) integration
 - Script approval system for safe AI execution
-- Database-backed settings persistence
-- GitHub Actions CI/CD for multi-platform builds
+- Database-backed settings and permission persistence
+- 25 atomic UI component design system
+- 17 Zustand state management stores
+- 8 specialized AI agent modules
+- First-launch setup wizard
+- GitHub Actions CI/CD for multi-platform builds (Windows, macOS, Linux)
+- Separate release workflows for app bundles and bridge plugin
+- Environment variable configuration for dev mocks and AI backend selection
+
+[Unreleased]: https://github.com/millsydotdev/DazPilot/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/millsydotdev/DazPilot/releases/tag/v0.1.0
