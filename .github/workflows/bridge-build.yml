@@ -31,6 +31,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Cache Daz SDK
         uses: actions/cache@v4
@@ -38,19 +41,14 @@ jobs:
           path: thirdparty/DAZStudio4.5+ SDK
           key: ${{ runner.os }}-daz-sdk-${{ hashFiles('**/CMakeLists.txt') }}
 
-      - name: Install CMake/Qt
-        if: matrix.os == 'ubuntu-24.04'
-        run: sudo apt-get install -y cmake qt4-dev-tools
-
       - name: Configure and Build
+        working-directory: plugins/daz3d-bridge
         run: |
-          mkdir build
-          cd build
-          cmake .. -DDAZ_SDK_ROOT="${{ github.workspace }}/thirdparty/DAZStudio4.5+ SDK"
-          cmake --build . --config Release
+          cmake -B build -DDAZ_SDK_ROOT="${{ github.workspace }}/thirdparty/DAZStudio4.5+ SDK"
+          cmake --build build --config Release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bridge-${{ matrix.os }}
-          path: plugins/daz3d-bridge/build/${{ matrix.artifact_name }}
+          path: plugins/daz3d-bridge/dist/${{ matrix.artifact_name }}

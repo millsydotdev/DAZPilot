@@ -61,28 +61,46 @@ set(QT_QTOPENGL_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtOpenGL")
 set(QT_QTNETWORK_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtNetwork")
 set(QT_QTSQL_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtSql")
 set(QT_QTXML_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtXml")
-if(WIN32)
-    set(QT_QTGUI_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtGui4.lib")
-    set(QT_QTSCRIPT_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtScript4.lib")
-    set(QT_QTOPENGL_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtOpenGL4.lib")
-    set(QT_QTNETWORK_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtNetwork4.lib")
-    set(QT_QTSQL_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtSql4.lib")
-    set(QT_QTXML_LIBRARY_RELEASE "${DAZ_SDK_LIB}/QtXml4.lib")
-endif()
+# The Qt4 libs and moc are bundled inside the Daz SDK
+set(QT_MOC_EXECUTABLE "${DAZ_SDK_BIN}/moc${CMAKE_EXECUTABLE_SUFFIX}")
 
-# the qt find module needs this folder but our build does not so just fake it
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/DUMMY_MKSPECS/default" )
-set(QT_MKSPECS_DIR "${CMAKE_CURRENT_BINARY_DIR}/DUMMY_MKSPECS")
+# ── Qt4 targets from Daz SDK ──────────────────────────────────────────────
+# FindQt4.cmake was removed in CMake 3.28+, so we create targets manually
+# using paths from the Daz SDK. Only modules actually linked are required.
 
-find_package(Qt4 4.8.1 REQUIRED QtCore QtGui QtScript QtOpenGL QtNetwork QtSql QtXml)
+function(_daz_add_qt_target name lib)
+    if(WIN32)
+        set(_lib "${DAZ_SDK_LIB}/${lib}.lib")
+    else()
+        set(_lib "${DAZ_SDK_LIB}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    endif()
+    if(EXISTS "${_lib}")
+        add_library("Qt4::${name}" STATIC IMPORTED)
+        set_target_properties("Qt4::${name}" PROPERTIES
+            IMPORTED_LOCATION "${_lib}"
+            INTERFACE_INCLUDE_DIRECTORIES "${DAZ_SDK_ROOT}/include/Qt${name}"
+        )
+    else()
+        message(WARNING "Qt4::${name} not found at ${_lib}")
+        add_library("Qt4::${name}" INTERFACE IMPORTED)
+    endif()
+endfunction()
 
-set(DZSDK_QT_CORE_TARGET Qt4::QtCore)
-set(DZSDK_QT_GUI_TARGET Qt4::QtGui)
-set(DZSDK_QT_SCRIPT_TARGET Qt4::QtScript)
-set(DZSDK_QT_OPENGL_TARGET Qt4::QtOpenGL)
-set(DZSDK_QT_NETWORK_TARGET Qt4::QtNetwork)
-set(DZSDK_QT_SQL_TARGET	Qt4::QtSql)
-set(DZSDK_QT_XML_TARGET	Qt4::QtXml)
+_daz_add_qt_target(Core QtCore4)
+_daz_add_qt_target(Gui QtGui4)
+_daz_add_qt_target(Script QtScript4)
+_daz_add_qt_target(OpenGL QtOpenGL4)
+_daz_add_qt_target(Network QtNetwork4)
+_daz_add_qt_target(Sql QtSql4)
+_daz_add_qt_target(Xml QtXml4)
+
+set(DZSDK_QT_CORE_TARGET Qt4::Core)
+set(DZSDK_QT_GUI_TARGET Qt4::Gui)
+set(DZSDK_QT_SCRIPT_TARGET Qt4::Script)
+set(DZSDK_QT_OPENGL_TARGET Qt4::OpenGL)
+set(DZSDK_QT_NETWORK_TARGET Qt4::Network)
+set(DZSDK_QT_SQL_TARGET  Qt4::Sql)
+set(DZSDK_QT_XML_TARGET  Qt4::Xml)
 
 list(APPEND CMAKE_AUTOMOC_MOC_OPTIONS -i)
 
