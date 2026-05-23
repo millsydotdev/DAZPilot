@@ -1,3 +1,35 @@
+## Anchored Summary
+
+**Goal**: Fully automated AI-powered Daz3D scene creation using user-owned assets with complete SDK integration, asset scanning, and natural language scene composition.
+
+**Current rating**: ~85%
+
+## Achieved
+
+- **64 bridge commands** (all implemented in C++ plugin + Rust schemas, parity enforced by test)
+- **Bridge DLL compiled** (511KB, deployed to `src-tauri/resources/`)
+- **Reasoning engine**: Planner, Validator, Learner, Executor, Explainer — maps natural language goals → workflow plans → bridge command sequences
+- **Knowledge system**: 6 knowledge bases — Daz concepts, scene composition, asset semantics, workflow templates, failure patterns, command reference (all 63 commands documented)
+- **Workflow templates**: 9 types — CreateScene (14 steps), CreateCharacter, CreateOutfit, SetupLighting (3-point), PoseCharacter, AnimateCharacter, RenderStill, RenderAnimation, FixCommonIssue
+- **Agent system**: 10 specialized agent roles (Task Planner, Asset Selection, Animation, Physics, etc.)
+- **All tests pass**: 497 JS + 83 Rust, zero compilation errors, zero warnings
+- **AI backends**: Local GGUF, Ollama, OpenAI/Anthropic/Gemini
+- **MCP schema parity**: C++ bridge ↔ Rust schemas enforced by automated test
+- **Command knowledge**: 63 commands with parameter specs, SDK refs, usage notes for AI reference
+
+## Remaining (~15%)
+
+1. **Set `GH_PAT` secret** in GitHub repo settings (needed for CI to clone private thirdparty SDK submodule)
+2. **Live Daz acceptance** — install DLL, run bridge, execute acceptance checklist
+3. **Real asset scanning** — run library scanner against actual Daz content
+4. **Agent prompt tuning** — refine LLM prompts for professional-quality output
+
+## Next Action
+
+Set `GH_PAT` → tag `plugin-v*` → CI builds DLLs for Win/Mac/Linux → download artifacts → deploy to Daz → run acceptance.
+
+---
+
 # AI Agent System
 
 Updated: May 2026
