@@ -2,6 +2,79 @@ use crate::knowledge::daz_concepts::DazKnowledgeBase;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// Maps workflow ActionTypes to the actual bridge command names and parameter templates
+#[derive(Debug, Clone)]
+pub struct CommandMapping {
+    /// Primary bridge command to execute for this action
+    pub command: &'static str,
+    /// Alternative commands if primary doesn't apply
+    pub alternatives: &'static [&'static str],
+    /// How to map workflow parameters to command parameters
+    pub param_mapping: &'static [(&'static str, &'static str)],
+}
+
+/// Returns the bridge command map for all ActionTypes.
+/// This bridges workflow planning with command execution.
+pub fn action_to_command_map() -> HashMap<ActionType, CommandMapping> {
+    let mut m = HashMap::new();
+    m.insert(ActionType::LoadAsset, CommandMapping {
+        command: "load_asset",
+        alternatives: &["add_figure", "add_node"],
+        param_mapping: &[("asset_type", "path"), ("item_type", "path")],
+    });
+    m.insert(ActionType::ApplyPose, CommandMapping {
+        command: "apply_pose",
+        alternatives: &["set_morph", "set_bone_transform"],
+        param_mapping: &[("pose_application", "path")],
+    });
+    m.insert(ActionType::AdjustProperty, CommandMapping {
+        command: "set_property",
+        alternatives: &["set_morph", "set_light", "set_render_settings", "set_camera", "set_material_property"],
+        param_mapping: &[("property_type", "property_name"), ("adjustment_type", "property_name")],
+    });
+    m.insert(ActionType::CreateLight, CommandMapping {
+        command: "add_node",
+        alternatives: &["set_light"],
+        param_mapping: &[("light_purpose", "type")],
+    });
+    m.insert(ActionType::CreateCamera, CommandMapping {
+        command: "add_node",
+        alternatives: &["set_camera"],
+        param_mapping: &[("camera_type", "type")],
+    });
+    m.insert(ActionType::Render, CommandMapping {
+        command: "render_preview",
+        alternatives: &["set_render_options", "set_render_settings"],
+        param_mapping: &[],
+    });
+    m.insert(ActionType::ChangeMaterial, CommandMapping {
+        command: "set_material_property",
+        alternatives: &["set_material_texture", "get_material_channels"],
+        param_mapping: &[("material_type", "material_name")],
+    });
+    m.insert(ActionType::ExportScene, CommandMapping {
+        command: "export_scene",
+        alternatives: &["save_scene"],
+        param_mapping: &[],
+    });
+    m.insert(ActionType::RunSimulation, CommandMapping {
+        command: "run_dforce_simulation",
+        alternatives: &[],
+        param_mapping: &[],
+    });
+    m.insert(ActionType::UndoBatchBegin, CommandMapping {
+        command: "begin_undo_batch",
+        alternatives: &[],
+        param_mapping: &[],
+    });
+    m.insert(ActionType::UndoBatchEnd, CommandMapping {
+        command: "accept_undo_batch",
+        alternatives: &["cancel_undo_batch"],
+        param_mapping: &[("caption", "caption")],
+    });
+    m
+}
+
 /// Represents a step in a workflow
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowStep {
@@ -15,7 +88,7 @@ pub struct WorkflowStep {
 }
 
 /// Types of actions that can be in a workflow
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ActionType {
     LoadAsset,
     ApplyPose,
@@ -28,6 +101,28 @@ pub enum ActionType {
     RunSimulation,
     UndoBatchBegin,
     UndoBatchEnd,
+    /// Add a Genesis figure to the scene
+    AddFigure,
+    /// Set a morph dial value on a figure (0.0-1.0)
+    SetMorph,
+    /// Set an expression dial value on a figure
+    SetExpression,
+    /// Switch active camera or adjust its properties
+    SetCamera,
+    /// Configure detailed render options (samples, depth, gamma)
+    SetRenderOptions,
+    /// Assign a texture map to a material surface channel
+    SetMaterialTexture,
+    /// Trigger timeline playback or animation
+    Animate,
+    /// Run arbitrary DazScript
+    RunScript,
+    /// Search the Daz content library
+    SearchContent,
+    /// List bones in a figure's skeleton
+    ListBones,
+    /// Set a bone's world-space transform
+    SetBoneTransform,
     Custom(String),
 }
 
@@ -266,6 +361,158 @@ impl WorkflowKnowledgeBase {
             tags: vec!["lighting".to_string(), "setup".to_string(), "scene".to_string()],
         });
         
+        // Create Scene workflow (full scene from scratch)
+        self.workflow_templates.insert(WorkflowType::CreateScene, WorkflowTemplate {
+            workflow_type: WorkflowType::CreateScene,
+            name: "Create Scene".to_string(),
+            description: "Build a complete Daz3D scene with figures, lighting, camera, and rendering".to_string(),
+            steps: vec![
+                WorkflowStepTemplate {
+                    description: "Begin undo batch for scene creation".to_string(),
+                    action_type: ActionType::UndoBatchBegin,
+                    parameters_template: HashMap::new(),
+                    prerequisites: vec![],
+                    estimated_time_seconds: 1,
+                    difficulty: DifficultyLevel::Trivial,
+                },
+                WorkflowStepTemplate {
+                    description: "Clear existing scene if needed".to_string(),
+                    action_type: ActionType::Custom("clear_scene".to_string()),
+                    parameters_template: HashMap::new(),
+                    prerequisites: vec![],
+                    estimated_time_seconds: 2,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Add base figure".to_string(),
+                    action_type: ActionType::AddFigure,
+                    parameters_template: HashMap::from([
+                        ("figure_type".to_string(), "genesis9".to_string()),
+                    ]),
+                    prerequisites: vec![],
+                    estimated_time_seconds: 5,
+                    difficulty: DifficultyLevel::Trivial,
+                },
+                WorkflowStepTemplate {
+                    description: "Apply figure morphs for desired appearance".to_string(),
+                    action_type: ActionType::SetMorph,
+                    parameters_template: HashMap::from([
+                        ("morph".to_string(), "Head_Height".to_string()),
+                        ("value".to_string(), "0.3".to_string()),
+                    ]),
+                    prerequisites: vec!["add_base_figure".to_string()],
+                    estimated_time_seconds: 10,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Load clothing if specified".to_string(),
+                    action_type: ActionType::LoadAsset,
+                    parameters_template: HashMap::from([
+                        ("asset_type".to_string(), "clothing".to_string()),
+                    ]),
+                    prerequisites: vec!["apply_figure_morphs".to_string()],
+                    estimated_time_seconds: 8,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Apply base pose to figure".to_string(),
+                    action_type: ActionType::ApplyPose,
+                    parameters_template: HashMap::from([
+                        ("pose_type".to_string(), "basic".to_string()),
+                    ]),
+                    prerequisites: vec!["load_clothing".to_string()],
+                    estimated_time_seconds: 5,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Set up key light".to_string(),
+                    action_type: ActionType::CreateLight,
+                    parameters_template: HashMap::from([
+                        ("light_purpose".to_string(), "key".to_string()),
+                        ("light_type".to_string(), "distant_light".to_string()),
+                    ]),
+                    prerequisites: vec!["apply_base_pose".to_string()],
+                    estimated_time_seconds: 4,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Set up fill light".to_string(),
+                    action_type: ActionType::CreateLight,
+                    parameters_template: HashMap::from([
+                        ("light_purpose".to_string(), "fill".to_string()),
+                        ("light_type".to_string(), "point_light".to_string()),
+                    ]),
+                    prerequisites: vec!["set_up_key_light".to_string()],
+                    estimated_time_seconds: 4,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Set up rim/back light".to_string(),
+                    action_type: ActionType::CreateLight,
+                    parameters_template: HashMap::from([
+                        ("light_purpose".to_string(), "rim".to_string()),
+                        ("light_type".to_string(), "spot_light".to_string()),
+                    ]),
+                    prerequisites: vec!["set_up_fill_light".to_string()],
+                    estimated_time_seconds: 4,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Adjust light properties (intensity, color)".to_string(),
+                    action_type: ActionType::AdjustProperty,
+                    parameters_template: HashMap::from([
+                        ("adjustment_type".to_string(), "lighting_balance".to_string()),
+                    ]),
+                    prerequisites: vec!["set_up_rim_light".to_string()],
+                    estimated_time_seconds: 6,
+                    difficulty: DifficultyLevel::Moderate,
+                },
+                WorkflowStepTemplate {
+                    description: "Configure camera framing".to_string(),
+                    action_type: ActionType::SetCamera,
+                    parameters_template: HashMap::from([
+                        ("camera".to_string(), "Perspective View".to_string()),
+                        ("focal_length".to_string(), "85".to_string()),
+                        ("focal_distance".to_string(), "200".to_string()),
+                    ]),
+                    prerequisites: vec!["adjust_light_properties".to_string()],
+                    estimated_time_seconds: 4,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Set render options for final output".to_string(),
+                    action_type: ActionType::SetRenderOptions,
+                    parameters_template: HashMap::from([
+                        ("width".to_string(), "1920".to_string()),
+                        ("height".to_string(), "1080".to_string()),
+                        ("pixel_samples".to_string(), "256".to_string()),
+                    ]),
+                    prerequisites: vec!["configure_camera".to_string()],
+                    estimated_time_seconds: 3,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Render the scene".to_string(),
+                    action_type: ActionType::Render,
+                    parameters_template: HashMap::new(),
+                    prerequisites: vec!["set_render_options".to_string()],
+                    estimated_time_seconds: 5,
+                    difficulty: DifficultyLevel::Easy,
+                },
+                WorkflowStepTemplate {
+                    description: "Accept undo batch".to_string(),
+                    action_type: ActionType::UndoBatchEnd,
+                    parameters_template: HashMap::from([
+                        ("caption".to_string(), "AI Created Scene".to_string()),
+                    ]),
+                    prerequisites: vec!["render_scene".to_string()],
+                    estimated_time_seconds: 1,
+                    difficulty: DifficultyLevel::Trivial,
+                },
+            ],
+            tags: vec!["scene".to_string(), "full".to_string(), "complete".to_string(), "creation".to_string()],
+        });
+
         // Pose Character workflow
         self.workflow_templates.insert(WorkflowType::PoseCharacter, WorkflowTemplate {
             workflow_type: WorkflowType::PoseCharacter,

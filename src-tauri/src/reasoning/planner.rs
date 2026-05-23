@@ -3,6 +3,7 @@ use crate::knowledge::scene_knowledge::{SceneKnowledgeBase, SceneType};
 use crate::knowledge::workflow_knowledge::{WorkflowKnowledgeBase, WorkflowType, WorkflowStep, ActionType};
 use crate::knowledge::failure_knowledge::{FailureKnowledgeBase, SceneStateSnapshot};
 use crate::knowledge::daz_concepts::DazKnowledgeBase;
+use crate::knowledge::command_knowledge::CommandKnowledgeBase;
 use crate::library_scanner::AssetInfo;
 use crate::ai_system::{Intent, Entity, EntityType};
 use crate::ai_action::StructuredAiAction;
@@ -73,6 +74,7 @@ pub struct Planner {
     pub workflow_knowledge: WorkflowKnowledgeBase,
     pub failure_knowledge: Arc<FailureKnowledgeBase>,
     pub daz_knowledge: DazKnowledgeBase,
+    pub command_knowledge: CommandKnowledgeBase,
 }
 
 impl Planner {
@@ -83,6 +85,7 @@ impl Planner {
             workflow_knowledge: WorkflowKnowledgeBase::new(),
             failure_knowledge: Arc::new(FailureKnowledgeBase::new()),
             daz_knowledge: DazKnowledgeBase::new(),
+            command_knowledge: CommandKnowledgeBase::new(),
         }
     }
     
@@ -565,10 +568,297 @@ impl Planner {
                     requires_confirmation: false,
                 })
             }
-            ActionType::Custom(_) => {
-                // Custom actions need special handling
-                // For now, return None to skip
-                None
+            ActionType::AddFigure => {
+                let figure_type_default = "genesis9".to_string();
+                let figure_type = step.parameters.get("figure_type")
+                    .unwrap_or(&figure_type_default);
+                Some(StructuredAiAction {
+                    command: "add_figure".to_string(),
+                    args: serde_json::json!({ "figure_type": figure_type }),
+                    confidence: 0.9,
+                    sdk_refs: vec!["DzFigure".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::SetMorph => {
+                let morph_default = "Head_Height".to_string();
+                let value_default = "0.3".to_string();
+                let morph = step.parameters.get("morph")
+                    .unwrap_or(&morph_default);
+                let value = step.parameters.get("value")
+                    .unwrap_or(&value_default);
+                Some(StructuredAiAction {
+                    command: "set_morph".to_string(),
+                    args: serde_json::json!({
+                        "node_id": "selected",
+                        "morph": morph,
+                        "value": value,
+                    }),
+                    confidence: 0.8,
+                    sdk_refs: vec!["DzModifier".to_string(), "DzFigure".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::SetExpression => {
+                let expr_default = "Smile".to_string();
+                let value_default = "0.5".to_string();
+                let expr = step.parameters.get("expression")
+                    .unwrap_or(&expr_default);
+                let value = step.parameters.get("value")
+                    .unwrap_or(&value_default);
+                Some(StructuredAiAction {
+                    command: "apply_expression".to_string(),
+                    args: serde_json::json!({
+                        "figure_id": "selected",
+                        "expression_id": expr,
+                        "value": value,
+                    }),
+                    confidence: 0.75,
+                    sdk_refs: vec!["DzModifier".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::SetCamera => {
+                let camera_default = "Perspective View".to_string();
+                let fl_default = "".to_string();
+                let fd_default = "".to_string();
+                let camera = step.parameters.get("camera")
+                    .unwrap_or(&camera_default);
+                let focal_length = step.parameters.get("focal_length")
+                    .unwrap_or(&fl_default);
+                let focal_distance = step.parameters.get("focal_distance")
+                    .unwrap_or(&fd_default);
+                Some(StructuredAiAction {
+                    command: "set_camera".to_string(),
+                    args: serde_json::json!({
+                        "camera": camera,
+                        "focal_length": focal_length,
+                        "focal_distance": focal_distance,
+                    }),
+                    confidence: 0.85,
+                    sdk_refs: vec!["DzCamera".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::SetRenderOptions => {
+                let width_default = "1920".to_string();
+                let height_default = "1080".to_string();
+                let samples_default = "256".to_string();
+                let depth_default = "4".to_string();
+                let rate_default = "1.0".to_string();
+                let gamma_default = "2.2".to_string();
+                let width = step.parameters.get("width").unwrap_or(&width_default);
+                let height = step.parameters.get("height").unwrap_or(&height_default);
+                let samples = step.parameters.get("pixel_samples").unwrap_or(&samples_default);
+                let depth = step.parameters.get("ray_trace_depth").unwrap_or(&depth_default);
+                let rate = step.parameters.get("shading_rate").unwrap_or(&rate_default);
+                let gamma = step.parameters.get("gamma").unwrap_or(&gamma_default);
+                Some(StructuredAiAction {
+                    command: "set_render_options".to_string(),
+                    args: serde_json::json!({
+                        "width": width,
+                        "height": height,
+                        "pixel_samples": samples,
+                        "ray_trace_depth": depth,
+                        "shading_rate": rate,
+                        "gamma": gamma,
+                    }),
+                    confidence: 0.85,
+                    sdk_refs: vec!["DzRenderOptions".to_string(), "DzRenderMgr".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::SetMaterialTexture => {
+                let channel_default = "Base Color".to_string();
+                let file_default = "".to_string();
+                let channel = step.parameters.get("channel").unwrap_or(&channel_default);
+                let file_path = step.parameters.get("file_path").unwrap_or(&file_default);
+                Some(StructuredAiAction {
+                    command: "set_material_texture".to_string(),
+                    args: serde_json::json!({
+                        "node_id": "selected",
+                        "channel": channel,
+                        "file_path": file_path,
+                    }),
+                    confidence: 0.7,
+                    sdk_refs: vec!["DzImageProperty".to_string(), "DzDefaultMaterial".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::Animate => {
+                Some(StructuredAiAction {
+                    command: "play_timeline".to_string(),
+                    args: serde_json::json!({}),
+                    confidence: 0.8,
+                    sdk_refs: vec!["DzTime".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::RunScript => {
+                let script_default = "".to_string();
+                let script = step.parameters.get("script").unwrap_or(&script_default);
+                Some(StructuredAiAction {
+                    command: "run_script".to_string(),
+                    args: serde_json::json!({ "script": script }),
+                    confidence: 0.6,
+                    sdk_refs: vec!["DazScript".to_string()],
+                    requires_confirmation: true,
+                })
+            }
+            ActionType::SearchContent => {
+                let query_default = "".to_string();
+                let type_default = "figure".to_string();
+                let max_default = "10".to_string();
+                let query = step.parameters.get("query").unwrap_or(&query_default);
+                let asset_type = step.parameters.get("type").unwrap_or(&type_default);
+                let max_results = step.parameters.get("max_results").unwrap_or(&max_default);
+                Some(StructuredAiAction {
+                    command: "search_content".to_string(),
+                    args: serde_json::json!({
+                        "query": query,
+                        "type": asset_type,
+                        "max_results": max_results,
+                    }),
+                    confidence: 0.7,
+                    sdk_refs: vec!["DzContentMgr".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::ListBones => {
+                let figure_id_default = "selected".to_string();
+                let figure_id = step.parameters.get("figure_id").unwrap_or(&figure_id_default);
+                Some(StructuredAiAction {
+                    command: "list_bones".to_string(),
+                    args: serde_json::json!({ "figure_id": figure_id }),
+                    confidence: 0.9,
+                    sdk_refs: vec!["DzBone".to_string(), "DzSkeleton".to_string()],
+                    requires_confirmation: false,
+                })
+            }
+            ActionType::SetBoneTransform => {
+                let bone_default = "hip".to_string();
+                let rot_default = "[0,0,0]".to_string();
+                let bone = step.parameters.get("bone_name").unwrap_or(&bone_default);
+                let rotation = step.parameters.get("rotation").unwrap_or(&rot_default);
+                Some(StructuredAiAction {
+                    command: "set_bone_transform".to_string(),
+                    args: serde_json::json!({
+                        "figure_id": "selected",
+                        "bone_name": bone,
+                        "rotation": rotation,
+                    }),
+                    confidence: 0.7,
+                    sdk_refs: vec!["DzBone".to_string(), "DzSkeleton".to_string()],
+                    requires_confirmation: true,
+                })
+            }
+            ActionType::Custom(action_name) => {
+                // Try to map known custom action names to bridge commands
+                match action_name.as_str() {
+                    "clear_scene" => Some(StructuredAiAction {
+                        command: "clear_scene".to_string(),
+                        args: serde_json::json!({}),
+                        confidence: 0.9,
+                        sdk_refs: vec!["DzScene".to_string()],
+                        requires_confirmation: true,
+                    }),
+                    "frame_shot" => Some(StructuredAiAction {
+                        command: "set_camera".to_string(),
+                        args: serde_json::json!({
+                            "camera": "Perspective View",
+                            "focal_length": "85",
+                            "focal_distance": "200",
+                        }),
+                        confidence: 0.7,
+                        sdk_refs: vec!["DzCamera".to_string()],
+                        requires_confirmation: false,
+                    }),
+                    "final_checks" => Some(StructuredAiAction {
+                        command: "list_nodes".to_string(),
+                        args: serde_json::json!({}),
+                        confidence: 0.9,
+                        sdk_refs: vec!["DzScene".to_string()],
+                        requires_confirmation: false,
+                    }),
+                    "identify_issue" | "gather_info" => Some(StructuredAiAction {
+                        command: "get_scene_info".to_string(),
+                        args: serde_json::json!({}),
+                        confidence: 0.9,
+                        sdk_refs: vec!["DzScene".to_string()],
+                        requires_confirmation: false,
+                    }),
+                    "analyze_scene" => Some(StructuredAiAction {
+                        command: "get_scene_info".to_string(),
+                        args: serde_json::json!({}),
+                        confidence: 0.9,
+                        sdk_refs: vec!["DzScene".to_string()],
+                        requires_confirmation: false,
+                    }),
+                    "setup_timeline" => Some(StructuredAiAction {
+                        command: "set_timeline_range".to_string(),
+                        args: serde_json::json!({
+                            "start_frame": "1",
+                            "end_frame": "30",
+                        }),
+                        confidence: 0.85,
+                        sdk_refs: vec!["DzTime".to_string()],
+                        requires_confirmation: false,
+                    }),
+                    "pose_keyframes" => Some(StructuredAiAction {
+                        command: "apply_pose".to_string(),
+                        args: serde_json::json!({
+                            "pose_path": "",
+                            "figure_id": "selected",
+                        }),
+                        confidence: 0.6,
+                        sdk_refs: vec!["DzPose".to_string(), "DzKeyframe".to_string()],
+                        requires_confirmation: false,
+                    }),
+                    "select_pose" => Some(StructuredAiAction {
+                        command: "search_content".to_string(),
+                        args: serde_json::json!({
+                            "query": "pose",
+                            "type": "pose",
+                            "max_results": "5",
+                        }),
+                        confidence: 0.7,
+                        sdk_refs: vec!["DzContentMgr".to_string()],
+                        requires_confirmation: false,
+                    }),
+                    "add_secondary_motion" => Some(StructuredAiAction {
+                        command: "run_dforce_simulation".to_string(),
+                        args: serde_json::json!({
+                            "node_id": "selected",
+                            "start_frame": 0,
+                            "end_frame": 30,
+                        }),
+                        confidence: 0.6,
+                        sdk_refs: vec!["DzSimulator".to_string()],
+                        requires_confirmation: true,
+                    }),
+                    "apply_fix" => Some(StructuredAiAction {
+                        command: "set_property".to_string(),
+                        args: serde_json::json!({
+                            "node_id": "selected",
+                            "property": "unknown",
+                            "value": "0",
+                        }),
+                        confidence: 0.5,
+                        sdk_refs: vec![],
+                        requires_confirmation: true,
+                    }),
+                    "verify_fix" => Some(StructuredAiAction {
+                        command: "get_scene_info".to_string(),
+                        args: serde_json::json!({}),
+                        confidence: 0.9,
+                        sdk_refs: vec!["DzScene".to_string()],
+                        requires_confirmation: false,
+                    }),
+                    _ => {
+                        // Unknown custom actions return None (will be skipped)
+                        None
+                    }
+                }
             }
         }
     }
@@ -603,6 +893,9 @@ impl Planner {
         }
         if lower_desc.contains("render") {
             return Some(WorkflowType::RenderStill);
+        }
+        if lower_desc.contains("scene") || lower_desc.contains("full") || lower_desc.contains("complete") || lower_desc.contains("new") {
+            return Some(WorkflowType::CreateScene);
         }
         if lower_desc.contains("fix") || lower_desc.contains("problem") || lower_desc.contains("issue") {
             return Some(WorkflowType::FixCommonIssue);
