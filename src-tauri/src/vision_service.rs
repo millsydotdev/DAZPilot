@@ -186,13 +186,13 @@ pub fn fetch_spatial_context() -> String {
             box_item.node_id, box_item.center[0], box_item.center[1], box_item.center[2], w, h, d
         ));
     }
-    ctx.push_str("\n");
+    ctx.push('\n');
     
     let rels_str = generate_spatial_relationships(&bounds_resp.bounds);
     if !rels_str.is_empty() {
         ctx.push_str("#### Relative Object Directions:\n");
         ctx.push_str(&rels_str);
-        ctx.push_str("\n");
+        ctx.push('\n');
     }
     
     ctx
@@ -265,7 +265,7 @@ pub fn detect_asset_conflicts_from_scene() -> AssetConflictReport {
                 conflict_type: conflict.conflict_type.name(),
                 assets: conflict.files,
                 severity: conflict.severity,
-                fix_suggestion: format!("Use fix_shell_zones or auto_fix_all_conflicts to resolve this conflict.",),
+                fix_suggestion: "Use fix_shell_zones or auto_fix_all_conflicts to resolve this conflict.".to_string(),
             });
         }
         

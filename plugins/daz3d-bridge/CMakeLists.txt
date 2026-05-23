@@ -11,7 +11,7 @@ endif()
 if(DEFINED ENV{DAZ_SDK_ROOT} AND NOT DEFINED DAZ_SDK_ROOT)
     set(DAZ_SDK_ROOT "$ENV{DAZ_SDK_ROOT}")
 else()
-    set(DAZ_SDK_ROOT "${CMAKE_SOURCE_DIR}/../../DAZStudio4.5+ SDK" CACHE PATH "Daz Studio SDK root")
+    set(DAZ_SDK_ROOT "${CMAKE_SOURCE_DIR}/../../thirdparty/DAZStudio4.5+ SDK" CACHE PATH "Daz Studio SDK root")
 endif()
 set(DAZ_SDK_INCLUDE "${DAZ_SDK_ROOT}/include")
 if(WIN32)
@@ -29,6 +29,16 @@ if(NOT EXISTS "${DAZ_SDK_INCLUDE}/dzplugin.h")
 endif()
 
 include_directories(${DAZ_SDK_INCLUDE})
+include_directories(
+    "${CMAKE_SOURCE_DIR}"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/doctest/doctest"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/spdlog/include"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/json/include"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/glm"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/stb"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/simdjson/singleheader"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/utfcpp/source"
+)
 
 # Setup Qt from the DAZ SDK for AUTOMOC
 set(DAZ_SDK_QTCORE_LIBRARY "${DAZ_SDK_LIB}/${CMAKE_STATIC_LIBRARY_PREFIX}QtCore4${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -120,20 +130,57 @@ add_library(DazPilotBridge SHARED
     DazPilotBridge.cpp
     DazPilotBridgePlugin.cpp
     DazPilotPhyModifier.cpp
+    Log.cpp
     DazPilotBridge.h
     DazPilotBridgePlugin.h
     DazPilotPhyModifier.h
+    Log.h
 )
 if(WIN32)
     target_sources(DazPilotBridge PRIVATE DazPilotBridge.def)
 endif()
 
 target_link_libraries(DazPilotBridge PRIVATE ${DAZ_LIBS})
+if(MSVC)
+    target_compile_options(DazPilotBridge PRIVATE "/utf-8")
+endif()
 
 set_target_properties(DazPilotBridge PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/dist"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/dist"
 )
+
+# ── Unit Tests with doctest ────────────────────────────────────────────────
+option(BUILD_TESTS "Build unit tests" ON)
+if(BUILD_TESTS)
+    add_executable(DazPilotBridgeTests
+        tests/main.cpp
+        tests/test_math.cpp
+        tests/test_log.cpp
+        tests/test_json.cpp
+        tests/test_jsonutil.cpp
+        tests/test_glm.cpp
+        tests/test_stb.cpp
+        tests/test_simdjson.cpp
+        tests/test_utfcpp.cpp
+        "${CMAKE_SOURCE_DIR}/../../thirdparty/simdjson/singleheader/simdjson.cpp"
+    )
+    if(MSVC)
+        target_compile_options(DazPilotBridgeTests PRIVATE "/utf-8")
+    endif()
+    target_include_directories(DazPilotBridgeTests PRIVATE
+        "${CMAKE_SOURCE_DIR}/../../thirdparty/doctest/doctest"
+        "${CMAKE_SOURCE_DIR}/../../thirdparty/spdlog/include"
+        "${CMAKE_SOURCE_DIR}/../../thirdparty/json/include"
+        "${CMAKE_SOURCE_DIR}/../../thirdparty/glm"
+        "${CMAKE_SOURCE_DIR}/../../thirdparty/stb"
+        "${CMAKE_SOURCE_DIR}/../../thirdparty/simdjson/singleheader"
+        "${CMAKE_SOURCE_DIR}/../../thirdparty/utfcpp/source"
+        "${CMAKE_SOURCE_DIR}"
+    )
+    include(CTest)
+    add_test(NAME DazPilotBridgeTests COMMAND DazPilotBridgeTests)
+endif()
 
 # ── Deploy DazPilotBridge ───────────────────────────────────────────────────
 add_custom_command(TARGET DazPilotBridge POST_BUILD

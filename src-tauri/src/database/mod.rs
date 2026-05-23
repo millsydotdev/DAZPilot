@@ -1,5 +1,4 @@
-#![allow(dead_code)]
-#![allow(unused_imports)]
+
 
 pub mod schema;
 
@@ -41,8 +40,7 @@ impl SqliteDatabase {
     pub fn initialize(&self) -> Result<(), rusqlite::Error> {
         let conn = rusqlite::Connection::open(&self.path)?;
         
-        conn.execute_batch(
-            r#"
+        if let Err(e) = conn.execute_batch(r#"
             -- Core tables
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
@@ -77,8 +75,69 @@ impl SqliteDatabase {
                 file_type TEXT,
                 file_size INTEGER,
                 indexed_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                thumbnail_path TEXT,
+                compatibility TEXT,
+                dforce_enabled INTEGER DEFAULT 0,
+                asset_type_detail TEXT,
+                tags TEXT,
                 FOREIGN KEY (source_id) REFERENCES content_sources(id)
             );
+        "#) {
+            log::warn!("Core schema creation non-fatal: {}", e);
+        }
+
+        // Separate migration batch for columns added after initial schema.
+        // We run ALTER TABLE separately and ignore "duplicate column" errors because
+        // SQLite's bundled version may not support ALTER TABLE ADD COLUMN IF NOT EXISTS.
+        let migration_sql = r#"
+            ALTER TABLE user_assets ADD COLUMN thumbnail_path TEXT;
+        "#;
+        if let Err(e) = conn.execute_batch(migration_sql) {
+            let err_str = e.to_string();
+            // Ignore "duplicate column" errors — column already exists
+            if !err_str.contains("duplicate column") {
+                log::warn!("Migration (thumbnail_path) non-fatal: {}", err_str);
+            }
+        }
+        let migration_sql = r#"
+            ALTER TABLE user_assets ADD COLUMN compatibility TEXT;
+        "#;
+        if let Err(e) = conn.execute_batch(migration_sql) {
+            let err_str = e.to_string();
+            if !err_str.contains("duplicate column") {
+                log::warn!("Migration (compatibility) non-fatal: {}", err_str);
+            }
+        }
+        let migration_sql = r#"
+            ALTER TABLE user_assets ADD COLUMN dforce_enabled INTEGER DEFAULT 0;
+        "#;
+        if let Err(e) = conn.execute_batch(migration_sql) {
+            let err_str = e.to_string();
+            if !err_str.contains("duplicate column") {
+                log::warn!("Migration (dforce_enabled) non-fatal: {}", err_str);
+            }
+        }
+        let migration_sql = r#"
+            ALTER TABLE user_assets ADD COLUMN asset_type_detail TEXT;
+        "#;
+        if let Err(e) = conn.execute_batch(migration_sql) {
+            let err_str = e.to_string();
+            if !err_str.contains("duplicate column") {
+                log::warn!("Migration (asset_type_detail) non-fatal: {}", err_str);
+            }
+        }
+        let migration_sql = r#"
+            ALTER TABLE user_assets ADD COLUMN tags TEXT;
+        "#;
+        if let Err(e) = conn.execute_batch(migration_sql) {
+            let err_str = e.to_string();
+            if !err_str.contains("duplicate column") {
+                log::warn!("Migration (tags) non-fatal: {}", err_str);
+            }
+        }
+
+        // Continue with the rest of the schema
+        conn.execute_batch(r#"
 
             -- FTS5 Virtual table for ultra-fast, smart text searching of assets
             CREATE VIRTUAL TABLE IF NOT EXISTS user_assets_fts USING fts5(
@@ -88,33 +147,35 @@ impl SqliteDatabase {
                 subcategory,
                 vendor,
                 asset_path,
+                tags,
+                asset_type_detail,
                 content='user_assets',
                 content_rowid='id'
             );
 
             -- Trigger to automatically index new assets on insert
             CREATE TRIGGER IF NOT EXISTS user_assets_ai AFTER INSERT ON user_assets BEGIN
-                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
-                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path);
+                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
+                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path, new.tags, new.asset_type_detail);
             END;
 
             -- Trigger to automatically clean FTS index on deletion
             CREATE TRIGGER IF NOT EXISTS user_assets_ad AFTER DELETE ON user_assets BEGIN
-                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
-                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path);
+                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
+                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path, old.tags, old.asset_type_detail);
             END;
 
             -- Trigger to automatically update FTS index on field updates
             CREATE TRIGGER IF NOT EXISTS user_assets_au AFTER UPDATE ON user_assets BEGIN
-                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
-                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path);
-                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
-                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path);
+                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
+                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path, old.tags, old.asset_type_detail);
+                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
+                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path, new.tags, new.asset_type_detail);
             END;
 
             -- One-time sync migration to populate index for pre-existing assets
-            INSERT OR REPLACE INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path)
-            SELECT id, asset_name, original_name, category, subcategory, vendor, asset_path FROM user_assets;
+            INSERT OR REPLACE INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
+            SELECT id, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail FROM user_assets;
 
             CREATE TABLE IF NOT EXISTS sdk_classes (
                 name TEXT PRIMARY KEY,
@@ -323,22 +384,6 @@ impl SqliteDatabase {
         let mut stmt = conn.prepare(sql)?;
         let rows = stmt.query_map([], mapper)?;
         rows.collect()
-    }
-
-    pub fn query_params<T, F, P>(&self, sql: &str, params: P, mapper: F) -> Result<Vec<T>, rusqlite::Error>
-    where
-        F: FnMut(&rusqlite::Row<'_>) -> rusqlite::Result<T>,
-        P: rusqlite::Params,
-    {
-        let conn = rusqlite::Connection::open(&self.path)?;
-        let mut stmt = conn.prepare(sql)?;
-        let rows = stmt.query_map(params, mapper)?;
-        rows.collect()
-    }
-    
-    pub fn execute_insert(&self, sql: &str) -> Result<usize, rusqlite::Error> {
-        let conn = rusqlite::Connection::open(&self.path)?;
-        conn.execute(sql, [])
     }
 
     pub fn get_setting(&self, key: &str) -> Result<Option<String>, rusqlite::Error> {

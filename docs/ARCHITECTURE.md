@@ -79,7 +79,7 @@ Ollama remains available only when explicitly selected with `DazPilot_AI_BACKEND
 The default SDK include path is:
 
 ```text
-DAZStudio4.5+ SDK\include
+thirdparty/DAZStudio4.5+ SDK\include
 ```
 
 Use `DAZ_SDK_PATH=...` to override it.

@@ -8,7 +8,8 @@ DazPilot is an AI-assisted Daz Studio scene control system consisting of a Tauri
 - **Backend (Tauri):** Rust (located in `src-tauri/`).
 - **Daz Bridge:** C++ plugin (located in `plugins/daz3d-bridge/`).
 - **Documentation:** Architectural and implementation details are in `docs/`.
-- **SDK:** Daz Studio SDK is expected at `DAZStudio4.5+ SDK\` relative to the workspace root (ignored by git).
+- **SDK:** Daz Studio SDK is expected at `thirdparty/DAZStudio4.5+ SDK\` relative to the workspace root (ignored by
+git).
 
 ## Foundational Mandates
 

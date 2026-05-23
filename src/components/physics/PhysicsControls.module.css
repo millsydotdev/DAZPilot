@@ -1,0 +1,203 @@
+.physicsControlsContainer {
+  background: var(--background);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--foreground);
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.statusSection {
+  background: var(--muted);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.statusSection .statusRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.statusSection .statusRow:last-child {
+  border-bottom: none;
+}
+
+.statusLabel {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.statusValue {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.statusIndicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-left: 8px;
+}
+
+.statusIndicator.active {
+  background: var(--success);
+  animation: pulse 1.5s infinite;
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: right;
+  margin-top: 4px;
+}
+
+.controlsSection {
+  background: var(--muted);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.configPanel {
+  background: var(--muted);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.configPanel h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.25rem;
+  color: var(--foreground);
+}
+
+.configPanel .VStack {
+  gap: 12px;
+}
+
+.configPanel .HStack {
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.configPanel .HStack .Text {
+  margin-top: 4px;
+  flex-shrink: 0;
+  width: 80px;
+}
+
+.configPanel .HStack .unit {
+  margin-top: 4px;
+  margin-left: 8px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.logsSection {
+  background: var(--muted);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.logsSection h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.25rem;
+  color: var(--foreground);
+}
+
+.logsContainer {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--background);
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.logEntry {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.logEntry:last-child {
+  border-bottom: none;
+}
+
+.logText {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.stopButton {
+  background: var(--error);
+  color: white;
+  border: none;
+}
+
+.resetButton {
+  background: var(--warning);
+  color: white;
+  border: none;
+}
+
+.startButton {
+  background: var(--success);
+  color: white;
+  border: none;
+}
+
+.startButton:disabled {
+  background: var(--muted);
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}

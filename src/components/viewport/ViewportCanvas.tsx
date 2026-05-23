@@ -11,20 +11,21 @@ import {
   FolderOpen,
   RefreshCw,
   AlertCircle,
-  X,
 } from 'lucide-react';
 import { useViewportStore } from '../../store';
 import { Button } from '../ui';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import LiveLinkPanel from './LiveLinkPanel';
+import { KeyframeEditor } from '../animation/KeyframeEditor';
+import { PoseLibrary } from '../animation/PoseLibrary';
+import { PhysicsControls } from '../physics/PhysicsControls';
 import styles from './ViewportCanvas.module.css';
 
 export default function ViewportCanvas() {
   const {
     timeline,
     playback,
-    poses,
     showPoseLibrary,
     togglePoseLibrary,
     play,
@@ -302,30 +303,19 @@ export default function ViewportCanvas() {
           </Button>
         </div>
 
-        {showPoseLibrary && (
-          <div className={styles.poseLibrary}>
-            <div className={styles.poseHeader}>
-              <span className={styles.poseTitle}>Pose Library</span>
-              <button onClick={togglePoseLibrary}>
-                <X size={16} />
-              </button>
-            </div>
-            <div className={styles.poseList}>
-              {poses.length === 0 ? (
-                <p className={styles.emptyState}>No poses loaded</p>
-              ) : (
-                poses.map((pose) => (
-                  <div key={pose.id} className={styles.poseItem}>
-                    <div className={styles.poseName}>{pose.name}</div>
-                    <div className={styles.poseCategory}>{pose.category}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
+        {showPoseLibrary && <PoseLibrary />}
 
         {showLiveLink && <LiveLinkPanel onClose={() => setShowLiveLink(false)} />}
+      </div>
+
+      {/* Physics Controls Panel */}
+      <div className={styles.physicsControlsPanel}>
+        <PhysicsControls />
+      </div>
+
+      {/* Keyframe Editor Panel */}
+      <div className={styles.keyframeEditorPanel}>
+        <KeyframeEditor />
       </div>
 
       <div className={styles.timeline}>

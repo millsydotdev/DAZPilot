@@ -1,36 +1,62 @@
-import { describe, it, expect } from 'vitest';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { Button } from './Button';
 
 describe('Button', () => {
   it('renders children correctly', () => {
-    const html = renderToStaticMarkup(<Button>Click me</Button>);
-    expect(html).toContain('Click me');
+    render(<Button>Click me</Button>);
+    expect(screen.getByText('Click me')).toBeInTheDocument();
   });
 
   it('applies variant classes', () => {
-    const html = renderToStaticMarkup(<Button variant="primary">Primary</Button>);
-    expect(html).toMatch(/primary/);
+    render(<Button variant="primary">Primary</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('class', expect.stringContaining('primary'));
   });
 
   it('applies size classes', () => {
-    const html = renderToStaticMarkup(<Button size="sm">Small</Button>);
-    expect(html).toMatch(/sm/);
+    render(<Button size="sm">Small</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('class', expect.stringContaining('sm'));
   });
 
   it('shows loading state', () => {
-    const html = renderToStaticMarkup(<Button loading>Loading</Button>);
-    expect(html).toContain('disabled');
-    expect(html).toMatch(/loading/);
+    render(<Button loading>Loading</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('class', expect.stringContaining('loading'));
   });
 
   it('handles disabled state', () => {
-    const html = renderToStaticMarkup(<Button disabled>Disabled</Button>);
-    expect(html).toContain('disabled');
+    render(<Button disabled>Disabled</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
   });
 
   it('applies fullWidth class', () => {
-    const html = renderToStaticMarkup(<Button fullWidth>Full width</Button>);
-    expect(html).toMatch(/fullWidth/);
+    render(<Button fullWidth>Full width</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('class', expect.stringContaining('fullWidth'));
+  });
+
+  it('calls onClick handler when clicked', () => {
+    const handleClick = vi.fn();
+    render(<Button onClick={handleClick}>Click me</Button>);
+    const button = screen.getByRole('button');
+    button.click();
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onClick handler when disabled', () => {
+    const handleClick = vi.fn();
+    render(
+      <Button disabled onClick={handleClick}>
+        Click me
+      </Button>
+    );
+    const button = screen.getByRole('button');
+    button.click();
+    expect(handleClick).not.toHaveBeenCalled();
   });
 });

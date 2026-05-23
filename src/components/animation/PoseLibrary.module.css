@@ -1,0 +1,167 @@
+.poseLibraryContainer {
+  background: var(--background);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--foreground);
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.controlsSection {
+  margin-bottom: 16px;
+}
+
+.controlsSection .VStack {
+  gap: 12px;
+}
+
+.filterLabel {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.posesSection {
+  margin-top: 16px;
+}
+
+.posesCount {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 24px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.uploadSection {
+  background: var(--muted);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.uploadSection h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.25rem;
+  color: var(--foreground);
+}
+
+.uploadSection .VStack {
+  gap: 12px;
+}
+
+.uploadSection .HStack {
+  align-items: flex-start;
+}
+
+.uploadSection .HStack .Text {
+  margin-top: 4px;
+  flex-shrink: 0;
+  width: 60px;
+}
+
+.fileInput {
+  margin: 4px 0;
+}
+
+.uploadedFile {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 6px;
+  background: var(--primary);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.poseItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin: 8px 0;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.poseItem:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+}
+
+.poseItem.active {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  border-color: var(--primary);
+}
+
+.poseItem.active .poseName,
+.poseItem.active .poseMeta,
+.poseItem.active .keyframeCount {
+  color: var(--primary-contrast);
+}
+
+.poseInfo {
+  flex: 1;
+}
+
+.poseName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  color: var(--foreground);
+}
+
+.poseMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.poseActions {
+  display: flex;
+  gap: 6px;
+}
+
+.poseActions .Button {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+.keyframeCount {
+  background: var(--accent);
+  color: white;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+}
+
+.muted {
+  color: var(--muted);
+}

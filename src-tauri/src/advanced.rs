@@ -59,6 +59,8 @@ pub struct ExportSettings {
     pub include_animations: bool,
     pub bake_textures: bool,
     pub compression: bool,
+    #[serde(default)]
+    pub selected_only: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,6 +175,7 @@ pub fn get_default_export_settings() -> ExportSettings {
         include_animations: true,
         bake_textures: false,
         compression: false,
+        selected_only: false,
     }
 }
 
@@ -431,6 +434,7 @@ pub fn get_export_presets() -> HashMap<String, ExportSettings> {
         include_animations: true,
         bake_textures: false,
         compression: true,
+        selected_only: false,
     });
     
     presets.insert("archival".to_string(), ExportSettings {
@@ -440,6 +444,7 @@ pub fn get_export_presets() -> HashMap<String, ExportSettings> {
         include_animations: true,
         bake_textures: false,
         compression: false,
+        selected_only: false,
     });
     
     presets.insert("web3d".to_string(), ExportSettings {
@@ -449,6 +454,7 @@ pub fn get_export_presets() -> HashMap<String, ExportSettings> {
         include_animations: false,
         bake_textures: true,
         compression: true,
+        selected_only: false,
     });
     
     presets

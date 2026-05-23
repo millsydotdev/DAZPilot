@@ -226,10 +226,66 @@ const COMMAND_SCHEMAS: &[CommandSchema] = &[
         high_risk: false,
     },
     CommandSchema {
+        name: "play_timeline",
+        description: "Start Daz Studio timeline playback",
+        category: "Animation",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "pause_timeline",
+        description: "Pause Daz Studio timeline playback",
+        category: "Animation",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "stop_timeline",
+        description: "Stop playback and reset to frame 0",
+        category: "Animation",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_timeline_state",
+        description: "Query current Daz timeline frame, range, fps, and playback state",
+        category: "Animation",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
         name: "run_dforce_simulation",
         description: "Run a dForce physics simulation via inline DAZ Script",
         category: "Animation",
         parameters: &["node_id", "start_frame", "end_frame"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_material_properties",
+        description: "Get material properties of a node",
+        category: "Materials",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "apply_phy_modifier",
+        description: "Apply DazPilot physics modifier to a node",
+        category: "Physics",
+        parameters: &["node_id", "stiffness", "damping", "mass"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "remove_phy_modifier",
+        description: "Remove DazPilot physics modifier from a node",
+        category: "Physics",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_phy_modifier_params",
+        description: "Update DazPilot physics modifier parameters",
+        category: "Physics",
+        parameters: &["node_id", "stiffness", "damping", "mass"],
         high_risk: false,
     },
     CommandSchema {
@@ -279,6 +335,160 @@ const COMMAND_SCHEMAS: &[CommandSchema] = &[
         description: "Apply render resolution and quality presets",
         category: "Render",
         parameters: &["width", "height"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_figure_morphs",
+        description: "Get all morph dials and their values for a figure",
+        category: "Properties",
+        parameters: &["figure_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_fitted_items",
+        description: "Get all fitted clothing/accessories on a figure",
+        category: "Scene",
+        parameters: &["figure_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_active_expressions",
+        description: "Get all active expression dial values on a figure",
+        category: "Properties",
+        parameters: &["figure_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_material_zones",
+        description: "Get material zone names on a figure",
+        category: "Materials",
+        parameters: &["figure_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "apply_morph",
+        description: "Set a morph dial value on a figure (0.0–1.0)",
+        category: "Properties",
+        parameters: &["figure_id", "morph_id", "value"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "apply_expression",
+        description: "Set an expression dial value on a figure",
+        category: "Properties",
+        parameters: &["figure_id", "expression_id", "value"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "save_scene",
+        description: "Save the current scene to a file",
+        category: "Scene",
+        parameters: &["path"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "load_scene",
+        description: "Load a scene file (method: default/new/merge)",
+        category: "Scene",
+        parameters: &["path", "method"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "clear_scene",
+        description: "Clear the current scene",
+        category: "Scene",
+        parameters: &[],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "set_camera",
+        description: "Set active camera or adjust camera properties",
+        category: "Camera",
+        parameters: &["camera", "focal_length", "focal_distance"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_node_transform",
+        description: "Get node world-space transform (pos/rot/scale)",
+        category: "Scene",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_node_transform",
+        description: "Set node world-space position, rotation, or scale",
+        category: "Scene",
+        parameters: &["node_id", "position", "rotation", "scale"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "set_render_options",
+        description: "Set render quality, resolution, and output options",
+        category: "Render",
+        parameters: &["width", "height", "pixel_samples", "ray_trace_depth", "shading_rate", "gamma"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "search_content",
+        description: "Search Daz content library for assets by name/type",
+        category: "Assets",
+        parameters: &["query", "type", "max_results"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_material_texture",
+        description: "Assign a texture map file to a material surface channel",
+        category: "Materials",
+        parameters: &["node_id", "channel", "file_path"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_material_channels",
+        description: "Get all surface channels with texture paths and values",
+        category: "Materials",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "list_bones",
+        description: "List all bones in a figure's skeleton",
+        category: "Animation",
+        parameters: &["figure_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_bone_transform",
+        description: "Set a bone's world-space position or rotation",
+        category: "Animation",
+        parameters: &["figure_id", "bone_name", "position", "rotation"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "list_keyframes",
+        description: "List all keyframes on a node property",
+        category: "Animation",
+        parameters: &["node_id", "property"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "delete_keyframes",
+        description: "Delete keyframes from a node property (range or all)",
+        category: "Animation",
+        parameters: &["node_id", "property", "start", "end"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "list_modifiers",
+        description: "List all modifiers on a node's geometry object",
+        category: "Scene",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_viewport_mode",
+        description: "Set viewport display mode (texture, shaded, wireframe, etc.)",
+        category: "Viewport",
+        parameters: &["mode"],
         high_risk: false,
     },
 ];
@@ -541,6 +751,16 @@ fn dev_mock_response(command: &str, args: &Value) -> Result<McpResponse, String>
             "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
             "dev_mock": true
         }),
+        "play_timeline"       => serde_json::json!({ "playing": true,  "dev_mock": true }),
+        "pause_timeline"      => serde_json::json!({ "playing": false, "dev_mock": true }),
+        "stop_timeline"       => serde_json::json!({ "frame": 0,       "dev_mock": true }),
+        "get_timeline_state"  => serde_json::json!({ "current_frame": 0, "start_frame": 0, "end_frame": 300, "fps": 30.0, "is_playing": false, "dev_mock": true }),
+        "get_figure_morphs"   => serde_json::json!({ "morphs": [{"id":"testMorph","label":"Test Morph","value":0.0,"min":0.0,"max":1.0,"type":"morph"}], "dev_mock": true }),
+        "get_fitted_items"    => serde_json::json!({ "items": [], "dev_mock": true }),
+        "get_active_expressions" => serde_json::json!({ "expressions": [], "dev_mock": true }),
+        "get_material_zones"  => serde_json::json!({ "materials": [], "dev_mock": true }),
+        "apply_morph"         => serde_json::json!({ "set": true, "dev_mock": true }),
+        "apply_expression"    => serde_json::json!({ "set": true, "dev_mock": true }),
         _ => serde_json::json!({ "command": command, "args": args, "dev_mock": true }),
     };
 
@@ -680,6 +900,12 @@ mod tests {
                 "width": "1920",
                 "height": "1080"
             })),
+            ("play_timeline", serde_json::json!({})),
+            ("pause_timeline", serde_json::json!({})),
+            ("stop_timeline", serde_json::json!({})),
+            ("get_timeline_state", serde_json::json!({})),
+            ("get_figure_morphs", serde_json::json!({ "figure_id": "Genesis 9" })),
+            ("apply_morph", serde_json::json!({ "figure_id": "Genesis 9", "morph_id": "test", "value": 0.5 })),
         ];
         for (cmd, args) in commands {
             let resp = send_mcp_request(cmd, args);
@@ -713,9 +939,73 @@ mod tests {
     #[test]
     fn command_schemas_are_complete() {
         let commands = get_mcp_command_list();
-        assert!(commands.len() >= 20, "Should have at least 20 commands, got {}", commands.len());
+        assert!(commands.len() >= 30, "Should have at least 30 commands, got {}", commands.len());
         assert!(commands.iter().any(|c| c.name == "get_scene_info"));
         assert!(commands.iter().any(|c| c.name == "load_asset"));
         assert!(commands.iter().any(|c| c.name == "run_script"));
+    }
+
+    #[test]
+    fn animation_commands_in_schema() {
+        let names: Vec<&str> = COMMAND_SCHEMAS.iter().map(|s| s.name).collect();
+        for cmd in &["play_timeline", "pause_timeline", "stop_timeline", "get_timeline_state"] {
+            assert!(names.contains(cmd), "missing animation schema: {}", cmd);
+        }
+    }
+
+    #[test]
+    fn scene_property_commands_in_schema() {
+        let names: Vec<&str> = COMMAND_SCHEMAS.iter().map(|s| s.name).collect();
+        for cmd in &["get_figure_morphs", "get_fitted_items", "get_active_expressions", "get_material_zones", "apply_morph", "apply_expression"] {
+            assert!(names.contains(cmd), "missing scene property schema: {}", cmd);
+        }
+    }
+
+    #[test]
+    fn schema_parity_with_cpp_bridge() {
+        let rust_commands: std::collections::BTreeSet<&str> =
+            COMMAND_SCHEMAS.iter().map(|s| s.name).collect();
+
+        let cpp_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .join("plugins/daz3d-bridge/DazPilotBridgePlugin.cpp");
+
+        assert!(cpp_path.exists(), "C++ bridge source not found: {:?}", cpp_path);
+
+        let source = std::fs::read_to_string(&cpp_path)
+            .expect("Failed to read C++ bridge source");
+
+        let mut cpp_commands = std::collections::BTreeSet::new();
+        for line in source.lines() {
+            let trimmed = line.trim();
+            // Match: if (command == "xyz")
+            if let Some(start) = trimmed.find("command == \"") {
+                let rest = &trimmed[start + 12..];
+                if let Some(end) = rest.find('"') {
+                    let cmd = &rest[..end];
+                    cpp_commands.insert(cmd);
+                }
+            }
+        }
+
+        assert!(!cpp_commands.is_empty(), "No C++ commands extracted — check regex");
+
+        let only_in_cpp: Vec<&&str> = cpp_commands.difference(&rust_commands).collect();
+        let only_in_rust: Vec<&&str> = rust_commands.difference(&cpp_commands).collect();
+
+        if !only_in_cpp.is_empty() || !only_in_rust.is_empty() {
+            let mut msg = String::from("Schema parity mismatch between C++ bridge and Rust mcp_client:\n");
+            if !only_in_cpp.is_empty() {
+                let list: Vec<&str> = only_in_cpp.iter().map(|s| **s).collect();
+                msg.push_str(&format!("\n  In C++ but NOT in Rust ({}): {}\n", list.len(), list.join(", ")));
+            }
+            if !only_in_rust.is_empty() {
+                let list: Vec<&str> = only_in_rust.iter().map(|s| **s).collect();
+                msg.push_str(&format!("\n  In Rust but NOT in C++ ({}): {}\n", list.len(), list.join(", ")));
+            }
+            msg.push_str("\nAdd missing schemas to COMMAND_SCHEMAS in mcp_client.rs or implement the command in DazPilotBridgePlugin.cpp");
+            panic!("{}", msg);
+        }
     }
 }

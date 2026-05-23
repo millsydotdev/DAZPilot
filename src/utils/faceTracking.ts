@@ -63,6 +63,13 @@ function ear(
 
 export function computeAUs(lm: Array<{ x: number; y: number }>): Record<string, number> {
   const L = FACE_LANDMARKS;
+  const maxIdx = Math.max(...Object.values(L));
+  if (!lm || lm.length <= maxIdx) {
+    return Object.keys(FACS_MAP).reduce(
+      (acc, key) => ({ ...acc, [key]: 0 }),
+      {} as Record<string, number>
+    );
+  }
   const face_h = dist(lm[L.FACE_TOP], lm[L.FACE_BOT]) || 1.0;
   const face_w = dist(lm[L.L_EYE_OUT], lm[L.R_EYE_OUT]) || 1.0;
   const aus: Record<string, number> = {};

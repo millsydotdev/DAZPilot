@@ -1,13 +1,13 @@
 CompileFlags:
   Add:
-    - -IDAZStudio4.5+ SDK/include
-    - -IDAZStudio4.5+ SDK/include/QtCore
-    - -IDAZStudio4.5+ SDK/include/QtGui
-    - -IDAZStudio4.5+ SDK/include/QtScript
-    - -IDAZStudio4.5+ SDK/include/QtOpenGL
-    - -IDAZStudio4.5+ SDK/include/QtNetwork
-    - -IDAZStudio4.5+ SDK/include/QtSql
-    - -IDAZStudio4.5+ SDK/include/QtXml
+    - -Ithirdparty/DAZStudio4.5+ SDK/include
+    - -Ithirdparty/DAZStudio4.5+ SDK/include/QtCore
+    - -Ithirdparty/DAZStudio4.5+ SDK/include/QtGui
+    - -Ithirdparty/DAZStudio4.5+ SDK/include/QtScript
+    - -Ithirdparty/DAZStudio4.5+ SDK/include/QtOpenGL
+    - -Ithirdparty/DAZStudio4.5+ SDK/include/QtNetwork
+    - -Ithirdparty/DAZStudio4.5+ SDK/include/QtSql
+    - -Ithirdparty/DAZStudio4.5+ SDK/include/QtXml
     - -DWIN32
     - -D_WINDOWS
     - -DUNICODE

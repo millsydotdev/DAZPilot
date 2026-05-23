@@ -36,6 +36,7 @@ npm run plugin:rebuild    # Build the C++ bridge plugin
 npm run acceptance        # Run bridge acceptance tests (mock mode)
 npm test                  # Frontend tests
 cargo test                # Rust backend tests
+cd plugins/daz3d-bridge/build && ctest  # C++ bridge plugin tests (doctest)
 ```
 
 ### Key Environment Variables
@@ -71,6 +72,7 @@ cargo test                # Rust backend tests
 | [Publishing](PUBLISHING.md) | GitHub publication and Daz 3D Marketplace submission guide |
 | [Acceptance](ACCEPTANCE.md) | Automated CI acceptance and manual live Daz Studio test checklists |
 | [Roadmap](ROADMAP.md) | Planned features, known limitations, and contribution opportunities |
+| [Third-Party](THIRD-PARTY.md) | Overview of third-party libraries, licenses, and usage status |
 
 ---
 

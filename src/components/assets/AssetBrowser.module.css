@@ -154,7 +154,9 @@
 .assetCard:hover {
   transform: translateY(-3px);
   border-color: var(--color-primary);
-  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.12), 0 0 0 1px rgba(0, 212, 255, 0.15);
+  box-shadow:
+    0 8px 24px rgba(0, 212, 255, 0.12),
+    0 0 0 1px rgba(0, 212, 255, 0.15);
 }
 
 .assetCard:hover .assetIcon {
@@ -238,6 +240,89 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Advanced Filters Panel */
+.advancedFilters {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 350px;
+  background: var(--color-bg-elevated);
+  border-left: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.advancedFiltersHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-subtle);
+}
+
+.advancedFiltersHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.advancedFiltersContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  background: var(--color-bg-primary);
+}
+
+.advancedFiltersContent .VStack {
+  gap: var(--spacing-md);
+}
+
+.advancedFiltersContent .HStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.advancedFiltersContent .Text[size='xs'] {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.advancedFiltersContent .Input {
+  flex: 1;
+  min-width: 100px;
+}
+
+.advancedFiltersContent .Checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.advancedFiltersContent .Checkbox input {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.mx2 {
+  margin: 0 var(--spacing-sm);
 }

@@ -2,8 +2,10 @@ import { create } from 'zustand';
 
 export interface Keyframe {
   id: string;
+  nodeId: string;
+  property: string;
   frame: number;
-  properties: Record<string, unknown>;
+  value: number;
 }
 
 export interface TimelineState {
@@ -26,6 +28,7 @@ export interface Pose {
   category: string;
   thumbnail?: string;
   keyframes: Keyframe[];
+  file_path?: string;
 }
 
 export interface ViewportState {
@@ -200,6 +203,7 @@ export const useViewportStore = create<ViewportState & ViewportActions>((set, ge
           name: p.name,
           category: p.category,
           keyframes: [],
+          file_path: p.file_path,
         }));
 
         set({ timeline, playback, poses });

@@ -20,19 +20,26 @@ export function cn(...inputs: ClassValue[]): string {
 export function createClassBuilder(baseClass?: string) {
   const classes: string[] = baseClass ? [baseClass] : [];
 
-  return {
+  const self = {
+    classes,
     add: (...newClasses: (string | undefined | null | false)[]) => {
-      classes.push(...(newClasses.filter(Boolean) as string[]));
-      return builder;
+      self.classes.push(...(newClasses.filter(Boolean) as string[]));
+      return self;
     },
     conditional: (condition: boolean, ...newClasses: string[]) => {
       if (condition) {
-        classes.push(...newClasses);
+        self.classes.push(...newClasses);
       }
-      return builder;
+      return self;
     },
-    build: () => cn(...classes),
+    build: () => cn(...self.classes),
   };
+
+  return self;
+}
+
+export function resetBuilder() {
+  builder.classes.length = 0;
 }
 
 const builder = createClassBuilder();

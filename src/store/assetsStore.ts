@@ -81,6 +81,14 @@ export interface AssetsState {
   favouritePaths: Set<string>;
   loadingAsset: string | null;
   error: string | null;
+  // Enhanced filtering and sorting
+  sortBy: string;
+  sortDirection: 'asc' | 'desc';
+  advancedFilters: {
+    fileTypes: string[] | null;
+    dateRange: { start: number | null; end: number | null } | null;
+    sizeRange: { min: number | null; max: number | null } | null;
+  };
 }
 
 export interface AssetsActions {
@@ -95,6 +103,14 @@ export interface AssetsActions {
   setScanProgress: (progress: ScanProgress | null) => void;
   setSelectedFile: (file: AssetFile | null) => void;
   setError: (error: string | null) => void;
+  // Enhanced filtering and sorting
+  setSortBy: (sortBy: string) => void;
+  setSortDirection: (direction: 'asc' | 'desc') => void;
+  setAdvancedFilters: (filters: {
+    fileTypes: string[] | null;
+    dateRange: { start: number | null; end: number | null } | null;
+    sizeRange: { min: number | null; max: number | null } | null;
+  }) => void;
   loadContentPaths: () => Promise<void>;
   addCustomPath: (path: string, name: string) => Promise<void>;
   removeCustomPath: (id: string) => Promise<void>;
@@ -122,6 +138,13 @@ const initialState: AssetsState = {
   favouritePaths: new Set(),
   loadingAsset: null,
   error: null,
+  sortBy: 'none',
+  sortDirection: 'asc',
+  advancedFilters: {
+    fileTypes: null,
+    dateRange: null,
+    sizeRange: null,
+  },
 };
 
 export const useAssetsStore = create<AssetsState & AssetsActions>((set, get) => ({
@@ -137,6 +160,9 @@ export const useAssetsStore = create<AssetsState & AssetsActions>((set, get) => 
   setScanProgress: (scanProgress) => set({ scanProgress }),
   setSelectedFile: (selectedFile) => set({ selectedFile }),
   setError: (error) => set({ error }),
+  setSortBy: (sortBy) => set({ sortBy }),
+  setSortDirection: (sortDirection) => set({ sortDirection }),
+  setAdvancedFilters: (advancedFilters) => set({ advancedFilters }),
 
   toggleContentPath: (id) =>
     set((state) => ({

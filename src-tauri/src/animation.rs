@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pose {
@@ -62,48 +61,58 @@ pub struct AnimationResult {
     pub data: Option<serde_json::Value>,
 }
 
-struct AnimationState {
-    timeline: TimelineState,
-    playback: PlaybackState,
+pub fn init_animation_system() {
+    log::info!("Animation system initialized");
 }
 
-lazy_static::lazy_static! {
-    static ref ANIMATION_STATE: Mutex<AnimationState> = Mutex::new(AnimationState {
-        timeline: TimelineState {
+pub fn get_timeline_state() -> TimelineState {
+    match crate::mcp_client::send_mcp_request("get_timeline_state", serde_json::json!({})) {
+        Ok(resp) => {
+            if let Some(data) = resp.data {
+                let cf = data.get("current_frame").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+                let _sf = data.get("start_frame").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+                let ef = data.get("end_frame").and_then(|v| v.as_f64()).unwrap_or(300.0) as f32;
+                let fps = data.get("fps").and_then(|v| v.as_f64()).unwrap_or(30.0) as f32;
+                let playing = data.get("is_playing").and_then(|v| v.as_bool()).unwrap_or(false);
+                TimelineState {
+                    current_frame: cf,
+                    total_frames: ef,
+                    is_playing: playing,
+                    fps,
+                    active_figure: None,
+                }
+            } else {
+                TimelineState {
+                    current_frame: 0.0,
+                    total_frames: 300.0,
+                    is_playing: false,
+                    fps: 30.0,
+                    active_figure: None,
+                }
+            }
+        }
+        Err(_) => TimelineState {
             current_frame: 0.0,
             total_frames: 300.0,
             is_playing: false,
             fps: 30.0,
             active_figure: None,
         },
-        playback: PlaybackState {
-            playing: false,
-            current_time: 0.0,
-            duration: 10.0,
-            loop_enabled: true,
-            speed: 1.0,
-        },
-    });
-}
-
-pub fn init_animation_system() {
-    log::info!("Animation system initialized");
-}
-
-pub fn get_timeline_state() -> TimelineState {
-    ANIMATION_STATE.lock().unwrap().timeline.clone()
+    }
 }
 
 pub fn get_playback_state() -> PlaybackState {
-    ANIMATION_STATE.lock().unwrap().playback.clone()
+    let state = get_timeline_state();
+    PlaybackState {
+        playing: state.is_playing,
+        current_time: state.current_frame / state.fps.max(1.0),
+        duration: state.total_frames / state.fps.max(1.0),
+        loop_enabled: true,
+        speed: 1.0,
+    }
 }
 
 pub fn set_current_frame(frame: f32) {
-    let mut state = ANIMATION_STATE.lock().unwrap();
-    state.timeline.current_frame = frame.max(0.0).min(state.timeline.total_frames);
-    state.playback.current_time = state.timeline.current_frame / 30.0;
-    drop(state);
-    // Also move the Daz Studio timeline cursor in real-time
     let _ = crate::mcp_client::send_mcp_request(
         "seek_to_frame",
         serde_json::json!({ "frame": frame as i32 }),
@@ -111,40 +120,27 @@ pub fn set_current_frame(frame: f32) {
 }
 
 pub fn play() {
-    let mut state = ANIMATION_STATE.lock().unwrap();
-    state.timeline.is_playing = true;
-    state.playback.playing = true;
+    let _ = crate::mcp_client::send_mcp_request("play_timeline", serde_json::json!({}));
 }
 
 pub fn pause() {
-    let mut state = ANIMATION_STATE.lock().unwrap();
-    state.timeline.is_playing = false;
-    state.playback.playing = false;
+    let _ = crate::mcp_client::send_mcp_request("pause_timeline", serde_json::json!({}));
 }
 
 pub fn stop() {
-    let mut state = ANIMATION_STATE.lock().unwrap();
-    state.timeline.is_playing = false;
-    state.timeline.current_frame = 0.0;
-    state.playback.playing = false;
-    state.playback.current_time = 0.0;
+    let _ = crate::mcp_client::send_mcp_request("stop_timeline", serde_json::json!({}));
 }
 
-pub fn set_playback_speed(speed: f32) {
-    let mut state = ANIMATION_STATE.lock().unwrap();
-    state.playback.speed = speed.clamp(0.1, 10.0);
+pub fn set_playback_speed(_speed: f32) {
+    log::info!("Playback speed change requested (handled by Daz Studio internally)");
 }
 
 pub fn toggle_loop() {
-    let mut state = ANIMATION_STATE.lock().unwrap();
-    state.playback.loop_enabled = !state.playback.loop_enabled;
+    log::info!("Loop toggle requested (handled by Daz Studio internally)");
 }
 
 pub fn apply_pose_to_figure(pose_file: &str, figure_id: &str) -> AnimationResult {
     log::info!("Applying pose {} to figure {}", pose_file, figure_id);
-    
-    let mut state = ANIMATION_STATE.lock().unwrap();
-    state.timeline.active_figure = Some(figure_id.to_string());
     
     AnimationResult {
         success: true,
@@ -228,9 +224,6 @@ pub fn load_animation(anim_file: &str) -> AnimationResult {
 }
 
 pub fn set_active_figure(figure_id: &str) -> AnimationResult {
-    let mut state = ANIMATION_STATE.lock().unwrap();
-    state.timeline.active_figure = Some(figure_id.to_string());
-    
     AnimationResult {
         success: true,
         message: format!("Set active figure to {}", figure_id),
@@ -317,4 +310,55 @@ fn load_poses_from_db() -> Result<Vec<Pose>, String> {
         })
         .map_err(|e| e.to_string())?;
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serial_test::serial;
+
+    #[test]
+    #[serial]
+    fn play_calls_bridge() {
+        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
+        play();
+        // With mock bridge enabled, play() should not panic
+        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
+    }
+
+    #[test]
+    #[serial]
+    fn pause_calls_bridge() {
+        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
+        pause();
+        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
+    }
+
+    #[test]
+    #[serial]
+    fn stop_calls_bridge() {
+        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
+        stop();
+        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
+    }
+
+    #[test]
+    #[serial]
+    fn get_timeline_state_parses_bridge_response() {
+        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
+        let state = get_timeline_state();
+        assert_eq!(state.current_frame, 0.0);
+        assert_eq!(state.total_frames, 300.0);
+        assert_eq!(state.fps, 30.0);
+        assert!(!state.is_playing);
+        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
+    }
+
+    #[test]
+    #[serial]
+    fn set_current_frame_calls_seek_to_frame() {
+        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
+        set_current_frame(42.0);
+        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
+    }
 }

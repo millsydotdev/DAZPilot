@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
-import { X, Shield, Check, XIcon, Copy, Trash2, FileCode } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Shield, Check, XIcon, Copy, Trash2, FileCode, Edit, Play } from 'lucide-react';
 import { listen } from '@tauri-apps/api/event';
 import { useScriptApprovalStore, type ScriptSuggestion } from '../store/scriptApprovalStore';
+import ScriptEditor from './scripting/ScriptEditor';
 import styles from './ScriptApprovalPanel.module.css';
 
 interface ScriptSuggestionEvent {
@@ -12,8 +13,18 @@ interface ScriptSuggestionEvent {
 }
 
 export function ScriptApprovalPanel() {
-  const { suggestions, isOpen, addSuggestion, approveScript, rejectScript, clearHistory, setOpen } =
-    useScriptApprovalStore();
+  const {
+    suggestions,
+    isOpen,
+    addSuggestion,
+    rejectScript,
+    updateScript,
+    executeScript,
+    isLoading,
+    setOpen,
+  } = useScriptApprovalStore();
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingScriptId, setEditingScriptId] = useState<string | null>(null);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -55,6 +66,8 @@ export function ScriptApprovalPanel() {
         return styles.statusApproved;
       case 'rejected':
         return styles.statusRejected;
+      case 'draft':
+        return styles.statusDraft;
     }
   };
 
@@ -66,10 +79,29 @@ export function ScriptApprovalPanel() {
         return 'Approved';
       case 'rejected':
         return 'Rejected';
+      case 'draft':
+        return 'Draft';
     }
   };
 
   const pendingCount = suggestions.filter((s) => s.status === 'pending').length;
+
+  const handleExecuteScript = async (id: string) => {
+    await executeScript(id);
+  };
+
+  const handleEditScript = (id: string) => {
+    setEditingScriptId(id);
+    setIsEditorOpen(true);
+  };
+
+  const handleSaveScript = (script: string) => {
+    if (editingScriptId) {
+      updateScript(editingScriptId, script);
+      setIsEditorOpen(false);
+      setEditingScriptId(null);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -139,39 +171,70 @@ export function ScriptApprovalPanel() {
                 </div>
 
                 <div className={styles.scriptContainer} aria-live="polite">
-                  <pre className={styles.scriptCode}>{suggestion.script}</pre>
+                  {editingScriptId === suggestion.id && isEditorOpen ? (
+                    <ScriptEditor
+                      initialScript={suggestion.script}
+                      onScriptSaved={handleSaveScript}
+                      onScriptExecuted={async () => {
+                        await handleExecuteScript(suggestion.id);
+                        setIsEditorOpen(false);
+                        setEditingScriptId(null);
+                      }}
+                    />
+                  ) : (
+                    <pre className={styles.scriptCode}>{suggestion.script}</pre>
+                  )}
                 </div>
 
-                {suggestion.status === 'pending' && (
-                  <div className={styles.cardActions}>
-                    <button
-                      className={styles.approveButton}
-                      onClick={() => approveScript(suggestion.id)}
-                      aria-label="Approve script"
-                    >
-                      <Check size={14} />
-                      Approve & Execute
-                    </button>
-                    <button
-                      className={styles.rejectButton}
-                      onClick={() => rejectScript(suggestion.id)}
-                      aria-label="Deny script"
-                    >
-                      <XIcon size={14} />
-                      Reject
-                    </button>
-                    <button
-                      className={styles.copyButton}
-                      onClick={() => handleCopy(suggestion.script)}
-                      title="Copy script"
-                      aria-label="Copy script"
-                    >
-                      <Copy size={14} />
-                    </button>
-                  </div>
-                )}
+                {suggestion.status === 'pending' ||
+                  (suggestion.status === 'draft' && (
+                    <div className={styles.cardActions}>
+                      <button
+                        className={styles.approveButton}
+                        onClick={() => handleExecuteScript(suggestion.id)}
+                        disabled={isLoading}
+                        aria-label="Approve script"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Play size={14} className="animate-spin" />
+                            Executing...
+                          </>
+                        ) : (
+                          <>
+                            <Check size={14} />
+                            Approve & Execute
+                          </>
+                        )}
+                      </button>
+                      <button
+                        className={styles.rejectButton}
+                        onClick={() => rejectScript(suggestion.id)}
+                        aria-label="Deny script"
+                      >
+                        <XIcon size={14} />
+                        Reject
+                      </button>
+                      <button
+                        className={styles.editButton}
+                        onClick={() => handleEditScript(suggestion.id)}
+                        aria-label="Edit script"
+                      >
+                        <Edit size={14} />
+                        Edit
+                      </button>
+                      <button
+                        className={styles.copyButton}
+                        onClick={() => handleCopy(suggestion.script)}
+                        title="Copy script"
+                        aria-label="Copy script"
+                      >
+                        <Copy size={14} />
+                      </button>
+                    </div>
+                  ))}
 
-                {suggestion.status !== 'pending' && (
+                {suggestion.status !== 'pending' && suggestion.status !== 'draft' && (
                   <div className={styles.cardActions}>
                     <button
                       className={styles.copyButton}
@@ -181,6 +244,14 @@ export function ScriptApprovalPanel() {
                     >
                       <Copy size={14} />
                       Copy Script
+                    </button>
+                    <button
+                      className={styles.editButton}
+                      onClick={() => handleEditScript(suggestion.id)}
+                      aria-label="Edit script"
+                    >
+                      <Edit size={14} />
+                      Edit
                     </button>
                   </div>
                 )}
@@ -193,7 +264,10 @@ export function ScriptApprovalPanel() {
           <div className={styles.footer}>
             <button
               className={styles.clearButton}
-              onClick={clearHistory}
+              onClick={() => {
+                setIsEditorOpen(false);
+                setEditingScriptId(null);
+              }}
               aria-label="Clear history"
             >
               <Trash2 size={12} />

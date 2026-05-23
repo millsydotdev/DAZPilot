@@ -30,7 +30,7 @@ impl LlamaServer {
         }
 
         let child = Command::new(&exe_path)
-            .args(&[
+            .args([
                 "-m", model_path,
                 "-c", "4096",
                 "--port", &port.to_string(),
@@ -113,7 +113,7 @@ pub fn list_local_models() -> Vec<LocalModelInfo> {
     if let Ok(entries) = std::fs::read_dir(&models_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.extension().map_or(false, |e| e == "gguf" || e == "bin") {
+            if path.extension().is_some_and(|e| e == "gguf" || e == "bin") {
                 let size = std::fs::metadata(&path)
                     .map(|m| m.len() / (1024 * 1024))
                     .unwrap_or(0);
@@ -139,7 +139,7 @@ pub fn first_local_model_path() -> Option<std::path::PathBuf> {
         .ok()?
         .flatten()
         .map(|entry| entry.path())
-        .filter(|path| path.extension().map_or(false, |e| e == "gguf" || e == "bin"))
+        .filter(|path| path.extension().is_some_and(|e| e == "gguf" || e == "bin"))
         .collect();
     paths.sort();
     paths.into_iter().next()

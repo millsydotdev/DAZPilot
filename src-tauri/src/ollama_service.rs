@@ -83,7 +83,7 @@ impl OllamaService {
     }
 
     pub async fn is_running(&self) -> bool {
-        match self.client.get(&format!("{}/api/tags", self.base_url)).send().await {
+        match self.client.get(format!("{}/api/tags", self.base_url)).send().await {
             Ok(resp) => resp.status().is_success(),
             Err(_) => false,
         }

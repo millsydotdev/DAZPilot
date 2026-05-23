@@ -135,14 +135,24 @@ pub async fn plan_with_llm_tools(
     parse_llm_tool_plan(&response)
 }
 
-/// Merge heuristic and LLM plans; prefer higher confidence.
+/// Merge heuristic and LLM plans using a confidence-informed strategy:
+/// - heuristic >= 0.85 → prefer heuristic (high-confidence keyword match)
+/// - heuristic < 0.70  → prefer LLM (heuristic uncertain, LLM may generalize better)
+/// - otherwise         → pick whichever has higher confidence
 pub fn merge_plans(
     heuristic: Option<StructuredAiAction>,
     llm: Option<StructuredAiAction>,
 ) -> Option<StructuredAiAction> {
+    const HEURISTIC_HIGH_CONFIDENCE: f32 = 0.85;
+    const HEURISTIC_LOW_CONFIDENCE: f32 = 0.70;
+
     match (heuristic, llm) {
         (Some(h), Some(l)) => {
-            if h.confidence >= l.confidence {
+            if h.confidence >= HEURISTIC_HIGH_CONFIDENCE {
+                Some(h)
+            } else if h.confidence < HEURISTIC_LOW_CONFIDENCE {
+                Some(l)
+            } else if h.confidence >= l.confidence {
                 Some(h)
             } else {
                 Some(l)

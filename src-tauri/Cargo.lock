@@ -941,6 +941,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "dirs 5.0.1",
+ "fastrand",
  "flate2",
  "lazy_static",
  "log",
@@ -961,6 +962,7 @@ dependencies = [
  "tempfile",
  "thiserror 1.0.69",
  "tokio",
+ "urlencoding",
  "walkdir",
 ]
 

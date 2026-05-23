@@ -9,15 +9,13 @@
 #include "dzfileiosettings.h"
 #include "dzexporter.h"
 #include "DazPilotPhyModifier.h"
+#include "Log.h"
+#include "JsonUtil.h"
 #include <QtCore/QBuffer>
 #include <QtCore/QByteArray>
-#include <QtCore/QFile>
-#include <QtCore/QJsonDocument>
-#include <QtCore/QJsonObject>
 #include <cstdlib>
 
 #include <atomic>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -26,15 +24,14 @@
 #include <cstring>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QEvent>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <thread>
 
 #include "dzpane.h"
 #include <QtGui/QLabel>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QTextEdit>
+
+static DazPilotBridgeState g_state = {nullptr, QList<QTcpSocket*>(), "127.0.0.1", 8765, ""};
+static std::atomic<bool> g_serverRunning(false);
 
 class DazPilotPane : public DzPane {
     Q_OBJECT
@@ -95,8 +92,6 @@ static constexpr BridgeSocket INVALID_BRIDGE_SOCKET = -1;
 static void CloseBridgeSocket(BridgeSocket socket) { close(socket); }
 #endif
 
-static DazPilotBridgeState g_state = {nullptr, QList<QTcpSocket*>(), "127.0.0.1", 8765, ""};
-static std::atomic<bool> g_serverRunning(false);
 static std::thread g_serverThread;
 static BridgeSocket g_listenSocket = INVALID_BRIDGE_SOCKET;
 
@@ -761,6 +756,136 @@ static bool ApplyRenderSettings(const QString& widthStr, const QString& heightSt
     return dzScript.execute();
 }
 
+static std::string GetFigureMorphsData(const QString& nodeId) {
+    if (!dzScene) return "{\"morphs\":[]}";
+    DzNode* node = dzScene->findNode(nodeId);
+    if (!node) return "{\"morphs\":[]}";
+
+    std::ostringstream oss;
+    oss << "{\"morphs\":[";
+    bool first = true;
+
+    for (int i = 0; i < node->getNumProperties(); ++i) {
+        DzProperty* prop = node->getProperty(i);
+        if (!prop) continue;
+        QString path = prop->getPath();
+        if (!path.contains("Morphs")) continue;
+
+        DzFloatProperty* fProp = qobject_cast<DzFloatProperty*>(prop);
+        if (!fProp) continue;
+
+        if (!first) oss << ",";
+        first = false;
+
+        oss << "{";
+        oss << "\"id\":\"" << JsonEscape(prop->getName()) << "\",";
+        oss << "\"label\":\"" << JsonEscape(prop->getLabel()) << "\",";
+        oss << "\"value\":" << fProp->getValue() << ",";
+        oss << "\"min\":" << fProp->getMin() << ",";
+        oss << "\"max\":" << fProp->getMax() << ",";
+        oss << "\"type\":\"morph\"";
+        oss << "}";
+    }
+    oss << "]}";
+    return oss.str();
+}
+
+static std::string GetFittedItemsData(const QString& nodeId) {
+    if (!dzScene) return "{\"items\":[]}";
+    DzNode* figure = dzScene->findNode(nodeId);
+    if (!figure) return "{\"items\":[]}";
+
+    std::ostringstream oss;
+    oss << "{\"items\":[";
+    bool first = true;
+
+    // Iterate all nodes and check if they are children of the figure or wearables
+    DzNodeListIterator it = dzScene->nodeListIterator();
+    while (it.hasNext()) {
+        DzNode* node = it.next();
+        if (!node || node == figure) continue;
+
+        // Check if this node's label suggests it's fitted clothing
+        QString label = node->getLabel();
+        if (label.isEmpty()) continue;
+
+        // A fitted item is typically a child of the figure or has a fitting relationship
+        bool isFitted = false;
+        if (node->getNodeParent() == figure) {
+            isFitted = true;
+        }
+        // Also check if it's a wearable/fitted item via label heuristics
+        if (!isFitted) {
+            QString lower = label.toLower();
+            if (lower.contains("wearable") || lower.contains("outfit") ||
+                lower.contains("clothing") || lower.contains("fit")) {
+                isFitted = true;
+            }
+        }
+        if (!isFitted) continue;
+
+        if (!first) oss << ",";
+        first = false;
+        oss << "{\"node_id\":\"" << JsonEscape(node->getName()) << "\",";
+        oss << "\"label\":\"" << JsonEscape(label) << "\"}";
+    }
+    oss << "]}";
+    return oss.str();
+}
+
+static std::string GetActiveExpressionsData(const QString& nodeId) {
+    if (!dzScene) return "{\"expressions\":[]}";
+    DzNode* node = dzScene->findNode(nodeId);
+    if (!node) return "{\"expressions\":[]}";
+
+    std::ostringstream oss;
+    oss << "{\"expressions\":[";
+    bool first = true;
+
+    for (int i = 0; i < node->getNumProperties(); ++i) {
+        DzProperty* prop = node->getProperty(i);
+        if (!prop) continue;
+        QString path = prop->getPath();
+        if (!path.contains("Expression")) continue;
+
+        DzFloatProperty* fProp = qobject_cast<DzFloatProperty*>(prop);
+        if (!fProp) continue;
+
+        if (!first) oss << ",";
+        first = false;
+
+        oss << "{";
+        oss << "\"id\":\"" << JsonEscape(prop->getName()) << "\",";
+        oss << "\"label\":\"" << JsonEscape(prop->getLabel()) << "\",";
+        oss << "\"value\":" << fProp->getValue();
+        oss << "}";
+    }
+    oss << "]}";
+    return oss.str();
+}
+
+static std::string GetTimelineStateData() {
+    if (!dzScene) return "{\"available\":false}";
+    std::ostringstream oss;
+
+    int curFrame = dzScene->getFrame();
+    DzTimeRange playRange = dzScene->getPlayRange();
+    DzTime timeStep = dzScene->getTimeStep();
+    float fps = 30.0f;
+    if (timeStep > 0) {
+        fps = 1.0f / (static_cast<float>(timeStep) / 1000.0f);
+    }
+
+    oss << "{";
+    oss << "\"current_frame\":" << curFrame << ",";
+    oss << "\"start_frame\":" << (playRange.getStart() / timeStep) << ",";
+    oss << "\"end_frame\":" << (playRange.getEnd() / timeStep) << ",";
+    oss << "\"fps\":" << fps << ",";
+    oss << "\"is_playing\":false";
+    oss << "}";
+    return oss.str();
+}
+
 static std::string GetBoundingBoxesData() {
     if (!dzScene) return "{\"bounds\":[]}";
     
@@ -818,7 +943,33 @@ static std::string CommandsData() {
         "{\"name\":\"add_figure\",\"description\":\"Add Genesis figure (requires path or content)\",\"category\":\"Scene\",\"parameters\":[\"figure_type\",\"path\"]},"
         "{\"name\":\"set_morph\",\"description\":\"Set morph dial value\",\"category\":\"Properties\",\"parameters\":[\"node_id\",\"morph\",\"value\"]},"
         "{\"name\":\"set_light\",\"description\":\"Set light property\",\"category\":\"Lighting\",\"parameters\":[\"node_id\",\"property\",\"value\"]},"
-        "{\"name\":\"set_render_settings\",\"description\":\"Set render image size\",\"category\":\"Render\",\"parameters\":[\"width\",\"height\"]}"
+        "{\"name\":\"set_render_settings\",\"description\":\"Set render image size\",\"category\":\"Render\",\"parameters\":[\"width\",\"height\"]},"
+        "{\"name\":\"play_timeline\",\"description\":\"Start timeline playback\",\"category\":\"Animation\",\"parameters\":[]},"
+        "{\"name\":\"pause_timeline\",\"description\":\"Pause timeline playback\",\"category\":\"Animation\",\"parameters\":[]},"
+        "{\"name\":\"stop_timeline\",\"description\":\"Stop playback and reset to frame 0\",\"category\":\"Animation\",\"parameters\":[]},"
+        "{\"name\":\"get_timeline_state\",\"description\":\"Get current timeline state\",\"category\":\"Animation\",\"parameters\":[]},"
+        "{\"name\":\"get_figure_morphs\",\"description\":\"Get morphs for a figure\",\"category\":\"Properties\",\"parameters\":[\"figure_id\"]},"
+        "{\"name\":\"get_fitted_items\",\"description\":\"Get fitted items on a figure\",\"category\":\"Scene\",\"parameters\":[\"figure_id\"]},"
+        "{\"name\":\"get_active_expressions\",\"description\":\"Get active expressions on a figure\",\"category\":\"Properties\",\"parameters\":[\"figure_id\"]},"
+        "{\"name\":\"get_material_zones\",\"description\":\"Get material zones on a figure\",\"category\":\"Materials\",\"parameters\":[\"figure_id\"]},"
+        "{\"name\":\"apply_morph\",\"description\":\"Set a morph dial on a figure\",\"category\":\"Properties\",\"parameters\":[\"figure_id\",\"morph_id\",\"value\"]},"
+        "{\"name\":\"apply_expression\",\"description\":\"Set an expression dial on a figure\",\"category\":\"Properties\",\"parameters\":[\"figure_id\",\"expression_id\",\"value\"]},"
+        "{\"name\":\"save_scene\",\"description\":\"Save the current scene to a file\",\"category\":\"Scene\",\"parameters\":[\"path\"]},"
+        "{\"name\":\"load_scene\",\"description\":\"Load a scene file (method: default/new/merge)\",\"category\":\"Scene\",\"parameters\":[\"path\",\"method\"]},"
+        "{\"name\":\"clear_scene\",\"description\":\"Clear the current scene\",\"category\":\"Scene\",\"parameters\":[]},"
+        "{\"name\":\"set_camera\",\"description\":\"Set active camera or adjust camera properties\",\"category\":\"Camera\",\"parameters\":[\"camera\",\"focal_length\",\"focal_distance\"]},"
+        "{\"name\":\"get_node_transform\",\"description\":\"Get node world-space transform (pos/rot/scale)\",\"category\":\"Scene\",\"parameters\":[\"node_id\"]},"
+        "{\"name\":\"set_node_transform\",\"description\":\"Set node world-space position, rotation, or scale\",\"category\":\"Scene\",\"parameters\":[\"node_id\",\"position\",\"rotation\",\"scale\"]},"
+        "{\"name\":\"set_render_options\",\"description\":\"Set render quality and output options\",\"category\":\"Render\",\"parameters\":[\"width\",\"height\",\"pixel_samples\",\"ray_trace_depth\",\"shading_rate\",\"gamma\"]},"
+        "{\"name\":\"search_content\",\"description\":\"Search Daz content library for assets by name/type\",\"category\":\"Assets\",\"parameters\":[\"query\",\"type\",\"max_results\"]},"
+        "{\"name\":\"set_material_texture\",\"description\":\"Assign a texture map file to a material surface channel\",\"category\":\"Materials\",\"parameters\":[\"node_id\",\"channel\",\"file_path\"]},"
+        "{\"name\":\"get_material_channels\",\"description\":\"Get all surface channels with texture paths and values\",\"category\":\"Materials\",\"parameters\":[\"node_id\"]},"
+        "{\"name\":\"list_bones\",\"description\":\"List all bones in a figure's skeleton\",\"category\":\"Animation\",\"parameters\":[\"figure_id\"]},"
+        "{\"name\":\"set_bone_transform\",\"description\":\"Set a bone's world-space position or rotation\",\"category\":\"Animation\",\"parameters\":[\"figure_id\",\"bone_name\",\"position\",\"rotation\"]},"
+        "{\"name\":\"list_keyframes\",\"description\":\"List all keyframes on a node property\",\"category\":\"Animation\",\"parameters\":[\"node_id\",\"property\"]},"
+        "{\"name\":\"delete_keyframes\",\"description\":\"Delete keyframes from a node property (range or all)\",\"category\":\"Animation\",\"parameters\":[\"node_id\",\"property\",\"start\",\"end\"]},"
+        "{\"name\":\"list_modifiers\",\"description\":\"List all modifiers on a node's geometry object\",\"category\":\"Scene\",\"parameters\":[\"node_id\"]},"
+        "{\"name\":\"set_viewport_mode\",\"description\":\"Set viewport display mode (texture, shaded, wireframe, lit_wireframe, hidden_line, smooth_lit)\",\"category\":\"Viewport\",\"parameters\":[\"mode\"]}"
     "]}";
 }
 
@@ -1190,6 +1341,676 @@ static std::string DispatchRequest(const std::string& line) {
         return ErrorResponse(id, "dForce simulation failed — ensure dForce modifier is applied to the node.");
     }
 
+    // ─── Animation Playback Commands ──────────────────────────────────────────
+
+    if (command == "play_timeline") {
+        if (!dzApp) return ErrorResponse(id, "No app");
+        QString script = "App.play();";
+        DzScript dzScript;
+        dzScript.addLine(script);
+        if (dzScript.execute()) {
+            return OkResponse(id, "{\"playing\":true}");
+        }
+        return ErrorResponse(id, "Failed to start playback");
+    }
+
+    if (command == "pause_timeline") {
+        if (!dzApp) return ErrorResponse(id, "No app");
+        QString script = "App.pause();";
+        DzScript dzScript;
+        dzScript.addLine(script);
+        if (dzScript.execute()) {
+            return OkResponse(id, "{\"playing\":false}");
+        }
+        return ErrorResponse(id, "Failed to pause playback");
+    }
+
+    if (command == "stop_timeline") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString script = "App.stop();\nScene.setCurFrame(0);";
+        DzScript dzScript;
+        dzScript.addLine(script);
+        if (dzScript.execute()) {
+            return OkResponse(id, "{\"frame\":0}");
+        }
+        return ErrorResponse(id, "Failed to stop playback");
+    }
+
+    if (command == "get_timeline_state") {
+        return OkResponse(id, GetTimelineStateData());
+    }
+
+    // ─── Scene Property Mirror Commands ───────────────────────────────────────
+
+    if (command == "get_figure_morphs") {
+        QString nodeId = ExtractArgString(line, "figure_id");
+        return OkResponse(id, GetFigureMorphsData(nodeId));
+    }
+
+    if (command == "get_fitted_items") {
+        QString nodeId = ExtractArgString(line, "figure_id");
+        return OkResponse(id, GetFittedItemsData(nodeId));
+    }
+
+    if (command == "get_active_expressions") {
+        QString nodeId = ExtractArgString(line, "figure_id");
+        return OkResponse(id, GetActiveExpressionsData(nodeId));
+    }
+
+    if (command == "get_material_zones") {
+        QString nodeId = ExtractArgString(line, "figure_id");
+        return OkResponse(id, GetMaterialProperties(nodeId));
+    }
+
+    if (command == "apply_morph") {
+        QString nodeId = ExtractArgString(line, "figure_id");
+        QString morphId = ExtractArgString(line, "morph_id");
+        QString val = ExtractArgString(line, "value");
+        if (SetMorphValue(nodeId, morphId, val)) {
+            return OkResponse(id, "{\"set\":true}");
+        }
+        return ErrorResponse(id, QString("Failed to set morph %1 on %2").arg(morphId, nodeId));
+    }
+
+    if (command == "apply_expression") {
+        QString nodeId = ExtractArgString(line, "figure_id");
+        QString exprId = ExtractArgString(line, "expression_id");
+        QString val = ExtractArgString(line, "value");
+        if (SetMorphValue(nodeId, exprId, val)) {
+            return OkResponse(id, "{\"set\":true}");
+        }
+        return ErrorResponse(id, QString("Failed to set expression %1 on %2").arg(exprId, nodeId));
+    }
+
+    // ─── Scene Lifecycle Commands ─────────────────────────────────────────────
+
+    if (command == "save_scene") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString path = ExtractArgString(line, "path");
+        DzError err = dzScene->saveScene(path);
+        if (err == DZ_NO_ERROR) {
+            return OkResponse(id, std::string("{\"path\":\"") + JsonEscape(path) + "\"}");
+        }
+        return ErrorResponse(id, QString("Save failed: error code %1").arg((int)err));
+    }
+
+    if (command == "load_scene") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString path = ExtractArgString(line, "path");
+        QString methodStr = ExtractArgString(line, "method").toLower();
+        DzScene::DzOpenMethod method = DzScene::DefaultMethod;
+        if (methodStr == "new") method = DzScene::OpenNew;
+        else if (methodStr == "merge") method = DzScene::MergeFile;
+        DzError err = dzScene->loadScene(path, method);
+        if (err == DZ_NO_ERROR) {
+            return OkResponse(id, std::string("{\"path\":\"") + JsonEscape(path) + "\",\"method\":\"" + JsonEscape(methodStr) + "\"}");
+        }
+        return ErrorResponse(id, QString("Load failed: error code %1").arg((int)err));
+    }
+
+    if (command == "clear_scene") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        dzScene->clear();
+        return OkResponse(id, "{\"cleared\":true}");
+    }
+
+    // ─── Camera Commands ───────────────────────────────────────────────────────
+
+    if (command == "set_camera") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        DzNode* activeCam = nullptr;
+        QString cameraName = ExtractArgString(line, "camera");
+        if (!cameraName.isEmpty()) {
+            for (int i = 0; i < dzScene->getNumCameras(); i++) {
+                DzCamera* cam = dzScene->getCamera(i);
+                if (cam && cam->getName() == cameraName) {
+                    activeCam = cam;
+                    break;
+                }
+            }
+            if (!activeCam) return ErrorResponse(id, QString("Camera not found: %1").arg(cameraName));
+        }
+        if (activeCam) {
+            // Set as active camera in viewport
+            if (dzApp) {
+                DzMainWindow* mainWindow = dzApp->getInterface();
+                if (mainWindow) {
+                    DzViewportMgr* viewportMgr = mainWindow->getViewportMgr();
+                    if (viewportMgr) {
+                        DzViewport* viewport = viewportMgr->getActiveViewport();
+                        if (viewport) {
+                            Dz3DViewport* viewport3d = viewport->get3DViewport();
+                            if (viewport3d) {
+                                viewport3d->setCamera(qobject_cast<DzCamera*>(activeCam));
+                                viewport3d->frameCamera();
+                            }
+                        }
+                    }
+                }
+            }
+            QString focalLen = ExtractArgString(line, "focal_length");
+            if (!focalLen.isEmpty()) {
+                qobject_cast<DzCamera*>(activeCam)->setFocalLength(focalLen.toDouble());
+            }
+            QString focalDist = ExtractArgString(line, "focal_distance");
+            if (!focalDist.isEmpty()) {
+                qobject_cast<DzCamera*>(activeCam)->setFocalDistance(focalDist.toDouble());
+            }
+            return OkResponse(id, std::string("{\"camera\":\"") + JsonEscape(activeCam->getName()) + "\",\"updated\":true}");
+        }
+        // No camera specified — return current camera info
+        if (dzApp) {
+            DzMainWindow* mainWindow = dzApp->getInterface();
+            if (mainWindow) {
+                DzViewportMgr* viewportMgr = mainWindow->getViewportMgr();
+                if (viewportMgr) {
+                    DzViewport* viewport = viewportMgr->getActiveViewport();
+                    if (viewport) {
+                        Dz3DViewport* viewport3d = viewport->get3DViewport();
+                        if (viewport3d) {
+                            DzCamera* cam = viewport3d->getCamera();
+                            if (cam) {
+                                std::ostringstream oss;
+                                oss << "{\"camera\":\"" << JsonEscape(cam->getName()) << "\",";
+                                oss << "\"focal_length\":" << cam->getFocalLength() << ",";
+                                oss << "\"focal_distance\":" << cam->getFocalDistance() << ",";
+                                oss << "\"aspect_ratio\":" << cam->getAspectRatio();
+                                oss << "}";
+                                return OkResponse(id, oss.str());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return OkResponse(id, "{\"camera\":null}");
+    }
+
+    // ─── Render Options ────────────────────────────────────────────────────────
+
+    if (command == "set_render_options") {
+        if (!dzApp) return ErrorResponse(id, "No app");
+        DzRenderMgr* renderMgr = dzApp->getRenderMgr();
+        if (!renderMgr) return ErrorResponse(id, "No render manager");
+        DzRenderOptions* options = renderMgr->getRenderOptions();
+        if (!options) return ErrorResponse(id, "No render options");
+
+        QString wStr = ExtractArgString(line, "width");
+        QString hStr = ExtractArgString(line, "height");
+        if (!wStr.isEmpty() && !hStr.isEmpty()) {
+            options->setImageSize(QSize(wStr.toInt(), hStr.toInt()));
+        }
+        QString samplesStr = ExtractArgString(line, "pixel_samples");
+        if (!samplesStr.isEmpty()) {
+            int s = samplesStr.toInt();
+            options->setPixelSamples(s, s);
+        }
+        QString rayDepthStr = ExtractArgString(line, "ray_trace_depth");
+        if (!rayDepthStr.isEmpty()) {
+            options->setRayTraceDepth(rayDepthStr.toInt());
+        }
+        QString shadingStr = ExtractArgString(line, "shading_rate");
+        if (!shadingStr.isEmpty()) {
+            options->setShadingRate(shadingStr.toDouble());
+        }
+        QString gammaStr = ExtractArgString(line, "gamma");
+        if (!gammaStr.isEmpty()) {
+            options->setGamma(gammaStr.toDouble());
+        }
+        return OkResponse(id, "{\"updated\":true}");
+    }
+
+    // ─── Content Search ────────────────────────────────────────────────────────
+
+    if (command == "search_content") {
+        if (!dzApp) return ErrorResponse(id, "No app");
+        DzContentMgr* contentMgr = dzApp->getContentMgr();
+        if (!contentMgr) return ErrorResponse(id, "No content manager");
+
+        QString query = ExtractArgString(line, "query");
+        QString typeFilter = ExtractArgString(line, "type").toLower();
+        int maxResults = ExtractArgString(line, "max_results").toInt();
+        if (maxResults <= 0) maxResults = 50;
+
+        // Search content directories for matching files
+        std::ostringstream oss;
+        oss << "{\"results\":[";
+        bool first = true;
+        int count = 0;
+
+        for (int i = 0; i < contentMgr->getNumContentDirectories(); i++) {
+            QString dir = contentMgr->getContentDirectoryPath(i);
+            QDir searchDir(dir);
+            if (!searchDir.exists()) continue;
+
+            QStringList filters;
+            if (typeFilter == "figure") filters << "*.duf";
+            else if (typeFilter == "pose") filters << "*.duf" << "*.pz2";
+            else if (typeFilter == "morph") filters << "*.duf";
+            else if (typeFilter == "material") filters << "*.duf";
+            else if (typeFilter == "light") filters << "*.duf" << "*.lw";
+            else if (typeFilter == "animation") filters << "*.duf";
+            else filters << "*.duf" << "*.pz2" << "*.lw" << "*.obj" << "*.fbx";
+
+            QStringList entries = searchDir.entryList(filters, QDir::Files, QDir::Name);
+            for (const QString& file : entries) {
+                if (count >= maxResults) break;
+                if (!query.isEmpty() && !file.contains(query, Qt::CaseInsensitive)) continue;
+
+                if (!first) oss << ",";
+                first = false;
+                oss << "{\"name\":\"" << JsonEscape(file) << "\",";
+                oss << "\"path\":\"" << JsonEscape(searchDir.absoluteFilePath(file)) << "\",";
+                oss << "\"type\":\"" << JsonEscape(typeFilter.isEmpty() ? "unknown" : typeFilter) << "\"}";
+                count++;
+            }
+            if (count >= maxResults) break;
+
+            // Also search one level of subdirectories
+            QStringList subDirs = searchDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+            for (const QString& subDir : subDirs) {
+                if (count >= maxResults) break;
+                QDir subSearchDir(searchDir.absoluteFilePath(subDir));
+                QStringList subEntries = subSearchDir.entryList(filters, QDir::Files, QDir::Name);
+                for (const QString& file : subEntries) {
+                    if (count >= maxResults) break;
+                    if (!query.isEmpty() && !file.contains(query, Qt::CaseInsensitive)) continue;
+
+                    if (!first) oss << ",";
+                    first = false;
+                    oss << "{\"name\":\"" << JsonEscape(file) << "\",";
+                    oss << "\"path\":\"" << JsonEscape(subSearchDir.absoluteFilePath(file)) << "\",";
+                    oss << "\"type\":\"" << JsonEscape(typeFilter.isEmpty() ? "unknown" : typeFilter) << "\"}";
+                    count++;
+                }
+            }
+        }
+        oss << "],\"count\":" << count << "}";
+        return OkResponse(id, oss.str());
+    }
+
+    // ─── Material Texture Commands ─────────────────────────────────────────────
+
+    if (command == "set_material_texture") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString nodeId = ExtractArgString(line, "node_id");
+        QString channel = ExtractArgString(line, "channel");
+        QString filePath = ExtractArgString(line, "file_path");
+
+        DzNode* node = nodeId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(nodeId);
+        if (!node) return ErrorResponse(id, QString("Node not found: %1").arg(nodeId));
+
+        DzObject* obj = node->getObject();
+        if (!obj) return ErrorResponse(id, "Node has no geometry object");
+        DzShape* shape = obj->getCurrentShape();
+        if (!shape) return ErrorResponse(id, "Node has no shape");
+
+        // Find the channel property name based on the channel label
+        QString propName;
+        if (channel == "diffuse" || channel == "diffuse_map") propName = "Diffuse Value Map";
+        else if (channel == "bump" || channel == "bump_map") propName = "Bump Map";
+        else if (channel == "normal" || channel == "normal_map") propName = "Normal Value Map";
+        else if (channel == "displacement" || channel == "displacement_map") propName = "Displacement Map";
+        else if (channel == "specular" || channel == "specular_map") propName = "Specular Value Map";
+        else if (channel == "specular_color") propName = "Specular Color Map";
+        else if (channel == "glossiness" || channel == "glossiness_map") propName = "Glossiness Value Map";
+        else if (channel == "reflection" || channel == "reflection_map") propName = "Reflection Value Map";
+        else if (channel == "refraction" || channel == "refraction_map") propName = "Refraction Value Map";
+        else if (channel == "opacity" || channel == "opacity_map") propName = "Opacity Value Map";
+        else if (channel == "ambient" || channel == "ambient_map") propName = "Ambient Value Map";
+        else propName = channel; // Use as-is
+
+        bool setAny = false;
+        for (int i = 0; i < shape->getNumMaterials(); ++i) {
+            DzMaterial* mat = shape->getMaterial(i);
+            if (!mat) continue;
+
+            // Try to find as an image property first
+            DzProperty* prop = mat->findProperty(propName);
+            if (prop) {
+                DzImageProperty* imgProp = qobject_cast<DzImageProperty*>(prop);
+                if (imgProp) {
+                    imgProp->setValue(filePath);
+                    setAny = true;
+                } else {
+                    // Fall back on generic property set
+                    DzStringProperty* sProp = qobject_cast<DzStringProperty*>(prop);
+                    if (sProp) {
+                        sProp->setValue(filePath);
+                        setAny = true;
+                    }
+                }
+            }
+        }
+
+        if (setAny) {
+            return OkResponse(id, std::string("{\"set\":true,\"channel\":\"") +
+                JsonEscape(channel) + "\",\"file\":\"" + JsonEscape(filePath) + "\"}");
+        }
+        return ErrorResponse(id, QString("Channel '%1' not found on node %2").arg(channel, nodeId));
+    }
+
+    if (command == "get_material_channels") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString nodeId = ExtractArgString(line, "node_id");
+        DzNode* node = nodeId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(nodeId);
+        if (!node) return ErrorResponse(id, QString("Node not found: %1").arg(nodeId));
+
+        DzObject* obj = node->getObject();
+        if (!obj) return ErrorResponse(id, "Node has no geometry object");
+
+        std::ostringstream oss;
+        oss << "{\"channels\":[";
+        bool firstMat = true;
+
+        for (int i = 0; i < obj->getNumShapes(); ++i) {
+            DzShape* shape = obj->getShape(i);
+            if (!shape) continue;
+
+            for (int j = 0; j < shape->getNumMaterials(); ++j) {
+                DzMaterial* mat = shape->getMaterial(j);
+                if (!mat) continue;
+
+                if (!firstMat) oss << ",";
+                firstMat = false;
+
+                oss << "{\"material\":\"" << JsonEscape(mat->getName()) << "\",";
+                oss << "\"label\":\"" << JsonEscape(mat->getLabel()) << "\",";
+                oss << "\"channels\":{";
+
+                // Check for standard texture channels
+                DzDefaultMaterial* dfltMat = qobject_cast<DzDefaultMaterial*>(mat);
+                bool firstChan = true;
+
+                auto addChannel = [&](const char* name, DzTexture* tex, double value) {
+                    if (!firstChan) oss << ",";
+                    firstChan = false;
+                    oss << "\"" << name << "\":{\"value\":" << value;
+                    if (tex) {
+                        QString fname = tex->getFilename();
+                        oss << ",\"texture\":\"" << JsonEscape(fname) << "\"";
+                    } else {
+                        oss << ",\"texture\":null";
+                    }
+                    oss << "}";
+                };
+
+                if (dfltMat) {
+                    addChannel("diffuse", dfltMat->getDiffuseValueMap(), dfltMat->getDiffuseStrength());
+                    addChannel("bump", dfltMat->getBumpMap(), dfltMat->getBumpStrength());
+                    addChannel("normal", dfltMat->getNormalValueMap(), 1.0);
+                    addChannel("displacement", dfltMat->getDisplacementMap(), dfltMat->getDisplacementStrength());
+                    addChannel("specular", dfltMat->getSpecularValueMap(), dfltMat->getSpecularStrength());
+                    addChannel("specular_color", dfltMat->getSpecularColorMap(), 1.0);
+                    addChannel("glossiness", dfltMat->getGlossinessValueMap(), dfltMat->getGlossinessStrength());
+                    addChannel("reflection", dfltMat->getReflectionValueMap(), dfltMat->getReflectionStrength());
+                    addChannel("refraction", dfltMat->getRefractionValueMap(), dfltMat->getRefractionStrength());
+                    addChannel("opacity", dfltMat->getOpacityMap(), 1.0);
+                    addChannel("ambient", dfltMat->getAmbientValueMap(), dfltMat->getAmbientStrength());
+                }
+
+                oss << "}}";
+            }
+        }
+        oss << "]}";
+        return OkResponse(id, oss.str());
+    }
+
+    // ─── Node Transform Commands ───────────────────────────────────────────────
+
+    if (command == "get_node_transform") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString nodeId = ExtractArgString(line, "node_id");
+        DzNode* node = nodeId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(nodeId);
+        if (!node) return ErrorResponse(id, QString("Node not found: %1").arg(nodeId));
+        DzVec3 pos = node->getWSPos();
+        DzQuat rot = node->getWSRot();
+        DzMatrix3 scaleMat = node->getWSScale();
+        const float* r0 = scaleMat.rowPointer(0);
+        const float* r1 = scaleMat.rowPointer(1);
+        const float* r2 = scaleMat.rowPointer(2);
+        std::ostringstream oss;
+        oss << "{";
+        oss << "\"node_id\":\"" << JsonEscape(node->getName()) << "\",";
+        oss << "\"position\":[" << pos.m_x << "," << pos.m_y << "," << pos.m_z << "],";
+        oss << "\"rotation\":[" << rot.m_x << "," << rot.m_y << "," << rot.m_z << "," << rot.m_w << "],";
+        oss << "\"scale\":[" << r0[0] << "," << r0[1] << "," << r0[2] << ",";
+        oss << r1[0] << "," << r1[1] << "," << r1[2] << ",";
+        oss << r2[0] << "," << r2[1] << "," << r2[2] << "]";
+        oss << "}";
+        return OkResponse(id, oss.str());
+    }
+
+    if (command == "set_node_transform") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString nodeId = ExtractArgString(line, "node_id");
+        DzNode* node = nodeId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(nodeId);
+        if (!node) return ErrorResponse(id, QString("Node not found: %1").arg(nodeId));
+        QString posStr = ExtractArgString(line, "position");
+        if (!posStr.isEmpty()) {
+            // Position as JSON array: [x, y, z]
+            posStr.remove('[').remove(']');
+            QStringList parts = posStr.split(',');
+            if (parts.size() == 3) {
+                DzVec3 pos(parts[0].trimmed().toFloat(), parts[1].trimmed().toFloat(), parts[2].trimmed().toFloat());
+                node->setWSPos(pos);
+            }
+        }
+        QString rotStr = ExtractArgString(line, "rotation");
+        if (!rotStr.isEmpty()) {
+            // Rotation as JSON array: [x, y, z, w] (quaternion)
+            rotStr.remove('[').remove(']');
+            QStringList parts = rotStr.split(',');
+            if (parts.size() == 4) {
+                DzQuat rot(parts[0].trimmed().toFloat(), parts[1].trimmed().toFloat(), parts[2].trimmed().toFloat(), parts[3].trimmed().toFloat());
+                node->setWSRot(rot);
+            }
+        }
+        QString scaleStr = ExtractArgString(line, "scale");
+        if (!scaleStr.isEmpty()) {
+            // Scale as JSON array of 9 values (matrix) or single uniform value
+            scaleStr.remove('[').remove(']');
+            QStringList parts = scaleStr.split(',');
+            if (parts.size() == 1) {
+                float s = parts[0].trimmed().toFloat();
+                float vals[12] = {s, 0, 0, 0, s, 0, 0, 0, s, 0, 0, 0};
+                DzMatrix3 scaleMat(vals);
+                node->setWSScale(scaleMat);
+            } else if (parts.size() == 9) {
+                float vals[12] = {
+                    parts[0].trimmed().toFloat(), parts[1].trimmed().toFloat(), parts[2].trimmed().toFloat(), 0,
+                    parts[3].trimmed().toFloat(), parts[4].trimmed().toFloat(), parts[5].trimmed().toFloat(), 0,
+                    parts[6].trimmed().toFloat(), parts[7].trimmed().toFloat(), parts[8].trimmed().toFloat(), 0
+                };
+                DzMatrix3 scaleMat(vals);
+                node->setWSScale(scaleMat);
+            }
+        }
+        return OkResponse(id, std::string("{\"node\":\"") + JsonEscape(node->getName()) + "\",\"updated\":true}");
+    }
+
+    // ─── Skeleton / Bone Commands ──────────────────────────────────────────────
+
+    if (command == "list_bones") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString figureId = ExtractArgString(line, "figure_id");
+        DzNode* node = figureId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(figureId);
+        if (!node) return ErrorResponse(id, QString("Figure not found: %1").arg(figureId));
+        DzFigure* figure = qobject_cast<DzFigure*>(node);
+        if (!figure) return ErrorResponse(id, "Node is not a figure");
+
+        QObjectList bones = figure->getAllBones();
+        std::ostringstream oss;
+        oss << "{\"bones\":[";
+        bool first = true;
+        for (QObject* obj : bones) {
+            DzBone* bone = qobject_cast<DzBone*>(obj);
+            if (!bone) continue;
+            if (!first) oss << ",";
+            first = false;
+            DzVec3 pos = bone->getWSPos();
+            DzQuat rot = bone->getWSRot();
+            oss << "{\"name\":\"" << JsonEscape(bone->getName()) << "\",";
+            oss << "\"position\":[" << pos.m_x << "," << pos.m_y << "," << pos.m_z << "],";
+            oss << "\"rotation\":[" << rot.m_x << "," << rot.m_y << "," << rot.m_z << "," << rot.m_w << "]}";
+        }
+        oss << "],\"count\":" << (first ? 0 : bones.size()) << "}";
+        return OkResponse(id, oss.str());
+    }
+
+    if (command == "set_bone_transform") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString figureId = ExtractArgString(line, "figure_id");
+        QString boneName = ExtractArgString(line, "bone_name");
+
+        DzNode* node = figureId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(figureId);
+        if (!node) return ErrorResponse(id, QString("Figure not found: %1").arg(figureId));
+        DzFigure* figure = qobject_cast<DzFigure*>(node);
+        if (!figure) return ErrorResponse(id, "Node is not a figure");
+
+        DzBone* bone = figure->findBone(boneName);
+        if (!bone) return ErrorResponse(id, QString("Bone not found: %1").arg(boneName));
+
+        BeginUndoBatch();
+
+        QString posStr = ExtractArgString(line, "position");
+        if (!posStr.isEmpty()) {
+            posStr.remove('[').remove(']');
+            QStringList parts = posStr.split(',');
+            if (parts.size() == 3) {
+                bone->setWSPos(DzVec3(parts[0].trimmed().toFloat(), parts[1].trimmed().toFloat(), parts[2].trimmed().toFloat()));
+            }
+        }
+        QString rotStr = ExtractArgString(line, "rotation");
+        if (!rotStr.isEmpty()) {
+            rotStr.remove('[').remove(']');
+            QStringList parts = rotStr.split(',');
+            if (parts.size() == 4) {
+                bone->setWSRot(DzQuat(parts[0].trimmed().toFloat(), parts[1].trimmed().toFloat(), parts[2].trimmed().toFloat(), parts[3].trimmed().toFloat()));
+            }
+        }
+
+        AcceptUndoBatch(QString("Set bone transform: %1").arg(boneName));
+        return OkResponse(id, std::string("{\"bone\":\"") + JsonEscape(boneName) + "\",\"updated\":true}");
+    }
+
+    // ─── Keyframe Management Commands ──────────────────────────────────────────
+
+    if (command == "list_keyframes") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString nodeId = ExtractArgString(line, "node_id");
+        QString propName = ExtractArgString(line, "property");
+
+        DzNode* node = nodeId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(nodeId);
+        if (!node) return ErrorResponse(id, QString("Node not found: %1").arg(nodeId));
+
+        DzProperty* prop = node->findProperty(propName);
+        if (!prop) return ErrorResponse(id, QString("Property not found: %1").arg(propName));
+
+        DzFloatProperty* fProp = qobject_cast<DzFloatProperty*>(prop);
+        if (!fProp) return ErrorResponse(id, QString("Property %1 is not a float property").arg(propName));
+
+        DzTime ticksPerFrame = dzScene->getTimeStep();
+        int numKeys = fProp->getNumKeys();
+
+        std::ostringstream oss;
+        oss << "{\"node\":\"" << JsonEscape(node->getName()) << "\",";
+        oss << "\"property\":\"" << JsonEscape(propName) << "\",";
+        oss << "\"keyframes\":[";
+        for (int i = 0; i < numKeys; ++i) {
+            if (i > 0) oss << ",";
+            DzTime t = fProp->getKeyTime(i);
+            double val = fProp->getKeyValue(i);
+            float frame = (float)t / (float)ticksPerFrame;
+            oss << "{\"index\":" << i << ",\"frame\":" << frame << ",\"value\":" << val << "}";
+        }
+        oss << "],\"count\":" << numKeys << "}";
+        return OkResponse(id, oss.str());
+    }
+
+    if (command == "delete_keyframes") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString nodeId = ExtractArgString(line, "node_id");
+        QString propName = ExtractArgString(line, "property");
+        QString startStr = ExtractArgString(line, "start");
+        QString endStr = ExtractArgString(line, "end");
+
+        DzNode* node = nodeId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(nodeId);
+        if (!node) return ErrorResponse(id, QString("Node not found: %1").arg(nodeId));
+
+        DzProperty* prop = node->findProperty(propName);
+        if (!prop) return ErrorResponse(id, QString("Property not found: %1").arg(propName));
+
+        int deleted;
+        if (startStr.isEmpty() && endStr.isEmpty()) {
+            // Delete all keyframes
+            deleted = prop->deleteKeys(DzTimeRange(DzTime(0), DzTime(0x7FFFFFFF)));
+        } else {
+            DzTime ticksPerFrame = dzScene->getTimeStep();
+            DzTime startTime = static_cast<DzTime>(startStr.toInt()) * ticksPerFrame;
+            DzTime endTime = endStr.isEmpty() ? startTime + ticksPerFrame : static_cast<DzTime>(endStr.toInt()) * ticksPerFrame;
+            deleted = prop->deleteKeys(DzTimeRange(startTime, endTime));
+        }
+
+        return OkResponse(id, std::string("{\"deleted\":") + std::to_string(deleted) + "}");
+    }
+
+    // ─── Viewport Control ──────────────────────────────────────────────────────
+
+    if (command == "set_viewport_mode") {
+        if (!dzApp) return ErrorResponse(id, "No app");
+        DzMainWindow* mainWindow = dzApp->getInterface();
+        if (!mainWindow) return ErrorResponse(id, "No main window");
+        DzViewportMgr* viewportMgr = mainWindow->getViewportMgr();
+        if (!viewportMgr) return ErrorResponse(id, "No viewport manager");
+        DzViewport* viewport = viewportMgr->getActiveViewport();
+        if (!viewport) return ErrorResponse(id, "No active viewport");
+        Dz3DViewport* viewport3d = viewport->get3DViewport();
+        if (!viewport3d) return ErrorResponse(id, "No 3D viewport");
+
+        QString mode = ExtractArgString(line, "mode").toLower();
+        Dz3DViewport::ShadeStyle style = viewport3d->getShadeStyle();
+
+        if (mode == "texture") style = Dz3DViewport::Textured;
+        else if (mode == "wire_textured") style = Dz3DViewport::WireTextured;
+        else if (mode == "shaded") style = Dz3DViewport::SmoothShaded;
+        else if (mode == "wire_shaded") style = Dz3DViewport::WireShaded;
+        else if (mode == "wireframe") style = Dz3DViewport::Wireframe;
+        else if (mode == "lit_wireframe") style = Dz3DViewport::LitWireframe;
+        else if (mode == "hidden_line") style = Dz3DViewport::HiddenLine;
+        else if (mode == "wire_box") style = Dz3DViewport::WireBox;
+        else if (mode == "solid_box") style = Dz3DViewport::SolidBox;
+        else return ErrorResponse(id, QString("Unknown viewport mode: %1 (try: texture, shaded, wireframe, lit_wireframe, hidden_line)").arg(mode));
+
+        viewport3d->setShadeStyle(style);
+        return OkResponse(id, std::string("{\"mode\":\"") + JsonEscape(mode) + "\"}");
+    }
+
+    // ─── Modifier Stack Commands ───────────────────────────────────────────────
+
+    if (command == "list_modifiers") {
+        if (!dzScene) return ErrorResponse(id, "No scene");
+        QString nodeId = ExtractArgString(line, "node_id");
+        DzNode* node = nodeId.isEmpty() ? dzScene->getPrimarySelection() : dzScene->findNode(nodeId);
+        if (!node) return ErrorResponse(id, QString("Node not found: %1").arg(nodeId));
+
+        DzObject* obj = node->getObject();
+        if (!obj) return OkResponse(id, "{\"modifiers\":[],\"count\":0}");
+
+        int numMods = obj->getNumModifiers();
+        std::ostringstream oss;
+        oss << "{\"modifiers\":[";
+        for (int i = 0; i < numMods; ++i) {
+            DzModifier* mod = obj->getModifier(i);
+            if (!mod) continue;
+            if (i > 0) oss << ",";
+            oss << "{\"index\":" << i << ",\"name\":\"" << JsonEscape(mod->getName()) << "\",";
+            oss << "\"label\":\"" << JsonEscape(mod->getLabel()) << "\"}";
+        }
+        oss << "],\"count\":" << numMods << "}";
+        return OkResponse(id, oss.str());
+    }
+
     return ErrorResponse(id, QString("Unknown command: %1").arg(command));
 }
 
@@ -1197,7 +2018,7 @@ static void BridgeServerLoop() {
 #ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cout << "[DazPilotBridge] WSAStartup failed" << std::endl;
+        LOG_ERROR("WSAStartup failed");
         return;
     }
 #endif
@@ -1216,7 +2037,7 @@ static void BridgeServerLoop() {
     service.sin_port = htons(static_cast<unsigned short>(g_state.port));
 
     if (bind(g_listenSocket, reinterpret_cast<sockaddr*>(&service), sizeof(service)) < 0) {
-        std::cout << "[DazPilotBridge] Failed to bind " << g_state.host.toStdString() << ":" << g_state.port << std::endl;
+        LOG_ERROR("Failed to bind {}:{}", g_state.host.toStdString(), g_state.port);
         CloseBridgeSocket(g_listenSocket);
         g_listenSocket = INVALID_BRIDGE_SOCKET;
 #ifdef _WIN32
@@ -1226,7 +2047,7 @@ static void BridgeServerLoop() {
     }
 
     listen(g_listenSocket, SOMAXCONN);
-    std::cout << "[DazPilotBridge] Listening on " << g_state.host.toStdString() << ":" << g_state.port << std::endl;
+    LOG_INFO("Listening on {}:{}", g_state.host.toStdString(), g_state.port);
 
     while (g_serverRunning.load()) {
         BridgeSocket client = accept(g_listenSocket, nullptr, nullptr);
@@ -1263,6 +2084,7 @@ const char* GetPluginVersion() { return "1.0.0"; }
 int GetPluginType() { return 1; }
 
 bool PluginInitialize() {
+    dazpilot::Log::init();
     g_scriptExecutor = new ScriptExecutor();
     
     // Resolve bridge_config.json path dynamically from shared OS AppData
@@ -1280,27 +2102,16 @@ bool PluginInitialize() {
 #endif
 
     if (!configPath.isEmpty()) {
-        QFile file(configPath);
-        if (file.open(QIODevice::ReadOnly)) {
-            QByteArray data = file.readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (!doc.isNull() && doc.isObject()) {
-                QJsonObject obj = doc.object();
-                if (obj.contains("port")) {
-                    g_state.port = obj.value("port").toInt(8765);
-                }
-                if (obj.contains("host")) {
-                    g_state.host = obj.value("host").toString("127.0.0.1");
-                }
-            }
-            file.close();
+        auto config = dazpilot::json_util::readJsonFile(configPath.toStdString());
+        if (config) {
+            g_state.port = config->value("port", 8765);
+            g_state.host = QString::fromStdString(config->value("host", "127.0.0.1"));
         }
     }
     
     g_serverRunning = true;
     g_serverThread = std::thread(BridgeServerLoop);
-    std::cout << "[DazPilotBridge] Plugin initialized. Listening on "
-              << g_state.host.toStdString() << ":" << g_state.port << std::endl;
+    LOG_INFO("Plugin initialized. Listening on {}:{}", g_state.host.toStdString(), g_state.port);
     return true;
 }
 
@@ -1310,13 +2121,13 @@ void PluginCleanup() {
         delete g_scriptExecutor;
         g_scriptExecutor = nullptr;
     }
-    std::cout << "[DazPilotBridge] Plugin cleanup complete" << std::endl;
+    LOG_INFO("Plugin cleanup complete");
 }
 
 const char* GetMenuName() { return "DazPilot Bridge"; }
 
 void ExecuteMenuAction(const char* action) {
-    std::cout << "[DazPilotBridge] Menu action: " << (action ? action : "") << std::endl;
+    LOG_INFO("Menu action: {}", action ? action : "");
 }
 
 bool ConnectToDazPilot(const char* host, int port) {
@@ -1369,7 +2180,7 @@ bool ApplyPose(const char* poseFile, const char* figureId) {
 }
 
 bool RenderPreview() {
-    std::cout << "[DazPilotBridge] Render preview requested" << std::endl;
+    LOG_INFO("Render preview requested");
     return true;
 }
 

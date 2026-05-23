@@ -20,7 +20,10 @@
 #include "dzviewportmgr.h"
 #include "dzviewport.h"
 #include "dz3dviewport.h"
+#include "dzrendermgr.h"
+#include "dzrenderoptions.h"
 #include "dzscene.h"
+#include "dzskeleton.h"
 #include "dznode.h"
 #include "dzcamera.h"
 #include "dzlight.h"
@@ -37,6 +40,9 @@
 #include "dzobject.h"
 #include "dzshape.h"
 #include "dzmaterial.h"
+#include "dzdefaultmaterial.h"
+#include "dzimageproperty.h"
+#include "dzbone.h"
 #if defined(_WIN32)
 #  ifdef DAZPILOTBRIDGE_EXPORTS
 #    define DAZPILOTBRIDGE_API __declspec(dllexport)

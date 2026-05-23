@@ -20,11 +20,10 @@ All planned implementation phases are complete. Remaining work is acceptance val
 | SDK knowledge | `sdk_indexer` is the active source of truth |
 | SDK persistence | Recursive, line-aware indexing persisted to SQLite |
 | Asset knowledge | Daz JSON metadata is read when available and persisted |
-| Import/export honesty | Fake success responses were removed |
+| Import honesty | Fake success responses were removed; real Daz SDK import is used |
+| Scene export | Implemented via C++ bridge `DzExportMgr/DzExporter::writeFile` with material/animation/texture settings + DazScript fallback |
 
 `check_connection_status()` now reports `connected` or `disconnected`; the old production `mock` status is gone.
-
-Scene export currently returns an explicit unsupported response until a real Daz SDK exporter is prioritized.
 
 ## Verified
 
@@ -43,8 +42,9 @@ Both pass in the current workspace. `npm run check` completes with lint warnings
 
 Remaining product gaps:
 
-- Live sign-off on your machine with representative content (not automated in CI).
-- Scene export still returns unsupported until a real Daz SDK exporter is prioritized.
+- Live end-to-end validation on Windows (build bridge DLL, connect to real Daz Studio, test all 30+ commands).
+- Cross-platform port (macOS bridge .dylib, Linux strategy).
+- Schema parity test between C++ bridge commands and Rust mcp_client.rs.
 
 ## Important Files
 
@@ -55,4 +55,4 @@ Remaining product gaps:
 | `src-tauri/src/ai_action.rs` | Structured action planning, validation, and execution |
 | `src-tauri/src/sdk_indexer.rs` | Recursive SDK header indexer |
 | `src-tauri/src/library_scanner.rs` | Asset metadata scanner |
-| `src-tauri/src/advanced.rs` | Import/export routes and honest unsupported responses |
+| `src-tauri/src/advanced.rs` | Import/export routes (bridge export + DazScript fallback) |

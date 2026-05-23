@@ -18,8 +18,9 @@ See [CURRENT_STATE.md](CURRENT_STATE.md) for the implementation snapshot.
 
 | Area | Limitation | Status |
 | --- | --- | --- |
-| Scene export | Returns explicit unsupported response | Waiting on real Daz SDK exporter |
-| macOS/Linux bridge | Native bridge plugin is Windows-only | Needs platform-specific plugin builds |
+| Scene export | Implemented in C++ bridge via DzExportMgr + DazScript fallback | Needs live validation |
+| macOS bridge | CMake/apple branches exist, untested | Needs macOS Daz SDK to compile |
+| Linux bridge | CMake/linux branches exist, no Daz Studio on Linux | Wine or headless strategy needed |
 | Live acceptance | Not yet validated against real Daz Studio content | Requires local Daz installation |
 | CI bridge tests | Only test against mock bridge | Daz SDK is proprietary, cannot run in CI |
 
@@ -29,15 +30,16 @@ See [CURRENT_STATE.md](CURRENT_STATE.md) for the implementation snapshot.
 
 ### Short Term
 
-- [ ] **Scene export** — Implement real Daz SDK scene exporter to replace the unsupported response
 - [ ] **Live acceptance validation** — Verify all bridge commands against a real Daz Studio session
+- [ ] **Scene export live test** — Verify C++ DzExportMgr exporter + DazScript fallback work end-to-end
+- [ ] **Schema parity test** — Auto-check C++ bridge commands match Rust mcp_client.rs schema
 - [ ] **Viewport capture polish** — Ensure capture paths and UI-thread behavior work reliably
 - [ ] **Asset loading coverage** — Validate `.duf`, `.dsf`, pose presets, and content library items
 
 ### Medium Term
 
-- [ ] **macOS bridge plugin** — Build `libDazPilotBridge.dylib` for macOS Daz Studio
-- [ ] **Linux bridge plugin** — Build `libDazPilotBridge.so` for Linux Daz Studio
+- [ ] **macOS bridge plugin** — Build `libDazPilotBridge.dylib` for macOS Daz Studio (CMake scaffolding exists)
+- [ ] **Linux bridge plugin** — Build `libDazPilotBridge.so` or Wine DLL for Linux (strategy TBD)
 - [ ] **Multi-figure operations** — Batch scene operations across multiple figures
 - [ ] **Animation timeline** — Enhanced keyframe editing and timeline scrubbing
 - [ ] **Render queue** — Queue and manage multiple render jobs
@@ -74,8 +76,8 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for setup instructions and code style 
 | Version | Focus |
 | --- | --- |
 | 0.1.0 | Initial release — core features, Windows bridge, local AI |
-| 0.2.0 | Scene export, live acceptance hardening |
-| 0.3.0 | macOS/Linux bridge support |
-| 1.0.0 | Stable API, full platform support, marketplace readiness |
+| 0.2.0 | Live acceptance validation, schema parity, polish |
+| 0.3.0 | macOS bridge (.dylib) + Linux strategy |
+| 1.0.0 | Full platform support (Win/Mac/Linux), stable API |
 
 Version numbers and timelines are aspirational and subject to change.

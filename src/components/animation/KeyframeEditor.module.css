@@ -1,0 +1,184 @@
+.keyframeEditor {
+  background: var(--background);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--foreground);
+}
+
+.toggleButton {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.toggleButton.active {
+  background: var(--primary-dark);
+}
+
+.timelineInfo {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+.formSection h4,
+.keyframesList h4,
+.allKeyframes h4 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.formSection h4::before,
+.keyframesList h4::before,
+.allKeyframes h4::before {
+  content: '▸';
+  color: var(--accent);
+}
+
+.VStack,
+.HStack {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.VStack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.HStack {
+  flex-direction: row;
+  align-items: center;
+}
+
+.Text[size='xs'] {
+  font-size: 0.75rem;
+}
+
+.Input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.Button {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+}
+
+.Button[size='sm'] {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+.Button[variant='ghost'] {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.Button[variant='ghost']:hover {
+  background: var(--muted);
+}
+
+.updateButton {
+  background: var(--success);
+  color: white;
+  border: none;
+}
+
+.addButton {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.addButton:disabled {
+  background: var(--muted);
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background: var(--muted);
+  color: var(--foreground);
+  border: none;
+}
+
+.keyframesList,
+.allKeyframes {
+  margin-top: 8px;
+}
+
+.keyframeItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin: 4px 0;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.keyframeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.keyframeInfo .nodeName {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.keyframeInfo .propertyName {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.keyframeInfo .keyframeValue {
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: var(--accent);
+}
+
+.keyframeInfo .keyframeFrame {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.keyframeActions {
+  display: flex;
+  gap: 4px;
+}
+
+.noKeyframes {
+  text-align: center;
+  padding: 16px;
+  color: var(--muted);
+  font-style: italic;
+}

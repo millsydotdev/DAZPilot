@@ -19,6 +19,10 @@ pub mod viewport_sync;
 pub mod ai_providers;
 pub mod asset_fixer;
 pub mod ai_tool_planner;
+pub mod figure_resolver;
+pub mod knowledge;
+pub mod reasoning;
+pub mod context;
 
 use serde::{Deserialize, Serialize};
 use ollama_service::{check_ollama_status, get_ollama_models, pull_ollama_model, ollama_chat};
@@ -41,13 +45,45 @@ pub fn run() {
             .build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .register_uri_scheme_protocol("daz-thumb", |_app, req| {
+            let path = req.uri().to_string();
+            // Strip "daz-thumb://" prefix and any query/fragment
+            let clean_path = path
+                .strip_prefix("daz-thumb://")
+                .unwrap_or(&path)
+                .split('?')
+                .next()
+                .unwrap_or("")
+                .split('#')
+                .next()
+                .unwrap_or("")
+                .to_string();
+            // URL decode the path
+            let decoded = urlencoding::decode(&clean_path).unwrap_or_else(|_| std::borrow::Cow::Borrowed(&clean_path));
+            let file_path = std::path::PathBuf::from(decoded.as_ref());
+            let mime = if file_path.extension().map(|e| e == "png").unwrap_or(false) {
+                "image/png"
+            } else {
+                "image/jpeg"
+            };
+            match std::fs::read(&file_path) {
+                Ok(bytes) => tauri::http::Response::builder()
+                    .header("Content-Type", mime)
+                    .body(bytes)
+                    .unwrap(),
+                Err(_) => tauri::http::Response::builder()
+                    .status(404)
+                    .body(vec![])
+                    .unwrap(),
+            }
+        })
         .manage(std::sync::Arc::new(viewport_sync::ViewportSyncState {
             enabled: std::sync::Mutex::new(false),
             fps: std::sync::Mutex::new(5),
         }))
         .setup(|app| {
             info!("DazPilot App starting...");
-            
+
             // Initialize database
             if let Ok(app_data) = app.path().app_data_dir() {
                 std::fs::create_dir_all(&app_data).ok();
@@ -198,7 +234,21 @@ pub fn run() {
             load_scratchpad_todos,
             save_scratchpad_todo,
             delete_scratchpad_todo,
-            clear_completed_scratchpad_todos
+            clear_completed_scratchpad_todos,
+            get_asset_thumbnail,
+            resolve_compatible_assets,
+            list_known_figures,
+            get_figure_morphs,
+            get_figure_expressions,
+            bridge_get_figure_morphs,
+            bridge_get_fitted_items,
+            bridge_get_active_expressions,
+            bridge_get_material_zones,
+            bridge_apply_morph,
+            bridge_apply_expression,
+            check_before_load,
+            detect_uv_conflicts,
+            check_compatibility_mismatch
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -256,13 +306,13 @@ fn bridge_plugin_filename() -> &'static str {
 
 fn default_daz_path() -> std::path::PathBuf {
     #[cfg(target_os = "windows")]
-    let daz_candidates = vec![
+    let daz_candidates = [
         std::path::PathBuf::from(r"C:\Program Files\DAZ 3D\DAZStudio4\plugins"),
         std::path::PathBuf::from(r"C:\Program Files (x86)\DAZ 3D\DAZStudio4\plugins"),
     ];
 
     #[cfg(target_os = "macos")]
-    let daz_candidates = vec![
+    let daz_candidates = [
         dirs::home_dir()
             .unwrap_or_default()
             .join("Library/Application Support/DAZ 3D/Studio4/plugins"),
@@ -270,7 +320,7 @@ fn default_daz_path() -> std::path::PathBuf {
     ];
 
     #[cfg(all(unix, not(target_os = "macos")))]
-    let daz_candidates = vec![
+    let daz_candidates = [
         dirs::home_dir()
             .unwrap_or_default()
             .join(".local/share/DAZ 3D/Studio4/plugins"),
@@ -580,17 +630,73 @@ fn scan_library(paths: Vec<String>) -> library_scanner::ScanResult {
         if let Some(db) = db_guard.as_ref() {
             if let Ok(conn) = rusqlite::Connection::open(db.path()) {
                 let _ = conn.execute("DELETE FROM user_assets WHERE user_id='default'", []);
+                
+                // Also clear FTS index
+                let _ = conn.execute("DELETE FROM user_assets_fts", []);
             }
         }
     }
 
-    if paths.is_empty() {
+    let result = if paths.is_empty() {
         let default_paths = library_scanner::get_default_content_paths();
         let path_strings: Vec<String> = default_paths.into_iter().map(|p| p.path).collect();
         library_scanner::scan_multiple_paths(&path_strings)
     } else {
         library_scanner::scan_multiple_paths(&paths)
+    };
+
+    // Store scanned assets in database
+    if let Ok(db_guard) = crate::database::get_db() {
+        if let Some(db) = db_guard.as_ref() {
+            if let Ok(mut conn) = rusqlite::Connection::open(db.path()) {
+                let tx = conn.transaction().unwrap();
+                
+                // Insert assets into user_assets table
+                let cat = result.categorized.clone();
+                let categories = vec![
+                    ("figures", cat.figures),
+                    ("clothing", cat.clothing),
+                    ("hair", cat.hair),
+                    ("poses", cat.poses),
+                    ("materials", cat.materials),
+                    ("morphs", cat.morphs),
+                    ("environments", cat.environments),
+                    ("lights", cat.lights),
+                    ("cameras", cat.cameras),
+                    ("animations", cat.animations),
+                    ("other", cat.other),
+                ];
+                
+                for (category, assets) in categories {
+                    for asset in assets {
+                        let compatibility_json = serde_json::to_string(&asset.compatibility_base).unwrap_or_default();
+                        let tags_json = serde_json::to_string(&asset.tags).unwrap_or_default();
+                        tx.execute(
+                            "INSERT OR REPLACE INTO user_assets (user_id, asset_path, asset_name, file_type, file_size, category, subcategory, indexed_at, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor) VALUES ('default', ?1, ?2, ?3, ?4, ?5, ?6, datetime('now'), ?7, ?8, ?9, ?10, ?11, ?12)",
+                            rusqlite::params![
+                                asset.path,
+                                asset.name,
+                                asset.file_type,
+                                asset.size as i64,
+                                category,
+                                asset.subcategory.unwrap_or_default(),
+                                asset.thumbnail_path,
+                                compatibility_json,
+                                asset.dforce_enabled as i32,
+                                asset.asset_type_detail,
+                                tags_json,
+                                asset.vendor,
+                            ],
+                        ).unwrap();
+                    }
+                }
+                
+                tx.commit().unwrap();
+            }
+        }
     }
+
+    result
 }
 
 #[tauri::command]
@@ -646,36 +752,36 @@ fn search_assets_in_db(
             let fts = format_fts_query(q);
             if fts.is_empty() {
                 (
-                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory FROM user_assets WHERE user_id='default' AND category=? ORDER BY asset_name LIMIT 500".into(),
+                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets WHERE user_id='default' AND category=? ORDER BY asset_name LIMIT 500".into(),
                     vec![cat.to_string()],
                 )
             } else {
                 (
-                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets.category=? AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 500".into(),
+                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets.category=? AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 500".into(),
                     vec![cat.to_string(), fts],
                 )
             }
         }
         (Some(cat), None) if cat != "all" => (
-            "SELECT asset_path, asset_name, file_type, file_size, category, subcategory FROM user_assets WHERE user_id='default' AND category=? ORDER BY asset_name LIMIT 500".into(),
+            "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets WHERE user_id='default' AND category=? ORDER BY asset_name LIMIT 500".into(),
             vec![cat.to_string()],
         ),
         (_, Some(q)) => {
             let fts = format_fts_query(q);
             if fts.is_empty() {
                 (
-                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory FROM user_assets WHERE user_id='default' ORDER BY asset_name LIMIT 500".into(),
+                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets WHERE user_id='default' ORDER BY asset_name LIMIT 500".into(),
                     vec![],
                 )
             } else {
                 (
-                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 500".into(),
+                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 500".into(),
                     vec![fts],
                 )
             }
         }
         _ => (
-            "SELECT asset_path, asset_name, file_type, file_size, category, subcategory FROM user_assets WHERE user_id='default' ORDER BY asset_name LIMIT 500".into(),
+            "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets WHERE user_id='default' ORDER BY asset_name LIMIT 500".into(),
             vec![],
         ),
     };
@@ -683,6 +789,14 @@ fn search_assets_in_db(
     let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
     let assets = stmt
         .query_map(rusqlite::params_from_iter(params_vec.iter()), |row| {
+            let compatibility_str: Option<String> = row.get(7).ok().flatten();
+            let compatibility_base: Vec<String> = compatibility_str
+                .and_then(|s| serde_json::from_str(&s).ok())
+                .unwrap_or_default();
+            let tags_str: Option<String> = row.get(10).ok().flatten();
+            let tags: Vec<String> = tags_str
+                .and_then(|s| serde_json::from_str(&s).ok())
+                .unwrap_or_default();
             Ok(library_scanner::AssetInfo {
                 path: row.get(0)?,
                 name: row.get(1)?,
@@ -691,6 +805,12 @@ fn search_assets_in_db(
                 category: row.get::<_, String>(4).unwrap_or_default(),
                 subcategory: row.get(5)?,
                 metadata: std::collections::HashMap::new(),
+                thumbnail_path: row.get(6).ok().flatten(),
+                compatibility_base,
+                dforce_enabled: row.get::<_, i32>(8).unwrap_or(0) != 0,
+                asset_type_detail: row.get(9).ok().flatten(),
+                tags,
+                vendor: row.get(11).ok().flatten(),
             })
         })
         .map_err(|e| e.to_string())?
@@ -777,41 +897,65 @@ fn get_playback_state() -> animation::PlaybackState {
 
 #[tauri::command]
 fn play_animation() -> animation::AnimationResult {
-    animation::play();
-    animation::AnimationResult {
-        success: true,
-        message: "Playback started".to_string(),
-        data: None,
+    match mcp_client::send_mcp_request("play_timeline", serde_json::json!({})) {
+        Ok(resp) => animation::AnimationResult {
+            success: true,
+            message: "Playback started".to_string(),
+            data: resp.data,
+        },
+        Err(e) => animation::AnimationResult {
+            success: false,
+            message: format!("Playback failed: {}", e),
+            data: None,
+        },
     }
 }
 
 #[tauri::command]
 fn pause_animation() -> animation::AnimationResult {
-    animation::pause();
-    animation::AnimationResult {
-        success: true,
-        message: "Playback paused".to_string(),
-        data: None,
+    match mcp_client::send_mcp_request("pause_timeline", serde_json::json!({})) {
+        Ok(resp) => animation::AnimationResult {
+            success: true,
+            message: "Playback paused".to_string(),
+            data: resp.data,
+        },
+        Err(e) => animation::AnimationResult {
+            success: false,
+            message: format!("Pause failed: {}", e),
+            data: None,
+        },
     }
 }
 
 #[tauri::command]
 fn stop_animation() -> animation::AnimationResult {
-    animation::stop();
-    animation::AnimationResult {
-        success: true,
-        message: "Playback stopped".to_string(),
-        data: None,
+    match mcp_client::send_mcp_request("stop_timeline", serde_json::json!({})) {
+        Ok(resp) => animation::AnimationResult {
+            success: true,
+            message: "Playback stopped".to_string(),
+            data: resp.data,
+        },
+        Err(e) => animation::AnimationResult {
+            success: false,
+            message: format!("Stop failed: {}", e),
+            data: None,
+        },
     }
 }
 
 #[tauri::command]
 fn seek_to_frame(frame: f32) -> animation::AnimationResult {
-    animation::set_current_frame(frame);
-    animation::AnimationResult {
-        success: true,
-        message: format!("Seeked to frame {}", frame),
-        data: None,
+    match mcp_client::send_mcp_request("seek_to_frame", serde_json::json!({ "frame": frame as i32 })) {
+        Ok(resp) => animation::AnimationResult {
+            success: true,
+            message: format!("Seeked to frame {}", frame),
+            data: resp.data,
+        },
+        Err(e) => animation::AnimationResult {
+            success: false,
+            message: format!("Seek failed: {}", e),
+            data: None,
+        },
     }
 }
 
@@ -1126,24 +1270,24 @@ fn try_agent_planning(message: &str, scene_context: &ai_system::SceneContext) ->
         match first_action.command.as_str() {
             "select_node" => serde_json::json!({ "node_id": first_action.args[0] }),
             "set_render_settings" => serde_json::json!({
-                "width": first_action.args.get(0).cloned().unwrap_or_default(),
+                "width": first_action.args.first().cloned().unwrap_or_default(),
                 "height": first_action.args.get(1).cloned().unwrap_or_default()
             }),
             "set_light" => serde_json::json!({
-                "node_id": first_action.args.get(0).cloned().unwrap_or_default(),
+                "node_id": first_action.args.first().cloned().unwrap_or_default(),
                 "property": first_action.args.get(1).cloned().unwrap_or_default(),
                 "value": first_action.args.get(2).cloned().unwrap_or_default()
             }),
             "run_dforce_simulation" => serde_json::json!({
-                "node_id": first_action.args.get(0).cloned().unwrap_or_default(),
+                "node_id": first_action.args.first().cloned().unwrap_or_default(),
                 "start_frame": first_action.args.get(1).cloned().unwrap_or_default(),
                 "end_frame": first_action.args.get(2).cloned().unwrap_or_default()
             }),
             "seek_to_frame" => serde_json::json!({
-                "frame": first_action.args.get(0).cloned().unwrap_or_default()
+                "frame": first_action.args.first().cloned().unwrap_or_default()
             }),
             "add_figure" => serde_json::json!({
-                "figure_type": first_action.args.get(0).cloned().unwrap_or_default()
+                "figure_type": first_action.args.first().cloned().unwrap_or_default()
             }),
             _ => serde_json::json!({ "args": first_action.args }),
         }
@@ -1538,4 +1682,119 @@ fn delete_scratchpad_todo(todo_id: String) -> Result<(), String> {
 #[tauri::command]
 fn clear_completed_scratchpad_todos() -> Result<(), String> {
     database::clear_completed_todos()
+}
+
+// ─── Subsystem 2: Thumbnail Serve Protocol ────────────────────────────────────
+
+#[tauri::command]
+fn get_asset_thumbnail(asset_path: String) -> Option<String> {
+    let path = std::path::Path::new(&asset_path);
+    let stem = path.file_stem()?.to_str()?;
+    let parent = path.parent()?;
+    for ext in &["png", "jpg", "jpeg"] {
+        let candidate = parent.join(format!("{}.{}", stem, ext));
+        if candidate.exists() {
+            let lossy = candidate.to_string_lossy().into_owned();
+            let encoded = urlencoding::encode(&lossy);
+            return Some(format!("daz-thumb://{}", encoded));
+        }
+    }
+    // Check Resources/Thumbnails
+    let thumb_dir = parent.join("Resources").join("Thumbnails");
+    if thumb_dir.exists() {
+        for ext in &["png", "jpg", "jpeg"] {
+            let candidate = thumb_dir.join(format!("{}.{}", stem, ext));
+            if candidate.exists() {
+                let lossy = candidate.to_string_lossy().into_owned();
+                let encoded = urlencoding::encode(&lossy);
+                return Some(format!("daz-thumb://{}", encoded));
+            }
+        }
+    }
+    None
+}
+
+// ─── Subsystem 3: Figure Resolver ─────────────────────────────────────────────
+
+#[tauri::command]
+fn resolve_compatible_assets(figure_id: String, category: Option<String>) -> Vec<library_scanner::AssetInfo> {
+    figure_resolver::resolve_compatible_assets(&figure_id, category.as_deref())
+}
+
+#[tauri::command]
+fn list_known_figures() -> Vec<String> {
+    figure_resolver::list_known_figures()
+}
+
+#[tauri::command]
+fn get_figure_morphs(figure_id: String) -> Vec<library_scanner::AssetInfo> {
+    figure_resolver::get_figure_morphs(&figure_id)
+}
+
+#[tauri::command]
+fn get_figure_expressions(figure_id: String) -> Vec<library_scanner::AssetInfo> {
+    figure_resolver::get_figure_expressions(&figure_id)
+}
+
+// ─── Subsystem 4: Live Scene Property Mirror (Bridge) ────────────────────────
+
+#[tauri::command]
+fn bridge_get_figure_morphs(figure_id: String) -> Result<serde_json::Value, String> {
+    mcp_client::send_mcp_request("get_figure_morphs", serde_json::json!({ "figure_id": figure_id }))
+        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+}
+
+#[tauri::command]
+fn bridge_get_fitted_items(figure_id: String) -> Result<serde_json::Value, String> {
+    mcp_client::send_mcp_request("get_fitted_items", serde_json::json!({ "figure_id": figure_id }))
+        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+}
+
+#[tauri::command]
+fn bridge_get_active_expressions(figure_id: String) -> Result<serde_json::Value, String> {
+    mcp_client::send_mcp_request("get_active_expressions", serde_json::json!({ "figure_id": figure_id }))
+        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+}
+
+#[tauri::command]
+fn bridge_get_material_zones(figure_id: String) -> Result<serde_json::Value, String> {
+    mcp_client::send_mcp_request("get_material_zones", serde_json::json!({ "figure_id": figure_id }))
+        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+}
+
+#[tauri::command]
+fn bridge_apply_morph(figure_id: String, morph_id: String, value: f32) -> Result<serde_json::Value, String> {
+    mcp_client::send_mcp_request("apply_morph", serde_json::json!({ "figure_id": figure_id, "morph_id": morph_id, "value": value }))
+        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+}
+
+#[tauri::command]
+fn bridge_apply_expression(figure_id: String, expression_id: String, value: f32) -> Result<serde_json::Value, String> {
+    mcp_client::send_mcp_request("apply_expression", serde_json::json!({ "figure_id": figure_id, "expression_id": expression_id, "value": value }))
+        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+}
+
+// ─── Subsystem 5: Asset Conflict Engine ───────────────────────────────────────
+
+#[tauri::command]
+fn check_before_load(asset_path: String) -> asset_fixer::ConflictScanResult {
+    crate::agents::conflict_resolution::check_before_load(&asset_path)
+}
+
+#[tauri::command]
+fn detect_uv_conflicts(assets_json: String) -> Vec<asset_fixer::AssetConflict> {
+    if let Ok(assets) = serde_json::from_str::<Vec<library_scanner::AssetInfo>>(&assets_json) {
+        asset_fixer::detect_uv_conflicts(&assets)
+    } else {
+        vec![]
+    }
+}
+
+#[tauri::command]
+fn check_compatibility_mismatch(asset_json: String, loaded_figure: String) -> bool {
+    if let Ok(asset) = serde_json::from_str::<library_scanner::AssetInfo>(&asset_json) {
+        asset_fixer::check_compatibility_mismatch(&asset, &loaded_figure)
+    } else {
+        false
+    }
 }

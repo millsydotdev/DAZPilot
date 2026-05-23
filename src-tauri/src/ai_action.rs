@@ -1,6 +1,19 @@
 #![allow(dead_code)]
 
 use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
+use crate::ai_system::{Intent, Entity, EntityType};
+use crate::reasoning::planner::{Planner, PlanningContext, Goal, GoalPriority};
+
+static REASONING_PLANNER: Mutex<Option<Planner>> = Mutex::new(None);
+
+fn get_reasoning_planner() -> Planner {
+    let mut guard = REASONING_PLANNER.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(Planner::new());
+    }
+    guard.clone().unwrap()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AiAction {
@@ -44,20 +57,16 @@ fn extract_frame_and_value(input: &str) -> (f32, f32) {
 
     for i in 0..words.len() {
         let word = words[i];
-        if word == "frame" || word == "at" || word == "on" {
-            if i + 1 < words.len() {
-                if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric() && c != '.').parse::<f32>() {
-                    frame = val;
-                    frame_found = true;
-                }
+        if (word == "frame" || word == "at" || word == "on") && i + 1 < words.len() {
+            if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric() && c != '.').parse::<f32>() {
+                frame = val;
+                frame_found = true;
             }
         }
-        if word == "to" || word == "value" || word == "val" {
-            if i + 1 < words.len() {
-                if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric() && c != '-' && c != '.').parse::<f32>() {
-                    value = val;
-                    value_found = true;
-                }
+        if (word == "to" || word == "value" || word == "val") && i + 1 < words.len() {
+            if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric() && c != '-' && c != '.').parse::<f32>() {
+                value = val;
+                value_found = true;
             }
         }
     }
@@ -69,8 +78,8 @@ fn extract_frame_and_value(input: &str) -> (f32, f32) {
         if numbers.len() >= 2 {
             if !value_found { value = numbers[0]; }
             if !frame_found { frame = numbers[1]; }
-        } else if numbers.len() == 1 {
-            if !value_found { value = numbers[0]; }
+        } else if numbers.len() == 1 && !value_found {
+            value = numbers[0];
         }
     }
 
@@ -236,227 +245,314 @@ pub fn search_best_matching_asset(query: &str) -> Option<String> {
 pub fn plan_validated_action(input: &str) -> Option<StructuredAiAction> {
     let lower = input.to_lowercase();
 
-    // 1. Seek to frame
-    if (lower.contains("seek") || lower.contains("go to") || lower.contains("jump")) && lower.contains("frame") {
-        let words: Vec<&str> = lower.split_whitespace().collect();
-        let mut frame = None;
-        for i in 0..words.len() {
-            if words[i] == "frame" && i + 1 < words.len() {
-                if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric()).parse::<i32>() {
-                    frame = Some(val);
-                }
+    plan_seek_to_frame(&lower)
+        .or_else(|| plan_set_timeline_range(&lower))
+        .or_else(|| plan_dforce_simulation(&lower))
+        .or_else(|| plan_set_keyframe(&lower, input))
+        .or_else(|| plan_set_morph(&lower, input))
+        .or_else(|| plan_set_light_property(&lower, input))
+        .or_else(|| plan_render_settings(&lower))
+        .or_else(|| plan_add_figure(&lower))
+        .or_else(|| plan_create_light(&lower))
+        .or_else(|| plan_load_asset(&lower, input))
+        .or_else(|| plan_export_scene(&lower, input))
+        .or_else(|| plan_legacy_command(&lower, input))
+}
+
+fn plan_seek_to_frame(lower: &str) -> Option<StructuredAiAction> {
+    if !((lower.contains("seek") || lower.contains("go to") || lower.contains("jump")) && lower.contains("frame")) {
+        return None;
+    }
+    let words: Vec<&str> = lower.split_whitespace().collect();
+    let mut frame = None;
+    for i in 0..words.len() {
+        if words[i] == "frame" && i + 1 < words.len() {
+            if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric()).parse::<i32>() {
+                frame = Some(val);
             }
         }
-        if frame.is_none() {
-            frame = words.iter()
-                .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
-                .next();
-        }
-        if let Some(f) = frame {
-            return Some(StructuredAiAction {
-                command: "seek_to_frame".to_string(),
-                args: serde_json::json!({ "frame": f }),
-                confidence: 0.95,
-                sdk_refs: vec!["DzScene".to_string()],
-                requires_confirmation: false,
-            });
-        }
     }
-
-    // 2. Set timeline range
-    if lower.contains("range") || (lower.contains("timeline") && (lower.contains("limit") || lower.contains("set") || lower.contains("duration") || lower.contains("frames"))) {
-        let words: Vec<&str> = lower.split_whitespace().collect();
-        let numbers: Vec<i32> = words.iter()
+    if frame.is_none() {
+        frame = words.iter()
             .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
-            .collect();
-        
-        let (start, end) = if numbers.len() >= 2 {
-            (numbers[0], numbers[1])
-        } else if numbers.len() == 1 {
-            (0, numbers[0])
-        } else {
-            (0, 30)
-        };
-        
-        return Some(StructuredAiAction {
-            command: "set_timeline_range".to_string(),
-            args: serde_json::json!({ "start_frame": start, "end_frame": end }),
-            confidence: 0.95,
-            sdk_refs: vec!["DzScene".to_string()],
-            requires_confirmation: false,
-        });
+            .next();
+    }
+    frame.map(|f| StructuredAiAction {
+        command: "seek_to_frame".to_string(),
+        args: serde_json::json!({ "frame": f }),
+        confidence: 0.95,
+        sdk_refs: vec!["DzScene".to_string()],
+        requires_confirmation: false,
+    })
+}
+
+fn plan_set_timeline_range(lower: &str) -> Option<StructuredAiAction> {
+    if !(lower.contains("range") || (lower.contains("timeline") && (lower.contains("limit") || lower.contains("set") || lower.contains("duration") || lower.contains("frames")))) {
+        return None;
+    }
+    let words: Vec<&str> = lower.split_whitespace().collect();
+    let numbers: Vec<i32> = words.iter()
+        .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
+        .collect();
+
+    let (start, end) = if numbers.len() >= 2 {
+        (numbers[0], numbers[1])
+    } else if numbers.len() == 1 {
+        (0, numbers[0])
+    } else {
+        (0, 30)
+    };
+
+    Some(StructuredAiAction {
+        command: "set_timeline_range".to_string(),
+        args: serde_json::json!({ "start_frame": start, "end_frame": end }),
+        confidence: 0.95,
+        sdk_refs: vec!["DzScene".to_string()],
+        requires_confirmation: false,
+    })
+}
+
+fn plan_dforce_simulation(lower: &str) -> Option<StructuredAiAction> {
+    if !(lower.contains("simulate") || lower.contains("dforce") || lower.contains("physics")) {
+        return None;
+    }
+    let words: Vec<&str> = lower.split_whitespace().collect();
+    let numbers: Vec<u32> = words.iter()
+        .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<u32>().ok())
+        .collect();
+
+    let (start, end) = if numbers.len() >= 2 {
+        (numbers[0], numbers[1])
+    } else if numbers.len() == 1 {
+        (0, numbers[0])
+    } else {
+        (0, 30)
+    };
+
+    let mut node_id = String::new();
+    for word in words {
+        let wl = word.to_lowercase();
+        if wl.contains("dress") || wl.contains("shirt") || wl.contains("skirt") || wl.contains("pants") || wl.contains("hair") || wl.contains("cloth") {
+            node_id = word.trim_matches(|c: char| !c.is_alphanumeric()).to_string();
+            break;
+        }
     }
 
-    // 3. run_dforce_simulation
-    if lower.contains("simulate") || lower.contains("dforce") || lower.contains("physics") {
+    Some(StructuredAiAction {
+        command: "run_dforce_simulation".to_string(),
+        args: serde_json::json!({
+            "node_id": node_id,
+            "start_frame": start,
+            "end_frame": end,
+        }),
+        confidence: 0.95,
+        sdk_refs: vec!["DzSimulator".to_string()],
+        requires_confirmation: true,
+    })
+}
+
+fn plan_set_keyframe(lower: &str, input: &str) -> Option<StructuredAiAction> {
+    if !(lower.contains("keyframe") || lower.contains("animate")) {
+        return None;
+    }
+    let node_id = extract_node_id(input);
+    let property = extract_property(input);
+    let (frame, value) = extract_frame_and_value(input);
+    let interpolation = extract_interpolation(input);
+
+    Some(StructuredAiAction {
+        command: "set_keyframe".to_string(),
+        args: serde_json::json!({
+            "node_id": node_id,
+            "property": property,
+            "frame": frame,
+            "value": value,
+            "interpolation": interpolation,
+        }),
+        confidence: 0.9,
+        sdk_refs: vec!["DzFloatProperty".to_string()],
+        requires_confirmation: false,
+    })
+}
+
+fn plan_set_morph(lower: &str, input: &str) -> Option<StructuredAiAction> {
+    if !(lower.contains("morph") || lower.contains("dial")) {
+        return None;
+    }
+    let node_id = extract_node_id(input);
+    let value = extract_frame_and_value(input).1;
+    let morph = {
         let words: Vec<&str> = lower.split_whitespace().collect();
-        let numbers: Vec<u32> = words.iter()
-            .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<u32>().ok())
-            .collect();
-        
-        let (start, end) = if numbers.len() >= 2 {
-            (numbers[0], numbers[1])
-        } else if numbers.len() == 1 {
-            (0, numbers[0])
-        } else {
-            (0, 30)
-        };
+        words
+            .iter()
+            .find(|w| !["set", "morph", "dial", "to", "the", "on", "at", "frame"].contains(w))
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "Fitness".to_string())
+    };
+    Some(StructuredAiAction {
+        command: "set_morph".to_string(),
+        args: serde_json::json!({
+            "node_id": node_id,
+            "morph": morph,
+            "value": value.to_string(),
+        }),
+        confidence: 0.88,
+        sdk_refs: vec!["DzMorph".to_string()],
+        requires_confirmation: false,
+    })
+}
 
-        let mut node_id = String::new();
-        for word in words {
-            let wl = word.to_lowercase();
-            if wl.contains("dress") || wl.contains("shirt") || wl.contains("skirt") || wl.contains("pants") || wl.contains("hair") || wl.contains("cloth") {
-                node_id = word.trim_matches(|c: char| !c.is_alphanumeric()).to_string();
-                break;
-            }
-        }
-
-        return Some(StructuredAiAction {
-            command: "run_dforce_simulation".to_string(),
-            args: serde_json::json!({
-                "node_id": node_id,
-                "start_frame": start,
-                "end_frame": end,
-            }),
-            confidence: 0.95,
-            sdk_refs: vec!["DzSimulator".to_string()],
-            requires_confirmation: true,
-        });
-    }
-
-    // 4. set_keyframe
-    if lower.contains("keyframe") || lower.contains("animate") {
-        let node_id = extract_node_id(input);
-        let property = extract_property(input);
-        let (frame, value) = extract_frame_and_value(input);
-        let interpolation = extract_interpolation(input);
-
-        return Some(StructuredAiAction {
-            command: "set_keyframe".to_string(),
-            args: serde_json::json!({
-                "node_id": node_id,
-                "property": property,
-                "frame": frame,
-                "value": value,
-                "interpolation": interpolation,
-            }),
-            confidence: 0.9,
-            sdk_refs: vec!["DzFloatProperty".to_string()],
-            requires_confirmation: false,
-        });
-    }
-
-    // 5a. set_morph
-    if lower.contains("morph") || lower.contains("dial") {
-        let node_id = extract_node_id(input);
-        let value = extract_frame_and_value(input).1;
-        let morph = {
-            let words: Vec<&str> = lower.split_whitespace().collect();
-            words
-                .iter()
-                .find(|w| !["set", "morph", "dial", "to", "the", "on", "at", "frame"].contains(w))
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| "Fitness".to_string())
-        };
-        return Some(StructuredAiAction {
-            command: "set_morph".to_string(),
-            args: serde_json::json!({
-                "node_id": node_id,
-                "morph": morph,
-                "value": value.to_string(),
-            }),
-            confidence: 0.88,
-            sdk_refs: vec!["DzMorph".to_string()],
-            requires_confirmation: false,
-        });
-    }
-
-    // 5b. set_light intensity/color
-    if (lower.contains("light") || lower.contains("lighting"))
-        && (lower.contains("intensity") || lower.contains("brightness") || lower.contains("color"))
+fn plan_set_light_property(lower: &str, input: &str) -> Option<StructuredAiAction> {
+    if !((lower.contains("light") || lower.contains("lighting"))
+        && (lower.contains("intensity") || lower.contains("brightness") || lower.contains("color")))
     {
-        let node_id = extract_node_id(input);
-        let property = if lower.contains("color") || lower.contains("colour") {
-            "Color"
-        } else {
-            "Intensity"
-        };
-        let value = if property == "Color" {
-            extract_color(input)
-        } else {
-            extract_numeric_value(input)
-        };
-        return Some(StructuredAiAction {
-            command: "set_light".to_string(),
-            args: serde_json::json!({
-                "node_id": node_id,
-                "property": property,
-                "value": value,
-            }),
-            confidence: 0.88,
-            sdk_refs: vec!["DzLight".to_string()],
-            requires_confirmation: false,
-        });
+        return None;
     }
+    let node_id = extract_node_id(input);
+    let property = if lower.contains("color") || lower.contains("colour") {
+        "Color"
+    } else {
+        "Intensity"
+    };
+    let value = if property == "Color" {
+        extract_color(input)
+    } else {
+        extract_numeric_value(input)
+    };
+    Some(StructuredAiAction {
+        command: "set_light".to_string(),
+        args: serde_json::json!({
+            "node_id": node_id,
+            "property": property,
+            "value": value,
+        }),
+        confidence: 0.88,
+        sdk_refs: vec!["DzLight".to_string()],
+        requires_confirmation: false,
+    })
+}
 
-    // 5c. render settings
-    if lower.contains("render") && (lower.contains("resolution") || lower.contains("size") || lower.contains("1920") || lower.contains("4k")) {
-        let numbers: Vec<i32> = lower
-            .split_whitespace()
-            .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
-            .collect();
-        let (width, height) = if numbers.len() >= 2 {
-            (numbers[0], numbers[1])
-        } else {
-            (1920, 1080)
-        };
-        return Some(StructuredAiAction {
-            command: "set_render_settings".to_string(),
-            args: serde_json::json!({
-                "width": width.to_string(),
-                "height": height.to_string(),
-            }),
-            confidence: 0.85,
-            sdk_refs: vec!["DzRenderMgr".to_string()],
-            requires_confirmation: false,
-        });
+fn plan_render_settings(lower: &str) -> Option<StructuredAiAction> {
+    if !(lower.contains("render") && (lower.contains("resolution") || lower.contains("size") || lower.contains("1920") || lower.contains("4k"))) {
+        return None;
     }
+    let numbers: Vec<i32> = lower
+        .split_whitespace()
+        .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
+        .collect();
+    let (width, height) = if numbers.len() >= 2 {
+        (numbers[0], numbers[1])
+    } else {
+        (1920, 1080)
+    };
+    Some(StructuredAiAction {
+        command: "set_render_settings".to_string(),
+        args: serde_json::json!({
+            "width": width.to_string(),
+            "height": height.to_string(),
+        }),
+        confidence: 0.85,
+        sdk_refs: vec!["DzRenderMgr".to_string()],
+        requires_confirmation: false,
+    })
+}
 
-    // 5d. add figure
-    if (lower.contains("add") || lower.contains("create") || lower.contains("load"))
-        && (lower.contains("figure") || lower.contains("genesis") || lower.contains("character"))
+fn plan_add_figure(lower: &str) -> Option<StructuredAiAction> {
+    if !((lower.contains("add") || lower.contains("create") || lower.contains("load"))
+        && (lower.contains("figure") || lower.contains("genesis") || lower.contains("character")))
     {
-        let figure_type = if lower.contains("genesis 9") || lower.contains("g9") || lower.contains("genesis9") {
-            "genesis9"
-        } else {
-            "genesis8"
-        };
-        return Some(StructuredAiAction {
-            command: "add_figure".to_string(),
-            args: serde_json::json!({ "figure_type": figure_type }),
-            confidence: 0.9,
-            sdk_refs: vec!["DzFigure".to_string()],
-            requires_confirmation: false,
-        });
+        return None;
     }
+    let figure_type = if lower.contains("genesis 9") || lower.contains("g9") || lower.contains("genesis9") {
+        "genesis9"
+    } else {
+        "genesis8"
+    };
+    Some(StructuredAiAction {
+        command: "add_figure".to_string(),
+        args: serde_json::json!({ "figure_type": figure_type }),
+        confidence: 0.9,
+        sdk_refs: vec!["DzFigure".to_string()],
+        requires_confirmation: false,
+    })
+}
 
-    // 5. load_asset using Full-Text Search
-    if lower.contains("load") || lower.contains("apply") || lower.contains("add") || lower.contains("put on") || lower.contains("equip") || lower.contains("use") || lower.contains("import") {
-        if let Some(target) = extract_asset_search_query(input) {
-            if let Some(path) = search_best_matching_asset(&target) {
-                return Some(StructuredAiAction {
-                    command: "load_asset".to_string(),
-                    args: serde_json::json!({ "path": path }),
-                    confidence: 0.9,
-                    sdk_refs: vec!["DzContentMgr".to_string(), "DzAsset".to_string()],
-                    requires_confirmation: false,
-                });
+fn plan_create_light(lower: &str) -> Option<StructuredAiAction> {
+    if !((lower.contains("create") || lower.contains("add") || lower.contains("new") || lower.contains("make"))
+        && (lower.contains("light") || lower.contains("lighting")))
+    {
+        return None;
+    }
+    let light_type = if lower.contains("spot") || lower.contains("spotlight") {
+        "spot_light"
+    } else if lower.contains("distant") || lower.contains("infinit") || lower.contains("sun") {
+        "distant_light"
+    } else if lower.contains("area") {
+        "area_light"
+    } else {
+        "point_light"
+    };
+    Some(StructuredAiAction {
+        command: "add_node".to_string(),
+        args: serde_json::json!({ "type": light_type, "name": format!("AI_{}", light_type) }),
+        confidence: 0.9,
+        sdk_refs: vec!["DzLight".to_string()],
+        requires_confirmation: false,
+    })
+}
+
+fn plan_load_asset(lower: &str, input: &str) -> Option<StructuredAiAction> {
+    if !(lower.contains("load") || lower.contains("apply") || lower.contains("add") || lower.contains("put on") || lower.contains("equip") || lower.contains("use") || lower.contains("import")) {
+        return None;
+    }
+    let target = extract_asset_search_query(input)?;
+    let path = search_best_matching_asset(&target)?;
+    Some(StructuredAiAction {
+        command: "load_asset".to_string(),
+        args: serde_json::json!({ "path": path }),
+        confidence: 0.9,
+        sdk_refs: vec!["DzContentMgr".to_string(), "DzAsset".to_string()],
+        requires_confirmation: false,
+    })
+}
+
+fn plan_export_scene(lower: &str, input: &str) -> Option<StructuredAiAction> {
+    if !(lower.contains("export") || lower.contains("save")) {
+        return None;
+    }
+    let format = if lower.contains("fbx") { "fbx" }
+        else if lower.contains("gltf") || lower.contains("glb") { "gltf" }
+        else if lower.contains("dae") { "dae" }
+        else if lower.contains("duf") || lower.contains("daz") { "daz" }
+        else { "obj" };
+
+    let path = extract_asset_search_query(input)
+        .filter(|_| lower.contains("to ") || lower.contains("as "))
+        .map(|p| p.trim_matches(|c: char| c == '"' || c == '\'').to_string())
+        .unwrap_or_else(|| format!("scene_export.{}", format));
+
+    Some(StructuredAiAction {
+        command: "export_scene".to_string(),
+        args: serde_json::json!({
+            "node_id": "",
+            "path": path,
+            "settings": {
+                "format": format,
+                "quality": "high",
+                "include_materials": true,
+                "include_animations": lower.contains("animat"),
+                "bake_textures": false,
+                "compression": false,
+                "selected_only": lower.contains("selected") || lower.contains("selection")
             }
-        }
-    }
+        }),
+        confidence: 0.85,
+        sdk_refs: vec!["DzExportMgr".to_string(), "DzExporter".to_string()],
+        requires_confirmation: true,
+    })
+}
 
-    // ─── Legacy/Generic Commands ──────────────────────────────────────────────
-
+fn plan_legacy_command(lower: &str, input: &str) -> Option<StructuredAiAction> {
     let (command, args, confidence) = if lower.contains("scene") && (lower.contains("info") || lower.contains("status")) {
         ("get_scene_info", serde_json::json!({}), 0.9)
     } else if lower.contains("list") && lower.contains("node") {
@@ -472,7 +568,7 @@ pub fn plan_validated_action(input: &str) -> Option<StructuredAiAction> {
     } else if lower.contains("geoshell") || lower.contains("shells") {
         ("get_geoshells", serde_json::json!({}), 0.9)
     } else {
-        return None;
+        return plan_with_reasoning_fallback(input);
     };
 
     if crate::mcp_client::validate_command(command, &args).is_err() {
@@ -489,17 +585,180 @@ pub fn plan_validated_action(input: &str) -> Option<StructuredAiAction> {
     })
 }
 
+fn plan_with_reasoning_fallback(input: &str) -> Option<StructuredAiAction> {
+    // Try phrase-based fallback first
+    if let Some(action) = plan_with_phrase_fallback(input) {
+        return Some(action);
+    }
+    
+    // Try reasoning-based planning as a last resort
+    plan_with_reasoning(input)
+}
+
+fn plan_with_reasoning(input: &str) -> Option<StructuredAiAction> {
+    // Create a goal from the input
+    let goal = create_goal_from_input(input);
+    
+    // Create planning context (simplified for now)
+    let context = PlanningContext {
+        scene_state: None,
+        recent_actions: Vec::new(),
+        user_preferences: None,
+        available_assets: Vec::new(),
+        constraints: Vec::new(),
+    };
+    
+    // Try to generate a plan using the reasoning planner
+    let planner = get_reasoning_planner();
+    if let Some(plan) = planner.plan_for_goal(&goal, &context) {
+        // If we got a plan with reasonable confidence, execute the first step
+        if plan.confidence >= 0.4 && !plan.steps.is_empty() {
+            // Return the first step of the plan
+            return Some(plan.steps[0].action.clone());
+        }
+    }
+    
+    // If reasoning planning didn't work, return None
+    None
+}
+
+fn create_goal_from_input(input: &str) -> Goal {
+    let lower = input.to_lowercase();
+    
+    // Determine intent using existing logic from ai_system.rs
+    let intent = if lower.contains("load") || lower.contains("apply") || lower.contains("wear") || lower.contains("put on") {
+        Intent::LoadAsset
+    } else if lower.contains("pose") || lower.contains("position") || lower.contains("posture") {
+        Intent::ApplyPose
+    } else if lower.contains("select") || lower.contains("choose") || lower.contains("pick") {
+        Intent::SelectNode
+    } else if lower.contains("light") || lower.contains("illuminate") {
+        Intent::CreateLight
+    } else if lower.contains("camera") {
+        Intent::CreateCamera
+    } else if lower.contains("render") || lower.contains("draw") {
+        Intent::Render
+    } else if lower.contains("material") || lower.contains("texture") || lower.contains("skin") {
+        Intent::ChangeMaterial
+    } else if lower.contains("move") || lower.contains("rotate") || lower.contains("scale") {
+        Intent::AdjustProperty
+    } else if lower.contains("make") || lower.contains("create") || lower.contains("new scene") {
+        Intent::CreateScene
+    } else if lower.contains("save") || lower.contains("export") {
+        Intent::SaveScene
+    } else if lower.contains("animate") || lower.contains("keyframe") {
+        Intent::Animate
+    } else if lower.contains("physics") || lower.contains("dforce") {
+        Intent::ApplyPhysics
+    } else if lower.contains("what") || lower.contains("how") || lower.contains("list") {
+        Intent::Query
+    } else {
+        Intent::Unknown
+    };
+    
+    // Extract entities using existing logic
+    let words: Vec<&str> = lower.split_whitespace().collect();
+    let mut entities = Vec::new();
+    
+    let figure_patterns = vec!["genesis 8", "genesis 9", "g8f", "g8m", "g9f", "g9m", "female", "male"];
+    for pattern in figure_patterns {
+        if lower.contains(pattern) {
+            entities.push(Entity {
+                entity_type: EntityType::Figure,
+                value: pattern.to_string(),
+                confidence: 0.9,
+            });
+            break;
+        }
+    }
+    
+    let clothing_patterns = vec!["shirt", "pants", "dress", "jacket", "skirt", "shoes", "boots"];
+    for pattern in clothing_patterns {
+        if lower.contains(pattern) {
+            entities.push(Entity {
+                entity_type: EntityType::Asset,
+                value: pattern.to_string(),
+                confidence: 0.8,
+            });
+        }
+    }
+    
+    for word in words {
+        if let Ok(n) = word.parse::<f32>() {
+            entities.push(Entity {
+                entity_type: EntityType::Number,
+                value: n.to_string(),
+                confidence: 0.9,
+            });
+        }
+    }
+    
+    Goal {
+        id: format!("goal_{}", std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs()),
+        description: input.to_string(),
+        intent,
+        entities,
+        priority: GoalPriority::Medium,
+        constraints: Vec::new(),
+    }
+}
+
+fn plan_with_phrase_fallback(input: &str) -> Option<StructuredAiAction> {
+    let lower = input.to_lowercase();
+    let words: Vec<&str> = lower.split_whitespace().collect();
+
+    // Check each word as a phrase mapping
+    for word in &words {
+        if let Some(command) = crate::ai_system::map_phrase_to_command(word) {
+            if command != "unknown" {
+                return Some(StructuredAiAction {
+                    command,
+                    args: serde_json::json!({}),
+                    confidence: 0.65,
+                    sdk_refs: vec![],
+                    requires_confirmation: false,
+                });
+            }
+        }
+    }
+
+    // Check multi-word phrases (up to 3 words)
+    for i in 0..words.len() {
+        let mut phrase = String::new();
+        for (offset, word) in words.iter().enumerate().skip(i).take(3) {
+            let j = i + offset;
+            if j > i { phrase.push(' '); }
+            phrase.push_str(word);
+            if j > i { phrase.push(' '); }
+            phrase.push_str(words[j]);
+            if let Some(command) = crate::ai_system::map_phrase_to_command(&phrase) {
+                if command != "unknown" {
+                    return Some(StructuredAiAction {
+                        command,
+                        args: serde_json::json!({}),
+                        confidence: 0.7,
+                        sdk_refs: vec![],
+                        requires_confirmation: false,
+                    });
+                }
+            }
+        }
+    }
+
+    None
+}
+
 pub fn execute_structured_action(action: StructuredAiAction) -> Result<String, String> {
     let (command, args) = resolve_action_for_bridge(&action)?;
     crate::mcp_client::validate_command(&command, &args)?;
 
     // Start undo batch for modifying commands
-    let is_modifying = match command.as_str() {
-        "load_asset" | "apply_pose" | "add_node" | "add_figure" | "set_property"
+    let is_modifying = matches!(command.as_str(), "load_asset" | "apply_pose" | "add_node" | "add_figure" | "set_property"
         | "set_material_property" | "set_morph" | "set_light" | "set_render_settings"
-        | "delete_node" => true,
-        _ => false,
-    };
+        | "delete_node");
 
     if is_modifying {
         let _ = crate::mcp_client::send_mcp_request("begin_undo_batch", serde_json::json!({}));
@@ -904,7 +1163,7 @@ fn execute_add_camera(action: &AiAction) -> ActionResult {
     match crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": "camera", "name": format!("AI_Camera_{}", action.target) })) {
         Ok(resp) => ActionResult {
             success: resp.status == "ok",
-            message: format!("Added camera to Daz3D scene"),
+            message: "Added camera to Daz3D scene".to_string(),
             results: vec![resp.result.unwrap_or_default()],
         },
         Err(e) => ActionResult {

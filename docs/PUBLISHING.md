@@ -15,7 +15,7 @@ Confirm ignore rules cover the local SDK and build artifacts:
 
 ```text
 # Daz Studio SDK
-DAZStudio4.5+ SDK/
+thirdparty/DAZStudio4.5+ SDK/
 *.lib
 *.exp
 
@@ -24,13 +24,11 @@ src-tauri/target/
 src-tauri/binaries/
 ```
 
-Release resource DLLs under `src-tauri/resources/` may be intentionally tracked when they are needed by the Tauri installer pipeline.
-
 ### Contributor Setup
 
 Contributors should install the Daz SDK through Daz Install Manager, then either:
 
-- Place `DAZStudio4.5+ SDK` in the repository root.
+- Place `DAZStudio4.5+ SDK` in the `thirdparty` directory.
 - Set `DAZ_SDK_PATH` to the SDK include path.
 
 ### License Choice

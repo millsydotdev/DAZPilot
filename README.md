@@ -79,6 +79,7 @@ flowchart LR
 - Recursive SDK header indexing persisted to SQLite
 - Daz asset metadata scanning and indexing
 - Context-aware AI responses grounded in your actual Daz SDK and library
+- **Script IDE**: Built-in script editor with AI-powered generation and execution
 
 ### Desktop App
 
@@ -161,11 +162,11 @@ The Daz Studio C++ SDK is proprietary and cannot be hosted on GitHub.
 
 1. Open Daz Install Manager.
 2. Search for `Daz Studio SDK` and install it.
-3. Place the `DAZStudio4.5+ SDK` folder in the repository root, or set `DAZ_SDK_PATH` to the SDK include path.
+3. Place the `DAZStudio4.5+ SDK` folder in the `thirdparty` directory, or set `DAZ_SDK_PATH` to the SDK include path.
 4. Keep the SDK out of git. The repository ignore rules are configured for the local SDK folder.
 
 ```text
-DAZStudio4.5+ SDK\include
+thirdparty/DAZStudio4.5+ SDK\include
 ```
 
 ### 2. Build The Daz Bridge Plugin

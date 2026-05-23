@@ -34,14 +34,6 @@ plugins/daz3d-bridge/out/
 plugins/daz3d-bridge/.vs/
 plugins/daz3d-bridge/x64/
 
-# DAZ SDK (MUST NEVER BE COMMITTED due to proprietary licensing)
-DAZStudio4.5+ SDK/
-*.lib
-*.exp
-*.dll
-*.ilk
-*.pdb
-
 # Allow pre-compiled Tauri DLLs and server executables
 !src-tauri/resources/**/*.dll
 !src-tauri/resources/**/*.exe
@@ -64,4 +56,13 @@ temp_research/
 
 # Orchids
 .orchids/
+
+# Temp bridge
+temp_dazbridge/
+
+# Code coverage
+coverage/
+
+# OpenCode
+.opencode/
 

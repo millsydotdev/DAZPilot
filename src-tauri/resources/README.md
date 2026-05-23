@@ -35,10 +35,13 @@ The DAZStudio 4.5+ SDK is proprietary and must be installed separately:
    - Configure in DazPilot Settings > AI Settings > SDK Path
 
 3. **Auto-Discovery**:
-   DazPilot will automatically search for the SDK in common DIM install locations:
-   - Windows: `Documents/DAZ 3D/DAZStudio4.5+ SDK`
-   - macOS: `~/Library/Application Support/DAZ 3D/DAZStudio4.5+ SDK`
-   - Linux: `~/.local/share/DAZ 3D/DAZStudio4.5+ SDK`
+    DazPilot will automatically search for the SDK in common DIM install locations:
+    - Windows: `Documents/DAZ 3D/DAZStudio4.5+ SDK`
+    - macOS: `~/Library/Application Support/DAZ 3D/DAZStudio4.5+ SDK`
+    - Linux: `~/.local/share/DAZ 3D/DAZStudio4.5+ SDK`
+
+Additionally, when used as a dependency in the DazPilot project, the SDK is expected to be located at:
+- `thirdparty/DAZStudio4.5+ SDK` (relative to project root)
 
 ## What the SDK Provides
 

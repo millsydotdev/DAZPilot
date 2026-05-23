@@ -92,11 +92,12 @@ cd DazPilot
 
 DazPilot needs the Daz SDK headers to build the bridge plugin and index SDK classes.
 
-**Option A:** Place the SDK folder in the repository root:
+**Option A:** Place the SDK folder in the thirdparty directory:
 
 ```text
 DazPilot/
-├── DAZStudio4.5+ SDK/    ← SDK folder here
+├── thirdparty/
+│   └── DAZStudio4.5+ SDK/    ← SDK folder here
 ├── src/
 ├── src-tauri/
 └── ...
@@ -108,7 +109,7 @@ DazPilot/
 $env:DAZ_SDK_PATH = "C:\Users\You\Documents\DAZ 3D\DAZStudio4.5+ SDK\include"
 ```
 
-The default include path is `DAZStudio4.5+ SDK\include` relative to the repository root.
+The default include path is `thirdparty/DAZStudio4.5+ SDK\include` relative to the repository root.
 
 ---
 

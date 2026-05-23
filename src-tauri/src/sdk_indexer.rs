@@ -71,42 +71,55 @@ pub fn get_sdk_include_path() -> String {
     }
     
     // 4. Dynamic search: look for SDK directory relative to current executable
-    if let Ok(exe_path) = std::env::current_exe() {
-        let mut dir = exe_path.parent();
-        while let Some(d) = dir {
-            let candidate = d.join("DAZStudio4.5+ SDK").join("include");
-            if candidate.exists() {
-                return candidate.to_string_lossy().to_string();
-            }
-            // Also check if we are inside the SDK folder
-            let candidate_workspace = d.join("include");
-            if d.file_name().and_then(|n| n.to_str()).unwrap_or("").contains("DAZStudio4.5+ SDK") && candidate_workspace.exists() {
-                return candidate_workspace.to_string_lossy().to_string();
-            }
-            dir = d.parent();
-        }
-    }
+     if let Ok(exe_path) = std::env::current_exe() {
+         let mut dir = exe_path.parent();
+         while let Some(d) = dir {
+             let candidate = d.join("thirdparty").join("DAZStudio4.5+ SDK").join("include");
+             if candidate.exists() {
+                 return candidate.to_string_lossy().to_string();
+             }
+             // Also check if we are inside the SDK folder
+             let candidate_workspace = d.join("thirdparty").join("DAZStudio4.5+ SDK").join("include");
+             if d.file_name().and_then(|n| n.to_str()).unwrap_or("").contains("DAZStudio4.5+ SDK") && candidate_workspace.exists() {
+                 return candidate_workspace.to_string_lossy().to_string();
+             }
+             dir = d.parent();
+         }
+     }
     
     // 5. Default fallback - return empty, user must configure via settings or DIM
     String::new()
 }
 
 fn discover_sdk_from_dim() -> Option<String> {
-    // Common DIM install locations for DAZStudio SDK
-    let candidates = vec![
-        // Windows DIM default content locations
-        dirs::home_dir()?.join("Documents/DAZ 3D/DAZStudio4.5+ SDK"),
-        dirs::home_dir()?.join("My DAZ 3D Library/DAZStudio4.5+ SDK"),
-        dirs::home_dir()?.join("Documents/DAZStudio4.5+ SDK"),
-        // Public documents (Windows)
-        dirs::document_dir()?.join("DAZ 3D/DAZStudio4.5+ SDK"),
-        // ProgramData (Windows)
-        PathBuf::from("C:/ProgramData/DAZ 3D/DAZStudio4.5+ SDK"),
-        // macOS
-        dirs::home_dir()?.join("Library/Application Support/DAZ 3D/DAZStudio4.5+ SDK"),
-        // Linux
-        dirs::home_dir()?.join(".local/share/DAZ 3D/DAZStudio4.5+ SDK"),
-    ];
+     // Common DIM install locations for DAZStudio SDK
+     let mut candidates = vec![
+         // Windows DIM default content locations
+         dirs::home_dir()?.join("Documents/DAZ 3D/DAZStudio4.5+ SDK"),
+         dirs::home_dir()?.join("My DAZ 3D Library/DAZStudio4.5+ SDK"),
+         dirs::home_dir()?.join("Documents/DAZStudio4.5+ SDK"),
+         // Public documents (Windows)
+         dirs::document_dir()?.join("DAZ 3D/DAZStudio4.5+ SDK"),
+         // ProgramData (Windows)
+         PathBuf::from("C:/ProgramData/DAZ 3D/DAZStudio4.5+ SDK"),
+         // macOS
+         dirs::home_dir()?.join("Library/Application Support/DAZ 3D/DAZStudio4.5+ SDK"),
+         // Linux
+         dirs::home_dir()?.join(".local/share/DAZ 3D/DAZStudio4.5+ SDK"),
+     ];
+     
+     // Also check in-project thirdparty directory for development
+     if let Ok(exe_path) = std::env::current_exe() {
+         let mut dir = exe_path.parent();
+         while let Some(d) = dir {
+             let candidate = d.join("thirdparty").join("DAZStudio4.5+ SDK");
+             if candidate.exists() {
+                 candidates.push(candidate.join("include"));
+                 break;
+             }
+             dir = d.parent();
+         }
+     }
     
     for candidate in candidates {
         let include_path = candidate.join("include");
@@ -150,7 +163,7 @@ pub fn parse_all_headers() -> SdkIndex {
                 println!("Parsing header {} of {}", i, headers.len());
             }
             
-            if let Ok(class) = parse_header(&header_path) {
+            if let Ok(class) = parse_header(header_path) {
                 if !class.name.is_empty() {
                     for parent in &class.parents {
                         inheritance
@@ -199,13 +212,14 @@ fn parse_header(header_path: &Path) -> Result<SdkClass, String> {
     // Find class definition
     let class_regex = Regex::new(r"class\s+(?:\w+_API\s+)?(Dz\w+)\s*:([^\\{;]+)").unwrap();
     let simple_class_regex = Regex::new(r"class\s+(?:\w+_API\s+)?(Dz\w+)").unwrap();
+    let parent_regex = Regex::new(r"public\s+(Dz\w+)").unwrap();
     
     for (i, line) in lines.iter().enumerate() {
         if let Some(caps) = class_regex.captures(line) {
             class.name = caps.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
             class.line = i + 1;
             let parents = caps.get(2).map(|m| m.as_str()).unwrap_or("");
-            for parent in Regex::new(r"public\s+(Dz\w+)").unwrap().captures_iter(parents) {
+            for parent in parent_regex.captures_iter(parents) {
                 class.parents.push(parent[1].to_string());
             }
             class.description = extract_description(&lines, i);

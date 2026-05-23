@@ -104,33 +104,28 @@ pub fn enqueue_summary_event(event: String) {
         tokio::spawn(async move {
             let mut batched_events = Vec::new();
             
-            loop {
-                match rx.recv().await {
-                    Some(ev) => {
-                        batched_events.push(ev);
-                        
-                        let timeout = tokio::time::sleep(std::time::Duration::from_millis(2000));
-                        tokio::pin!(timeout);
-                        
-                        loop {
-                            tokio::select! {
-                                _ = &mut timeout => {
-                                    break;
-                                }
-                                maybe_ev = rx.recv() => {
-                                    match maybe_ev {
-                                        Some(e) => batched_events.push(e),
-                                        None => return,
-                                    }
-                                }
+            while let Some(ev) = rx.recv().await {
+                batched_events.push(ev);
+                
+                let timeout = tokio::time::sleep(std::time::Duration::from_millis(2000));
+                tokio::pin!(timeout);
+                
+                loop {
+                    tokio::select! {
+                        _ = &mut timeout => {
+                            break;
+                        }
+                        maybe_ev = rx.recv() => {
+                            match maybe_ev {
+                                Some(e) => batched_events.push(e),
+                                None => return,
                             }
                         }
-                        
-                        summarize_events(&batched_events).await;
-                        batched_events.clear();
                     }
-                    None => break,
                 }
+                
+                summarize_events(&batched_events).await;
+                batched_events.clear();
             }
         });
     }
@@ -398,7 +393,7 @@ pub fn execute_ai_command(parsed: ParsedCommand) -> AiResponse {
         Intent::ChangeMaterial => "change_material",
         Intent::AdjustProperty => "adjust_property",
         Intent::CreateScene => "create_scene",
-        Intent::SaveScene => "save_scene",
+        Intent::SaveScene => "export_scene",
         Intent::Animate => "animate",
         Intent::ApplyPhysics => "apply_physics",
         Intent::Query => "query",
