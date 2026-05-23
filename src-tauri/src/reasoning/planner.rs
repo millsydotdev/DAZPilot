@@ -875,7 +875,11 @@ impl Planner {
         let lower_desc = goal.description.to_lowercase();
         let _lower_intent = format!("{:?}", goal.intent).to_lowercase();
         
-        // Check for workflow keywords in description
+        // Check for workflow keywords in description.
+        // Scene/full/complete have highest priority (full scene creation).
+        if lower_desc.contains("scene") || lower_desc.contains("full") || lower_desc.contains("complete") {
+            return Some(WorkflowType::CreateScene);
+        }
         if lower_desc.contains("create") && (lower_desc.contains("character") || lower_desc.contains("figure")) {
             return Some(WorkflowType::CreateCharacter);
         }
@@ -893,9 +897,6 @@ impl Planner {
         }
         if lower_desc.contains("render") {
             return Some(WorkflowType::RenderStill);
-        }
-        if lower_desc.contains("scene") || lower_desc.contains("full") || lower_desc.contains("complete") || lower_desc.contains("new") {
-            return Some(WorkflowType::CreateScene);
         }
         if lower_desc.contains("fix") || lower_desc.contains("problem") || lower_desc.contains("issue") {
             return Some(WorkflowType::FixCommonIssue);

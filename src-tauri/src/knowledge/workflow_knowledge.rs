@@ -72,6 +72,61 @@ pub fn action_to_command_map() -> HashMap<ActionType, CommandMapping> {
         alternatives: &["cancel_undo_batch"],
         param_mapping: &[("caption", "caption")],
     });
+    m.insert(ActionType::AddFigure, CommandMapping {
+        command: "add_figure",
+        alternatives: &["load_asset"],
+        param_mapping: &[("figure_type", "figure_type")],
+    });
+    m.insert(ActionType::SetMorph, CommandMapping {
+        command: "set_morph",
+        alternatives: &["apply_morph", "adjust_property"],
+        param_mapping: &[("morph", "morph"), ("value", "value")],
+    });
+    m.insert(ActionType::SetExpression, CommandMapping {
+        command: "apply_expression",
+        alternatives: &["set_morph"],
+        param_mapping: &[("expression", "expression_id"), ("value", "value")],
+    });
+    m.insert(ActionType::SetCamera, CommandMapping {
+        command: "set_camera",
+        alternatives: &["add_node"],
+        param_mapping: &[("camera", "camera"), ("focal_length", "focal_length"), ("focal_distance", "focal_distance")],
+    });
+    m.insert(ActionType::SetRenderOptions, CommandMapping {
+        command: "set_render_options",
+        alternatives: &["set_render_settings", "render_preview"],
+        param_mapping: &[("width", "width"), ("height", "height"), ("pixel_samples", "pixel_samples")],
+    });
+    m.insert(ActionType::SetMaterialTexture, CommandMapping {
+        command: "set_material_texture",
+        alternatives: &["set_material_property"],
+        param_mapping: &[("channel", "channel"), ("file_path", "file_path")],
+    });
+    m.insert(ActionType::Animate, CommandMapping {
+        command: "play_timeline",
+        alternatives: &["set_keyframe", "seek_to_frame"],
+        param_mapping: &[],
+    });
+    m.insert(ActionType::RunScript, CommandMapping {
+        command: "run_script",
+        alternatives: &[],
+        param_mapping: &[("script", "script")],
+    });
+    m.insert(ActionType::SearchContent, CommandMapping {
+        command: "search_content",
+        alternatives: &["load_asset"],
+        param_mapping: &[("query", "query"), ("type", "type"), ("max_results", "max_results")],
+    });
+    m.insert(ActionType::ListBones, CommandMapping {
+        command: "list_bones",
+        alternatives: &["get_node_properties"],
+        param_mapping: &[("figure_id", "figure_id")],
+    });
+    m.insert(ActionType::SetBoneTransform, CommandMapping {
+        command: "set_bone_transform",
+        alternatives: &["set_property", "set_morph"],
+        param_mapping: &[("bone_name", "bone_name"), ("position", "position"), ("rotation", "rotation")],
+    });
     m
 }
 
