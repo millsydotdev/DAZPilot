@@ -116,7 +116,10 @@ jobs:
             This release includes signed update artifacts. The app will check for updates automatically.
 
             ## Bridge Plugin
-            Download `DazPilotBridge.dll` from this release if you need to manually install it.
+            Download the platform-specific bridge plugin from this release if you need to manually install it:
+            - Windows: `DazPilotBridge-windows-x86_64-<tag>.zip` (contains `DazPilotBridge.dll`)
+            - macOS: `DazPilotBridge-macos-universal-<tag>.tar.gz` (contains `libDazPilotBridge.dylib`)
+            - Linux: `DazPilotBridge-linux-x86_64-<tag>.tar.gz` (contains `libDazPilotBridge.so`)
 
             ## Requirements
             - Daz Studio 4.5+
