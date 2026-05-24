@@ -43,49 +43,13 @@ include_directories(
 set(DZBRIDGE_ROOT "${CMAKE_SOURCE_DIR}/../../../temp_dazbridge" CACHE PATH "Path to DzBridge root")
 include_directories("${DZBRIDGE_ROOT}/include")
 
-# Setup Qt from the DAZ SDK for AUTOMOC
-set(DAZ_SDK_QTCORE_LIBRARY "${DAZ_SDK_LIB}/${CMAKE_STATIC_LIBRARY_PREFIX}QtCore4${CMAKE_STATIC_LIBRARY_SUFFIX}")
-if(WIN32)
-    set(DAZ_SDK_QTCORE_LIBRARY "${DAZ_SDK_LIB}/QtCore4.lib")
-endif()
-set(QT_QTCORE_LIBRARY_RELEASE ${DAZ_SDK_QTCORE_LIBRARY})
-set(QT_LIBRARY_DIR "${DAZ_SDK_LIB}")
-if(WIN32)
-    set(QT_QMAKE_EXECUTABLE "${DAZ_SDK_BIN}/qmake.exe")
-else()
-    set(QT_QMAKE_EXECUTABLE "${DAZ_SDK_BIN}/qmake")
-endif()
-set(QT_BINARY_DIR "${DAZ_SDK_BIN}")
-set(QT_HEADERS_DIR "${DAZ_SDK_ROOT}/include")
-set(QT_QTCORE_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtCore")
-set(QT_QTGUI_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtGui")
-set(QT_QTSCRIPT_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtScript")
-set(QT_QTOPENGL_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtOpenGL")
-set(QT_QTNETWORK_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtNetwork")
-set(QT_QTSQL_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtSql")
-set(QT_QTXML_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtXml")
-# The Qt4 libs and moc are bundled inside the Daz SDK
-set(QT_MOC_EXECUTABLE "${DAZ_SDK_BIN}/moc${CMAKE_EXECUTABLE_SUFFIX}")
-# Create an imported Qt::moc target so AUTOMOC can find moc without find_package(Qt)
-add_executable(Qt::moc IMPORTED)
-set_property(TARGET Qt::moc PROPERTY IMPORTED_LOCATION "${QT_MOC_EXECUTABLE}")
-
-# Generate moc files manually — AUTOMOC struggles with this custom Qt4 setup
+# Pre-generated moc files (from Qt 4.8.1 bundled in Daz SDK)
+# These are committed to avoid running moc.exe at build time (it's a
+# 32-bit binary incompatible with GitHub Actions Windows runners).
 set(MOC_FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/DazPilotBridgePlugin.moc
-    ${CMAKE_CURRENT_BINARY_DIR}/moc_DazPilotPhyModifier.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DazPilotBridgePlugin.moc
+    ${CMAKE_CURRENT_SOURCE_DIR}/moc_DazPilotPhyModifier.cpp
 )
-add_custom_command(OUTPUT ${MOC_FILES}
-    COMMAND ${QT_MOC_EXECUTABLE} -I${DAZ_SDK_INCLUDE} -I${DAZ_SDK_ROOT}/include/QtCore
-        ${CMAKE_CURRENT_SOURCE_DIR}/DazPilotBridgePlugin.cpp
-        -o ${CMAKE_CURRENT_BINARY_DIR}/DazPilotBridgePlugin.moc
-    COMMAND ${QT_MOC_EXECUTABLE} -I${DAZ_SDK_INCLUDE} -I${DAZ_SDK_ROOT}/include/QtCore
-        ${CMAKE_CURRENT_SOURCE_DIR}/DazPilotPhyModifier.h
-        -o ${CMAKE_CURRENT_BINARY_DIR}/moc_DazPilotPhyModifier.cpp
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/DazPilotBridgePlugin.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/DazPilotPhyModifier.h
-)
-set_source_files_properties(${MOC_FILES} PROPERTIES GENERATED TRUE)
 
 # ── Qt4 targets from Daz SDK ──────────────────────────────────────────────
 # FindQt4.cmake was removed in CMake 3.28+, so we create targets manually
@@ -125,9 +89,6 @@ set(DZSDK_QT_NETWORK_TARGET Qt4::Network)
 set(DZSDK_QT_SQL_TARGET  Qt4::Sql)
 set(DZSDK_QT_XML_TARGET  Qt4::Xml)
 
-list(APPEND CMAKE_AUTOMOC_MOC_OPTIONS -i)
-
-set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(MSVC)
