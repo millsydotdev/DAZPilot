@@ -53,6 +53,7 @@ jobs:
           token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Cache Daz SDK
+        if: matrix.name == 'windows'
         uses: actions/cache@v4
         with:
           path: thirdparty/DAZStudio4.5+ SDK
@@ -60,7 +61,7 @@ jobs:
 
       - name: Configure and build bridge
         id: bridge-build
-        continue-on-error: true
+        if: matrix.name == 'windows'
         working-directory: plugins/daz3d-bridge
         run: |
           cmake -B build -DDAZ_SDK_ROOT="${{ github.workspace }}/thirdparty/DAZStudio4.5+ SDK"
@@ -74,11 +75,7 @@ jobs:
           cp plugins/daz3d-bridge/dist/${{ matrix.bridge_file }} release/plugin/
           cp plugins/daz3d-bridge/README.md release/plugin/
           cd release/plugin
-          if [ "${{ matrix.runner }}" = "windows-2022" ]; then
-            7z a ../../${{ matrix.plugin_zip }}-${RELEASE_TAG}.zip ./*
-          else
-            tar czf ../../${{ matrix.plugin_zip }}-${RELEASE_TAG}.tar.gz ./*
-          fi
+          7z a ../../${{ matrix.plugin_zip }}-${RELEASE_TAG}.zip ./*
           cd ../..
 
       - name: Upload plugin to release
@@ -88,7 +85,4 @@ jobs:
           tag_name: ${{ env.RELEASE_TAG }}
           draft: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
-          files: |
-            ${{ matrix.plugin_zip }}-${{ env.RELEASE_TAG }}.tar.gz
-            ${{ matrix.plugin_zip }}-${{ env.RELEASE_TAG }}.zip
-            plugins/daz3d-bridge/dist/${{ matrix.bridge_file }}
+          files: ${{ matrix.plugin_zip }}-${{ env.RELEASE_TAG }}.zip

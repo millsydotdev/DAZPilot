@@ -55,9 +55,9 @@ jobs:
           ref: ${{ github.event.inputs.tag || github.ref }}
           token: ${{ secrets.GH_PAT || github.token }}
 
-      # ── Build bridge plugin from source ──────────────────────────────
+      # ── Build bridge plugin (Windows only — Daz SDK lacks macOS/Linux libs) ─
       - name: Cache Daz SDK
-        id: cache-daz
+        if: matrix.platform.name == 'windows'
         uses: actions/cache@v4
         with:
           path: thirdparty/DAZStudio4.5+ SDK
@@ -65,7 +65,7 @@ jobs:
 
       - name: Configure bridge build
         id: bridge-configure
-        continue-on-error: true
+        if: matrix.platform.name == 'windows'
         working-directory: plugins/daz3d-bridge
         run: |
           cmake -B build -DDAZ_SDK_ROOT="${{ github.workspace }}/thirdparty/DAZStudio4.5+ SDK"
@@ -73,7 +73,6 @@ jobs:
       - name: Build bridge plugin
         id: bridge-build
         if: steps.bridge-configure.outcome == 'success'
-        continue-on-error: true
         working-directory: plugins/daz3d-bridge
         run: |
           cmake --build build --config Release
@@ -93,29 +92,8 @@ jobs:
           cp plugins/daz3d-bridge/dist/${{ matrix.platform.bridge_file }} release/plugin/
           cp plugins/daz3d-bridge/README.md release/plugin/
           cd release/plugin
-          if [ "${{ matrix.platform.runner }}" = "windows-2022" ]; then
-            7z a ../../${{ matrix.platform.plugin_zip }}-${RELEASE_TAG}.zip ./*
-          else
-            tar czf ../../${{ matrix.platform.plugin_zip }}-${RELEASE_TAG}.tar.gz ./*
-          fi
+          7z a ../../${{ matrix.platform.plugin_zip }}-${RELEASE_TAG}.zip ./*
           cd ../..
-
-      - name: Check committed fallback resources
-        if: steps.bridge-build.outcome != 'success'
-        shell: bash
-        run: |
-          case "${{ matrix.platform.name }}" in
-            windows)
-              test -f src-tauri/resources/DazPilotBridge.dll || echo "::warning::DazPilotBridge.dll not found in src-tauri/resources/"
-              ;;
-            macos|linux)
-              if [ -f "src-tauri/resources/${{ matrix.platform.bridge_file }}" ]; then
-                echo "Using committed ${{ matrix.platform.bridge_file }}"
-              else
-                echo "::warning::${{ matrix.platform.bridge_file }} not committed; app will offer plugin download when published."
-              fi
-              ;;
-          esac
 
       # ── Build frontend + Tauri app ──────────────────────────────────
       - name: Install Linux dependencies
@@ -169,20 +147,19 @@ jobs:
             ## Auto-Update
             This release includes signed update artifacts. The app will check for updates automatically.
 
-            ## Bridge Plugin
-            Download the platform-specific bridge plugin from this release if you need to manually install it:
+            ## Bridge Plugin (Windows Only)
+            Daz Studio runs on Windows only, so the bridge plugin is built for Windows.
+            Download it from this release if you need to manually install it:
             - Windows: `DazPilotBridge-windows-x86_64-<tag>.zip` (contains `DazPilotBridge.dll`)
-            - macOS: `DazPilotBridge-macos-universal-<tag>.tar.gz` (contains `libDazPilotBridge.dylib`)
-            - Linux: `DazPilotBridge-linux-x86_64-<tag>.tar.gz` (contains `libDazPilotBridge.so`)
 
             ## Requirements
-            - Daz Studio 4.5+
-            - DAZStudio 4.5+ SDK (optional, for AI scripting intelligence)
+            - Daz Studio 4.5+ (Windows)
+            - Daz Studio 4.5+ SDK (optional, for AI scripting intelligence)
           releaseDraft: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
           args: --bundles ${{ matrix.platform.bundles }}
 
-      # ── Upload bridge plugin to the same release ────────────────────
+      # ── Upload bridge plugin (Windows only) ─────────────────────────
       - name: Upload bridge plugin to release
         if: steps.bridge-build.outcome == 'success'
         uses: softprops/action-gh-release@v2
@@ -190,16 +167,4 @@ jobs:
           tag_name: ${{ env.RELEASE_TAG }}
           draft: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
-          files: |
-            ${{ matrix.platform.plugin_zip }}-${{ env.RELEASE_TAG }}.tar.gz
-            ${{ matrix.platform.plugin_zip }}-${{ env.RELEASE_TAG }}.zip
-            plugins/daz3d-bridge/dist/${{ matrix.platform.bridge_file }}
-
-      - name: Upload committed bridge to release (fallback)
-        if: steps.bridge-build.outcome != 'success'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          draft: true
-          prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
-          files: src-tauri/resources/${{ matrix.platform.bridge_file }}
+          files: ${{ matrix.platform.plugin_zip }}-${{ env.RELEASE_TAG }}.zip
