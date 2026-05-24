@@ -50,6 +50,7 @@ jobs:
         with:
           submodules: true
           ref: ${{ github.event.inputs.tag || github.ref }}
+          token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Cache Daz SDK
         uses: actions/cache@v4
