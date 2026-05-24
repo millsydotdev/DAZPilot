@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import { useSceneStore } from './sceneStore';
+import {
+  useSceneStore,
+  type SceneFigure,
+  type SceneProp,
+  type SceneLight,
+  type SceneCamera,
+} from './sceneStore';
 
 export interface ScenePreset {
   id: string;
@@ -11,13 +17,12 @@ export interface ScenePreset {
   thumbnail?: string;
   // Store the actual scene configuration data
   sceneData: {
-    figures: any[];
-    props: any[];
-    lights: any[];
-    cameras: any[];
+    figures: SceneFigure[];
+    props: SceneProp[];
+    lights: SceneLight[];
+    cameras: SceneCamera[];
     activeCamera: string | null;
     selectedItem: string | null;
-    // We could store more detailed state like node properties, materials, etc.
   };
 }
 
@@ -99,7 +104,7 @@ export const usePresetStore = create<PresetState & PresetActions>((set, get) => 
         id,
         name,
         description,
-        category: category as any, // Type assertion for simplicity
+        category: category as ScenePreset['category'],
         createdAt: Date.now(),
         updatedAt: Date.now(),
         sceneData: {
