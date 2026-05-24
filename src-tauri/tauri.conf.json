@@ -35,7 +35,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["resources/llama/*", "resources/models/*", "resources/DAZPilotBridge.dll", "resources/libDazPilotBridge.dylib", "resources/libDazPilotBridge.so", "splash.html"],
+    "resources": ["resources/llama/*", "resources/models/*", "resources/DazPilotBridge.dll", "resources/libDazPilotBridge.dylib", "resources/libDazPilotBridge.so", "splash.html"],
     "windows": {
       "nsis": {
         "installMode": "currentUser"
