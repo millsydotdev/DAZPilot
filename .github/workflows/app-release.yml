@@ -83,14 +83,14 @@ jobs:
         shell: bash
         run: |
           mkdir -p src-tauri/resources
-          cp plugins/daz3d-bridge/dist/${{ matrix.platform.bridge_file }} src-tauri/resources/
+          cp plugins/daz3d-bridge/dist/Release/${{ matrix.platform.bridge_file }} src-tauri/resources/
 
       - name: Package bridge plugin
         if: steps.bridge-build.outcome == 'success'
         shell: bash
         run: |
           mkdir -p release/plugin
-          cp plugins/daz3d-bridge/dist/${{ matrix.platform.bridge_file }} release/plugin/
+          cp plugins/daz3d-bridge/dist/Release/${{ matrix.platform.bridge_file }} release/plugin/
           cp plugins/daz3d-bridge/README.md release/plugin/
           cd release/plugin
           7z a ../../${{ matrix.platform.plugin_zip }}-${RELEASE_TAG}.zip ./*
