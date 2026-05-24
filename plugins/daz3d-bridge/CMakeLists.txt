@@ -150,7 +150,14 @@ if(WIN32)
 endif()
 
 target_link_libraries(DazPilotBridge PRIVATE ${DAZ_LIBS})
-target_include_directories(DazPilotBridge PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(DazPilotBridge PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${DAZ_SDK_ROOT}/include/QtCore
+    ${DAZ_SDK_ROOT}/include/QtGui
+    ${DAZ_SDK_ROOT}/include/QtScript
+    ${DAZ_SDK_ROOT}/include/QtNetwork
+    ${DAZ_SDK_ROOT}/include/QtOpenGL
+)
 if(MSVC)
     target_compile_options(DazPilotBridge PRIVATE "/utf-8")
 endif()
