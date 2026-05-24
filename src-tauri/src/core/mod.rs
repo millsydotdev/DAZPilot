@@ -1,5 +1,5 @@
 //! Core module - foundational types and utilities
-//! 
+//!
 //! This module contains the core error types and result aliases
 //! that are used throughout the application.
 

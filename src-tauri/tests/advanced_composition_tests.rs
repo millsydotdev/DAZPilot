@@ -38,7 +38,10 @@ fn test_sequence_action_durations() {
     };
 
     advanced::add_action_to_sequence(&mut seq, action);
-    assert_eq!(seq.total_duration, 2.0, "Total duration should calculate using frame delay.");
+    assert_eq!(
+        seq.total_duration, 2.0,
+        "Total duration should calculate using frame delay."
+    );
     assert_eq!(seq.actions.len(), 1);
 }
 

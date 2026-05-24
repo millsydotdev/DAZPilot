@@ -16,7 +16,9 @@ pub struct CommandKnowledgeBase {
 
 impl CommandKnowledgeBase {
     pub fn new() -> Self {
-        Self { commands: build_command_catalog() }
+        Self {
+            commands: build_command_catalog(),
+        }
     }
 
     pub fn get_command(&self, name: &str) -> Option<&CommandKnowledge> {
@@ -24,7 +26,10 @@ impl CommandKnowledgeBase {
     }
 
     pub fn get_commands_by_category(&self, category: &str) -> Vec<&CommandKnowledge> {
-        self.commands.iter().filter(|c| c.category == category).collect()
+        self.commands
+            .iter()
+            .filter(|c| c.category == category)
+            .collect()
     }
 
     pub fn get_all_commands(&self) -> &[CommandKnowledge] {
@@ -33,26 +38,48 @@ impl CommandKnowledgeBase {
 
     pub fn find_commands_for_purpose(&self, purpose: &str) -> Vec<&CommandKnowledge> {
         let lower = purpose.to_lowercase();
-        self.commands.iter().filter(|c| {
-            c.name.to_lowercase().contains(&lower)
-                || c.description.to_lowercase().contains(&lower)
-                || c.category.to_lowercase().contains(&lower)
-                || c.usage_notes.iter().any(|n| n.to_lowercase().contains(&lower))
-        }).collect()
+        self.commands
+            .iter()
+            .filter(|c| {
+                c.name.to_lowercase().contains(&lower)
+                    || c.description.to_lowercase().contains(&lower)
+                    || c.category.to_lowercase().contains(&lower)
+                    || c.usage_notes
+                        .iter()
+                        .any(|n| n.to_lowercase().contains(&lower))
+            })
+            .collect()
     }
 
     pub fn get_scene_workflow_commands(&self) -> Vec<&CommandKnowledge> {
-        let scene_flow: &[&str] = &["add_figure", "load_asset", "add_node", "set_light", "set_camera",
-            "set_morph", "apply_pose", "apply_expression", "set_material_property",
-            "set_material_texture", "set_render_options", "render_preview"];
-        scene_flow.iter().filter_map(|name| self.get_command(name)).collect()
+        let scene_flow: &[&str] = &[
+            "add_figure",
+            "load_asset",
+            "add_node",
+            "set_light",
+            "set_camera",
+            "set_morph",
+            "apply_pose",
+            "apply_expression",
+            "set_material_property",
+            "set_material_texture",
+            "set_render_options",
+            "render_preview",
+        ];
+        scene_flow
+            .iter()
+            .filter_map(|name| self.get_command(name))
+            .collect()
     }
 
     pub fn build_command_catalog_prompt(&self) -> String {
         let mut prompt = String::from("Available Daz Bridge commands:\n");
         for cmd in &self.commands {
             let risk = if cmd.high_risk { " [HIGH RISK]" } else { "" };
-            prompt.push_str(&format!("\n- {} ({}){}. {}", cmd.name, cmd.category, risk, cmd.description));
+            prompt.push_str(&format!(
+                "\n- {} ({}){}. {}",
+                cmd.name, cmd.category, risk, cmd.description
+            ));
             prompt.push_str(&format!("\n  params: {}", cmd.parameters.join(", ")));
             if !cmd.usage_notes.is_empty() {
                 prompt.push_str(&format!("\n  notes: {}", cmd.usage_notes.join("; ")));
@@ -751,4 +778,3 @@ impl Default for CommandKnowledgeBase {
         Self::new()
     }
 }
-

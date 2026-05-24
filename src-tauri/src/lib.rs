@@ -1,43 +1,41 @@
-pub mod core;
-pub mod mcp_client;
-pub mod ai_service;
-pub mod database;
-pub mod agents;
-pub mod library_scanner;
-pub mod animation;
-pub mod physics;
-pub mod ai_system;
 pub mod advanced;
-pub mod ollama_service;
-pub mod sdk_indexer;
+pub mod agents;
 pub mod ai_action;
+pub mod ai_providers;
+pub mod ai_service;
+pub mod ai_system;
+pub mod ai_tool_planner;
+pub mod animation;
+pub mod asset_fixer;
+pub mod asset_matcher;
+pub mod context;
+pub mod core;
+pub mod database;
+pub mod figure_resolver;
+pub mod knowledge;
+pub mod library_scanner;
 pub mod local_ai;
 pub mod local_ai_cmd;
+pub mod mcp_client;
 pub mod model_download;
-pub mod vision_service;
-pub mod viewport_sync;
-pub mod ai_providers;
-pub mod asset_fixer;
-pub mod ai_tool_planner;
-pub mod figure_resolver;
-pub mod asset_matcher;
-pub mod visual_properties;
-pub mod knowledge;
+pub mod ollama_service;
+pub mod physics;
 pub mod reasoning;
-pub mod context;
+pub mod sdk_indexer;
+pub mod viewport_sync;
+pub mod vision_service;
+pub mod visual_properties;
 
+use asset_fixer::{AssetFixResult, ConflictScanResult, ShellInfo};
+use ollama_service::{check_ollama_status, get_ollama_models, ollama_chat, pull_ollama_model};
 use serde::{Deserialize, Serialize};
-use ollama_service::{check_ollama_status, get_ollama_models, pull_ollama_model, ollama_chat};
-use asset_fixer::{
-    ConflictScanResult, AssetFixResult, ShellInfo
-};
 
-use tauri::Manager;
-use tauri::Emitter;
-use tauri_plugin_updater::UpdaterExt;
-use tokio::time::sleep;
 use log::info;
 use std::sync::Mutex;
+use tauri::Emitter;
+use tauri::Manager;
+use tauri_plugin_updater::UpdaterExt;
+use tokio::time::sleep;
 
 static DB_INITIALIZED: Mutex<bool> = Mutex::new(false);
 
@@ -115,7 +113,8 @@ pub fn run() {
             tauri::async_runtime::spawn(async move {
                 // Wait 2 seconds to ensure splash is visible
                 let _ = sleep(std::time::Duration::from_secs(2)).await;
-                
+
+
                 // Check for updates using the Tauri updater plugin
                 match app_handle.updater() {
                     Ok(updater) => {
@@ -179,7 +178,8 @@ pub fn run() {
             } else {
                 log::warn!("Could not get app data directory");
             }
-            
+
+
             if let Some(window) = app.get_webview_window("main") {
                 info!("Main window created successfully");
                 window.set_title("DazPilot").ok();
@@ -189,13 +189,15 @@ pub fn run() {
                 Ok(_) => info!("AI service initialized with local GGUF backend"),
                 Err(e) => log::warn!("AI service init failed (non-fatal, first launch?): {}", e),
             }
-            
+
+
             animation::init_animation_system();
             info!("Animation system initialized");
-            
+
+
             viewport_sync::init_viewport_sync(app.handle());
             info!("Viewport sync loop started");
-            
+
             info!("App setup complete");
             Ok(())
         })
@@ -350,7 +352,10 @@ fn get_mcp_commands() -> Result<Vec<mcp_client::McpCommand>, String> {
 }
 
 #[tauri::command]
-async fn execute_command(command: String, args: serde_json::Value) -> Result<mcp_client::McpResponse, String> {
+async fn execute_command(
+    command: String,
+    args: serde_json::Value,
+) -> Result<mcp_client::McpResponse, String> {
     mcp_client::send_mcp_request(&command, args)
 }
 
@@ -438,15 +443,35 @@ fn install_daz3d_plugin(custom_path: Option<String>) -> Result<String, String> {
             .parent()
             .map(std::path::Path::to_path_buf)
             .unwrap_or_default();
-        candidate_paths.push(repo_root.join("src-tauri").join("resources").join(plugin_name));
-        candidate_paths.push(repo_root.join("plugins").join("daz3d-bridge").join("dist").join(plugin_name));
-        candidate_paths.push(repo_root.join("plugins").join("daz3d-bridge").join("dist").join("Release").join(plugin_name));
+        candidate_paths.push(
+            repo_root
+                .join("src-tauri")
+                .join("resources")
+                .join(plugin_name),
+        );
+        candidate_paths.push(
+            repo_root
+                .join("plugins")
+                .join("daz3d-bridge")
+                .join("dist")
+                .join(plugin_name),
+        );
+        candidate_paths.push(
+            repo_root
+                .join("plugins")
+                .join("daz3d-bridge")
+                .join("dist")
+                .join("Release")
+                .join(plugin_name),
+        );
     }
 
-    let resource_path = candidate_paths
-        .iter()
-        .find(|p| p.exists())
-        .ok_or_else(|| format!("{} not found. Build or download the bridge plugin first.", plugin_name))?;
+    let resource_path = candidate_paths.iter().find(|p| p.exists()).ok_or_else(|| {
+        format!(
+            "{} not found. Build or download the bridge plugin first.",
+            plugin_name
+        )
+    })?;
 
     let daz_plugins_path = if let Some(ref path) = custom_path {
         if !path.is_empty() {
@@ -466,7 +491,10 @@ fn install_daz3d_plugin(custom_path: Option<String>) -> Result<String, String> {
     std::fs::copy(resource_path, &dest_path)
         .map_err(|e| format!("Failed to copy plugin: {}", e))?;
 
-    info!("Plugin installed to Daz3D plugins folder: {}", dest_path.display());
+    info!(
+        "Plugin installed to Daz3D plugins folder: {}",
+        dest_path.display()
+    );
     Ok(format!("Plugin installed to: {}", dest_path.display()))
 }
 
@@ -476,7 +504,10 @@ fn get_plugin_status(custom_path: Option<String>) -> Result<String, String> {
     let mut daz_candidates = vec![default_daz_path().join(plugin_name)];
 
     #[cfg(target_os = "windows")]
-    daz_candidates.push(std::path::PathBuf::from(r"C:\Program Files (x86)\DAZ 3D\DAZStudio4\plugins").join(plugin_name));
+    daz_candidates.push(
+        std::path::PathBuf::from(r"C:\Program Files (x86)\DAZ 3D\DAZStudio4\plugins")
+            .join(plugin_name),
+    );
 
     if let Some(ref path) = custom_path {
         if !path.is_empty() {
@@ -505,13 +536,13 @@ fn get_app_setting(key: String) -> Result<Option<String>, String> {
 #[tauri::command]
 fn save_app_setting(app: tauri::AppHandle, key: String, value: String) -> Result<(), String> {
     database::save_setting(&key, &value)?;
-    
+
     if key == "daz_bridge_port" || key == "daz_bridge_host" {
-        let port_str = database::get_setting("daz_bridge_port")?
-            .unwrap_or_else(|| "8765".to_string());
-        let host_str = database::get_setting("daz_bridge_host")?
-            .unwrap_or_else(|| "127.0.0.1".to_string());
-            
+        let port_str =
+            database::get_setting("daz_bridge_port")?.unwrap_or_else(|| "8765".to_string());
+        let host_str =
+            database::get_setting("daz_bridge_host")?.unwrap_or_else(|| "127.0.0.1".to_string());
+
         if let Ok(app_data) = app.path().app_data_dir() {
             std::fs::create_dir_all(&app_data).ok();
             let config_path = app_data.join("bridge_config.json");
@@ -523,21 +554,22 @@ fn save_app_setting(app: tauri::AppHandle, key: String, value: String) -> Result
                 if let Err(e) = std::fs::write(&config_path, config_str) {
                     log::error!("Failed to write bridge_config.json: {}", e);
                 } else {
-                    log::info!("Successfully synchronized connection config with C++ plugin at {:?}", config_path);
+                    log::info!(
+                        "Successfully synchronized connection config with C++ plugin at {:?}",
+                        config_path
+                    );
                 }
             }
         }
     }
-    
+
     Ok(())
 }
 
 #[tauri::command]
 fn select_directory(title: String) -> Result<Option<String>, String> {
-    let folder = rfd::FileDialog::new()
-        .set_title(&title)
-        .pick_folder();
-    
+    let folder = rfd::FileDialog::new().set_title(&title).pick_folder();
+
     Ok(folder.map(|p| p.to_string_lossy().to_string()))
 }
 
@@ -546,12 +578,15 @@ fn select_plugins_directory() -> Result<Option<String>, String> {
     let folder = rfd::FileDialog::new()
         .set_title("Select Daz Studio Plugins Directory")
         .pick_folder();
-    
+
     Ok(folder.map(|p| p.to_string_lossy().to_string()))
 }
 
 #[tauri::command]
-async fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<String>) -> Result<String, String> {
+async fn download_and_install_plugin(
+    app: tauri::AppHandle,
+    custom_path: Option<String>,
+) -> Result<String, String> {
     let plugin_name = bridge_plugin_filename();
     let daz_plugins_path = if let Some(ref path) = custom_path {
         if !path.is_empty() {
@@ -564,7 +599,7 @@ async fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<
     };
 
     let dest_path = daz_plugins_path.join(plugin_name);
-    
+
     std::fs::create_dir_all(&daz_plugins_path)
         .map_err(|e| format!("Failed to create plugins directory: {}", e))?;
 
@@ -590,16 +625,40 @@ async fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<
             .parent()
             .map(std::path::Path::to_path_buf)
             .unwrap_or_default();
-        candidate_paths.push(repo_root.join("src-tauri").join("resources").join(plugin_name));
-        candidate_paths.push(repo_root.join("plugins").join("daz3d-bridge").join("dist").join(plugin_name));
-        candidate_paths.push(repo_root.join("plugins").join("daz3d-bridge").join("dist").join("Release").join(plugin_name));
+        candidate_paths.push(
+            repo_root
+                .join("src-tauri")
+                .join("resources")
+                .join(plugin_name),
+        );
+        candidate_paths.push(
+            repo_root
+                .join("plugins")
+                .join("daz3d-bridge")
+                .join("dist")
+                .join(plugin_name),
+        );
+        candidate_paths.push(
+            repo_root
+                .join("plugins")
+                .join("daz3d-bridge")
+                .join("dist")
+                .join("Release")
+                .join(plugin_name),
+        );
     }
 
     if let Some(local_path) = candidate_paths.iter().find(|p| p.exists()) {
         std::fs::copy(local_path, &dest_path)
             .map_err(|e| format!("Failed to copy bundled plugin: {}", e))?;
-        info!("Plugin installed from bundled resource to Daz3D plugins folder: {}", dest_path.display());
-        return Ok(format!("Plugin installed from bundled resource to: {}", dest_path.display()));
+        info!(
+            "Plugin installed from bundled resource to Daz3D plugins folder: {}",
+            dest_path.display()
+        );
+        return Ok(format!(
+            "Plugin installed from bundled resource to: {}",
+            dest_path.display()
+        ));
     }
 
     // No local DLL found — download from GitHub Releases
@@ -608,11 +667,17 @@ async fn download_and_install_plugin(app: tauri::AppHandle, custom_path: Option<
         "https://github.com/millsydotdev/DazPilot/releases/latest/download/{}",
         plugin_name
     );
-    
+
     crate::model_download::download_model(&app, &url, &dest_str).await?;
 
-    info!("Plugin downloaded and installed to Daz3D plugins folder: {}", dest_path.display());
-    Ok(format!("Plugin successfully installed to: {}", dest_path.display()))
+    info!(
+        "Plugin downloaded and installed to Daz3D plugins folder: {}",
+        dest_path.display()
+    );
+    Ok(format!(
+        "Plugin successfully installed to: {}",
+        dest_path.display()
+    ))
 }
 
 #[tauri::command]
@@ -646,31 +711,37 @@ fn list_nodes() -> Result<Vec<serde_json::Value>, String> {
 #[tauri::command]
 fn get_content_paths() -> Result<Vec<library_scanner::ContentPath>, String> {
     let mut paths = library_scanner::get_default_content_paths();
-    
+
     let db_guard = database::get_db()?;
     if let Some(ref db) = *db_guard {
         let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
         let mut stmt = conn.prepare("SELECT id, source_path, source_name FROM content_sources WHERE source_type = 'custom'")
             .map_err(|e| e.to_string())?;
-        
-        let custom_rows = stmt.query_map([], |row| {
-            let id: i64 = row.get(0)?;
-            let path: String = row.get(1)?;
-            let name: String = row.get(2).unwrap_or_else(|_| "".to_string());
-            
-            Ok(library_scanner::ContentPath {
-                id: Some(id),
-                path,
-                name: if name.is_empty() { "Custom Library".to_string() } else { name },
-                is_default: false,
+
+        let custom_rows = stmt
+            .query_map([], |row| {
+                let id: i64 = row.get(0)?;
+                let path: String = row.get(1)?;
+                let name: String = row.get(2).unwrap_or_else(|_| "".to_string());
+
+                Ok(library_scanner::ContentPath {
+                    id: Some(id),
+                    path,
+                    name: if name.is_empty() {
+                        "Custom Library".to_string()
+                    } else {
+                        name
+                    },
+                    is_default: false,
+                })
             })
-        }).map_err(|e| e.to_string())?;
-        
+            .map_err(|e| e.to_string())?;
+
         for row in custom_rows.flatten() {
             paths.push(row);
         }
     }
-    
+
     Ok(paths)
 }
 
@@ -695,8 +766,15 @@ fn remove_custom_content_path(id: i64) -> Result<(), String> {
     let db_guard = database::get_db()?;
     if let Some(ref db) = *db_guard {
         let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
-        let _ = conn.execute("DELETE FROM user_assets WHERE source_id = ?1", rusqlite::params![id]);
-        conn.execute("DELETE FROM content_sources WHERE id = ?1", rusqlite::params![id]).map_err(|e| e.to_string())?;
+        let _ = conn.execute(
+            "DELETE FROM user_assets WHERE source_id = ?1",
+            rusqlite::params![id],
+        );
+        conn.execute(
+            "DELETE FROM content_sources WHERE id = ?1",
+            rusqlite::params![id],
+        )
+        .map_err(|e| e.to_string())?;
         Ok(())
     } else {
         Err("Database not initialized".to_string())
@@ -710,7 +788,7 @@ fn scan_library(paths: Vec<String>) -> library_scanner::ScanResult {
         if let Some(db) = db_guard.as_ref() {
             if let Ok(conn) = rusqlite::Connection::open(db.path()) {
                 let _ = conn.execute("DELETE FROM user_assets WHERE user_id='default'", []);
-                
+
                 // Also clear FTS index
                 let _ = conn.execute("DELETE FROM user_assets_fts", []);
             }
@@ -730,7 +808,7 @@ fn scan_library(paths: Vec<String>) -> library_scanner::ScanResult {
         if let Some(db) = db_guard.as_ref() {
             if let Ok(mut conn) = rusqlite::Connection::open(db.path()) {
                 let tx = conn.transaction().unwrap();
-                
+
                 // Insert assets into user_assets table
                 let cat = result.categorized.clone();
                 let categories = vec![
@@ -746,10 +824,11 @@ fn scan_library(paths: Vec<String>) -> library_scanner::ScanResult {
                     ("animations", cat.animations),
                     ("other", cat.other),
                 ];
-                
+
                 for (category, assets) in categories {
                     for asset in assets {
-                        let compatibility_json = serde_json::to_string(&asset.compatibility_base).unwrap_or_default();
+                        let compatibility_json =
+                            serde_json::to_string(&asset.compatibility_base).unwrap_or_default();
                         let tags_json = serde_json::to_string(&asset.tags).unwrap_or_default();
                         tx.execute(
                             "INSERT OR REPLACE INTO user_assets (user_id, asset_path, asset_name, file_type, file_size, category, subcategory, indexed_at, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor) VALUES ('default', ?1, ?2, ?3, ?4, ?5, ?6, datetime('now'), ?7, ?8, ?9, ?10, ?11, ?12)",
@@ -770,7 +849,7 @@ fn scan_library(paths: Vec<String>) -> library_scanner::ScanResult {
                         ).unwrap();
                     }
                 }
-                
+
                 tx.commit().unwrap();
             }
         }
@@ -808,7 +887,10 @@ fn get_assets_by_category(category: String) -> Vec<library_scanner::AssetInfo> {
 pub fn format_fts_query(query: &str) -> String {
     let mut fts_query = String::new();
     for word in query.split_whitespace() {
-        let clean: String = word.chars().filter(|&c| c.is_alphanumeric() || c == '_' || c == '-').collect();
+        let clean: String = word
+            .chars()
+            .filter(|&c| c.is_alphanumeric() || c == '_' || c == '-')
+            .collect();
         if !clean.is_empty() {
             if !fts_query.is_empty() {
                 fts_query.push_str(" AND ");
@@ -905,16 +987,25 @@ fn search_assets_in_db(
 }
 
 #[tauri::command]
-fn search_assets(query: String, category: String) -> Result<Vec<library_scanner::AssetInfo>, String> {
-    let cat = if category == "all" { None } else { Some(category) };
+fn search_assets(
+    query: String,
+    category: String,
+) -> Result<Vec<library_scanner::AssetInfo>, String> {
+    let cat = if category == "all" {
+        None
+    } else {
+        Some(category)
+    };
     let q = if query.is_empty() { None } else { Some(query) };
     search_assets_in_db(cat, q)
 }
 
 #[tauri::command]
 fn load_asset_in_daz(path: String) -> Result<String, String> {
-    mcp_client::send_mcp_request("load_asset", serde_json::json!({ "path": path }))
-        .map(|r| r.result.unwrap_or_else(|| "Asset load requested".to_string()))
+    mcp_client::send_mcp_request("load_asset", serde_json::json!({ "path": path })).map(|r| {
+        r.result
+            .unwrap_or_else(|| "Asset load requested".to_string())
+    })
 }
 
 #[tauri::command]
@@ -927,21 +1018,29 @@ fn toggle_favourite(asset_path: String) -> Result<bool, String> {
             user_id TEXT NOT NULL, asset_path TEXT NOT NULL,
             added_at TEXT DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (user_id, asset_path));",
-    ).map_err(|e| e.to_string())?;
+    )
+    .map_err(|e| e.to_string())?;
     let exists: bool = conn
         .query_row(
             "SELECT COUNT(*) FROM favourites WHERE user_id='default' AND asset_path=?1",
             rusqlite::params![asset_path],
             |row| row.get::<_, i64>(0),
         )
-        .unwrap_or(0) > 0;
+        .unwrap_or(0)
+        > 0;
     if exists {
-        conn.execute("DELETE FROM favourites WHERE user_id='default' AND asset_path=?1", rusqlite::params![asset_path])
-            .map_err(|e| e.to_string())?;
+        conn.execute(
+            "DELETE FROM favourites WHERE user_id='default' AND asset_path=?1",
+            rusqlite::params![asset_path],
+        )
+        .map_err(|e| e.to_string())?;
         Ok(false)
     } else {
-        conn.execute("INSERT OR IGNORE INTO favourites (user_id, asset_path) VALUES ('default', ?1)", rusqlite::params![asset_path])
-            .map_err(|e| e.to_string())?;
+        conn.execute(
+            "INSERT OR IGNORE INTO favourites (user_id, asset_path) VALUES ('default', ?1)",
+            rusqlite::params![asset_path],
+        )
+        .map_err(|e| e.to_string())?;
         Ok(true)
     }
 }
@@ -956,7 +1055,8 @@ fn get_favourites() -> Result<Vec<String>, String> {
             user_id TEXT NOT NULL, asset_path TEXT NOT NULL,
             added_at TEXT DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (user_id, asset_path));",
-    ).ok();
+    )
+    .ok();
     let mut stmt = conn
         .prepare("SELECT asset_path FROM favourites WHERE user_id='default' ORDER BY added_at DESC")
         .map_err(|e| e.to_string())?;
@@ -967,7 +1067,6 @@ fn get_favourites() -> Result<Vec<String>, String> {
         .collect();
     Ok(paths)
 }
-
 
 #[tauri::command]
 fn get_timeline_state() -> animation::TimelineState {
@@ -1029,7 +1128,10 @@ fn stop_animation() -> animation::AnimationResult {
 
 #[tauri::command]
 fn seek_to_frame(frame: f32) -> animation::AnimationResult {
-    match mcp_client::send_mcp_request("seek_to_frame", serde_json::json!({ "frame": frame as i32 })) {
+    match mcp_client::send_mcp_request(
+        "seek_to_frame",
+        serde_json::json!({ "frame": frame as i32 }),
+    ) {
         Ok(resp) => animation::AnimationResult {
             success: true,
             message: format!("Seeked to frame {}", frame),
@@ -1059,7 +1161,9 @@ fn toggle_loop() -> animation::AnimationResult {
     animation::AnimationResult {
         success: true,
         message: "Loop toggled".to_string(),
-        data: Some(serde_json::json!(animation::get_playback_state().loop_enabled)),
+        data: Some(serde_json::json!(
+            animation::get_playback_state().loop_enabled
+        )),
     }
 }
 
@@ -1196,7 +1300,11 @@ fn get_default_export_settings() -> advanced::ExportSettings {
 }
 
 #[tauri::command]
-fn export_scene(node_id: String, path: String, settings: advanced::ExportSettings) -> advanced::ExportResult {
+fn export_scene(
+    node_id: String,
+    path: String,
+    settings: advanced::ExportSettings,
+) -> advanced::ExportResult {
     advanced::export_scene(&node_id, &path, settings)
 }
 
@@ -1216,13 +1324,22 @@ fn create_scene_composition(name: String, description: String) -> advanced::Scen
 }
 
 #[tauri::command]
-fn add_camera_action(mut composition: advanced::SceneComposition, action: advanced::CameraAction) -> advanced::SceneComposition {
+fn add_camera_action(
+    mut composition: advanced::SceneComposition,
+    action: advanced::CameraAction,
+) -> advanced::SceneComposition {
     advanced::add_camera_action(&mut composition, action);
     composition
 }
 
 #[tauri::command]
-fn add_transition(mut composition: advanced::SceneComposition, from_seq: String, to_seq: String, trans_type: advanced::TransitionType, duration: f32) -> advanced::SceneComposition {
+fn add_transition(
+    mut composition: advanced::SceneComposition,
+    from_seq: String,
+    to_seq: String,
+    trans_type: advanced::TransitionType,
+    duration: f32,
+) -> advanced::SceneComposition {
     advanced::add_transition(&mut composition, &from_seq, &to_seq, trans_type, duration);
     composition
 }
@@ -1243,41 +1360,37 @@ fn get_export_presets() -> std::collections::HashMap<String, advanced::ExportSet
 }
 
 fn build_sdk_context_for_message(message: &str) -> String {
-    let keywords: Vec<&str> = message.split_whitespace()
-        .filter(|w| w.len() > 3)
-        .collect();
-    
+    let keywords: Vec<&str> = message.split_whitespace().filter(|w| w.len() > 3).collect();
+
     if keywords.is_empty() {
         return String::new();
     }
-    
-    let search_terms: Vec<String> = keywords.iter()
-        .take(5)
-        .map(|s| s.to_lowercase())
-        .collect();
-    
+
+    let search_terms: Vec<String> = keywords.iter().take(5).map(|s| s.to_lowercase()).collect();
+
     let all_classes = sdk_indexer::get_all_class_names();
-    let relevant_classes: Vec<_> = all_classes.into_iter()
+    let relevant_classes: Vec<_> = all_classes
+        .into_iter()
         .filter(|name| {
             let name_lower = name.to_lowercase();
             search_terms.iter().any(|term| name_lower.contains(term))
         })
         .take(10)
         .collect();
-    
+
     if relevant_classes.is_empty() {
         return String::new();
     }
-    
+
     let mut context = String::from("RELEVANT SDK CLASSES FOR THIS QUERY:\n");
-    
+
     for class_name in relevant_classes {
         if let Some(class) = sdk_indexer::get_sdk_class_deep(class_name.clone()) {
             context.push_str(&format!("\n## {} (from {})\n", class.name, class.file));
             if !class.description.is_empty() {
                 context.push_str(&format!("Description: {}\n", class.description));
             }
-            
+
             context.push_str("Key methods:\n");
             for method in class.methods.iter().take(15) {
                 let params = if method.parameters.is_empty() {
@@ -1285,15 +1398,21 @@ fn build_sdk_context_for_message(message: &str) -> String {
                 } else {
                     format!("({})", method.parameters.join(", "))
                 };
-                context.push_str(&format!("  - {}: {}{}\n", method.name, method.return_type, params));
+                context.push_str(&format!(
+                    "  - {}: {}{}\n",
+                    method.name, method.return_type, params
+                ));
             }
-            
+
             if !class.related_classes.is_empty() {
-                context.push_str(&format!("Related classes: {}\n", class.related_classes.join(", ")));
+                context.push_str(&format!(
+                    "Related classes: {}\n",
+                    class.related_classes.join(", ")
+                ));
             }
         }
     }
-    
+
     context
 }
 
@@ -1320,13 +1439,24 @@ async fn get_provider_models(provider: String) -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
-async fn test_ai_connection(provider: String, api_key: String, base_url: Option<String>) -> Result<bool, String> {
-    let key = if api_key.is_empty() { None } else { Some(api_key) };
+async fn test_ai_connection(
+    provider: String,
+    api_key: String,
+    base_url: Option<String>,
+) -> Result<bool, String> {
+    let key = if api_key.is_empty() {
+        None
+    } else {
+        Some(api_key)
+    };
     let models = ai_providers::fetch_models(&provider, key, base_url).await?;
     Ok(!models.is_empty())
 }
 
-fn try_agent_planning(message: &str, scene_context: &ai_system::SceneContext) -> Option<ai_action::StructuredAiAction> {
+fn try_agent_planning(
+    message: &str,
+    scene_context: &ai_system::SceneContext,
+) -> Option<ai_action::StructuredAiAction> {
     let agent_request = agents::AgentRequest {
         agent_type: "task_planner".to_string(),
         input: message.to_string(),
@@ -1410,7 +1540,10 @@ fn should_use_multi_step_scene_composition(message: &str) -> bool {
     composition_intent && creation_intent
 }
 
-fn planning_context_from_scene(message: &str, scene_context: &ai_system::SceneContext) -> reasoning::planner::PlanningContext {
+fn planning_context_from_scene(
+    message: &str,
+    scene_context: &ai_system::SceneContext,
+) -> reasoning::planner::PlanningContext {
     reasoning::planner::PlanningContext {
         scene_state: None,
         recent_actions: scene_context.selected_nodes.clone(),
@@ -1440,16 +1573,28 @@ fn query_planning_assets(message: &str) -> Vec<library_scanner::AssetInfo> {
     let lower = message.to_lowercase();
     let mut categories = vec!["figures", "environments", "lights", "cameras"];
 
-    if lower.contains("cloth") || lower.contains("wear") || lower.contains("outfit") || lower.contains("dress") {
+    if lower.contains("cloth")
+        || lower.contains("wear")
+        || lower.contains("outfit")
+        || lower.contains("dress")
+    {
         categories.push("clothing");
     }
     if lower.contains("hair") {
         categories.push("hair");
     }
-    if lower.contains("pose") || lower.contains("standing") || lower.contains("sitting") || lower.contains("action") {
+    if lower.contains("pose")
+        || lower.contains("standing")
+        || lower.contains("sitting")
+        || lower.contains("action")
+    {
         categories.push("poses");
     }
-    if lower.contains("material") || lower.contains("texture") || lower.contains("skin") || lower.contains("shader") {
+    if lower.contains("material")
+        || lower.contains("texture")
+        || lower.contains("skin")
+        || lower.contains("shader")
+    {
         categories.push("materials");
     }
 
@@ -1509,29 +1654,47 @@ fn goal_from_message(message: &str) -> reasoning::planner::Goal {
 
 fn describe_plan_execution(result: &reasoning::executor::ExecutionResult) -> String {
     match result {
-        reasoning::executor::ExecutionResult::Success { steps_executed, total_time, .. } => {
-            format!("Executed multi-step scene plan: {} steps in {:.1}s.", steps_executed, total_time.as_secs_f32())
-        }
-        reasoning::executor::ExecutionResult::PartialSuccess { successful_steps, total_steps, total_time, .. } => {
+        reasoning::executor::ExecutionResult::Success {
+            steps_executed,
+            total_time,
+            ..
+        } => {
+            format!(
+                "Executed multi-step scene plan: {} steps in {:.1}s.",
+                steps_executed,
+                total_time.as_secs_f32()
+            )
+        },
+        reasoning::executor::ExecutionResult::PartialSuccess {
+            successful_steps,
+            total_steps,
+            total_time,
+            ..
+        } => {
             format!(
                 "Partially executed multi-step scene plan: {}/{} steps succeeded in {:.1}s.",
                 successful_steps,
                 total_steps,
                 total_time.as_secs_f32()
             )
-        }
-        reasoning::executor::ExecutionResult::Failed { reason, details, step_executed } => {
+        },
+        reasoning::executor::ExecutionResult::Failed {
+            reason,
+            details,
+            step_executed,
+        } => {
             format!(
                 "Multi-step scene plan failed after {} steps: {}. {}",
-                step_executed,
-                reason,
-                details
+                step_executed, reason, details
             )
-        }
+        },
     }
 }
 
-async fn try_execute_multi_step_scene_plan(message: &str, scene_context: &ai_system::SceneContext) -> Option<(String, Option<ai_action::StructuredAiAction>)> {
+async fn try_execute_multi_step_scene_plan(
+    message: &str,
+    scene_context: &ai_system::SceneContext,
+) -> Option<(String, Option<ai_action::StructuredAiAction>)> {
     if !should_use_multi_step_scene_composition(message) {
         return None;
     }
@@ -1542,7 +1705,8 @@ async fn try_execute_multi_step_scene_plan(message: &str, scene_context: &ai_sys
     let plan = planner.plan_for_goal(&goal, &context)?;
 
     let first_action = plan.steps.first().map(|step| step.action.clone());
-    let high_risk_steps: Vec<String> = plan.steps
+    let high_risk_steps: Vec<String> = plan
+        .steps
         .iter()
         .filter(|step| step.action.requires_confirmation)
         .map(|step| step.description.clone())
@@ -1559,7 +1723,8 @@ async fn try_execute_multi_step_scene_plan(message: &str, scene_context: &ai_sys
         ));
     }
 
-    let step_names = plan.steps
+    let step_names = plan
+        .steps
         .iter()
         .map(|step| step.action.command.as_str())
         .collect::<Vec<_>>()
@@ -1619,24 +1784,32 @@ async fn process_chat_message(
             } else {
                 // Agent confidence is low, try LLM as well
                 let llm_plan = if needs_llm {
-                    let active_provider = provider.clone().or_else(|| {
-                        database::get_setting("ai_provider")
-                            .ok()
-                            .flatten()
-                            .or_else(|| std::env::var("DAZPILOT_AI_BACKEND").ok())
-                    }).unwrap_or_else(|| "local-gguf".to_string());
-                    let active_model = model.clone().or_else(|| {
-                        database::get_setting("ai_model").ok().flatten()
-                    }).unwrap_or_else(|| "phi-2-q4".to_string());
+                    let active_provider = provider
+                        .clone()
+                        .or_else(|| {
+                            database::get_setting("ai_provider")
+                                .ok()
+                                .flatten()
+                                .or_else(|| std::env::var("DAZPILOT_AI_BACKEND").ok())
+                        })
+                        .unwrap_or_else(|| "local-gguf".to_string());
+                    let active_model = model
+                        .clone()
+                        .or_else(|| database::get_setting("ai_model").ok().flatten())
+                        .unwrap_or_else(|| "phi-2-q4".to_string());
                     let api_key = match active_provider.as_str() {
-                        "openai" | "custom-openai" => database::get_setting("openai_api_key").ok().flatten(),
+                        "openai" | "custom-openai" => {
+                            database::get_setting("openai_api_key").ok().flatten()
+                        },
                         "gemini" => database::get_setting("gemini_api_key").ok().flatten(),
                         "anthropic" => database::get_setting("anthropic_api_key").ok().flatten(),
                         _ => None,
                     };
                     let base_url = match active_provider.as_str() {
                         "ollama" => database::get_setting("ollama_host").ok().flatten(),
-                        "openai" | "custom-openai" => database::get_setting("openai_base_url").ok().flatten(),
+                        "openai" | "custom-openai" => {
+                            database::get_setting("openai_base_url").ok().flatten()
+                        },
                         _ => None,
                     };
                     ai_tool_planner::plan_with_llm_tools(
@@ -1658,24 +1831,32 @@ async fn process_chat_message(
         } else {
             // No agent result, proceed with existing logic
             let llm_plan = if needs_llm {
-                let active_provider = provider.clone().or_else(|| {
-                    database::get_setting("ai_provider")
-                        .ok()
-                        .flatten()
-                        .or_else(|| std::env::var("DAZPILOT_AI_BACKEND").ok())
-                }).unwrap_or_else(|| "local-gguf".to_string());
-                let active_model = model.clone().or_else(|| {
-                    database::get_setting("ai_model").ok().flatten()
-                }).unwrap_or_else(|| "phi-2-q4".to_string());
+                let active_provider = provider
+                    .clone()
+                    .or_else(|| {
+                        database::get_setting("ai_provider")
+                            .ok()
+                            .flatten()
+                            .or_else(|| std::env::var("DAZPILOT_AI_BACKEND").ok())
+                    })
+                    .unwrap_or_else(|| "local-gguf".to_string());
+                let active_model = model
+                    .clone()
+                    .or_else(|| database::get_setting("ai_model").ok().flatten())
+                    .unwrap_or_else(|| "phi-2-q4".to_string());
                 let api_key = match active_provider.as_str() {
-                    "openai" | "custom-openai" => database::get_setting("openai_api_key").ok().flatten(),
+                    "openai" | "custom-openai" => {
+                        database::get_setting("openai_api_key").ok().flatten()
+                    },
                     "gemini" => database::get_setting("gemini_api_key").ok().flatten(),
                     "anthropic" => database::get_setting("anthropic_api_key").ok().flatten(),
                     _ => None,
                 };
                 let base_url = match active_provider.as_str() {
                     "ollama" => database::get_setting("ollama_host").ok().flatten(),
-                    "openai" | "custom-openai" => database::get_setting("openai_base_url").ok().flatten(),
+                    "openai" | "custom-openai" => {
+                        database::get_setting("openai_base_url").ok().flatten()
+                    },
                     _ => None,
                 };
                 ai_tool_planner::plan_with_llm_tools(
@@ -1695,7 +1876,7 @@ async fn process_chat_message(
     };
 
     let sdk_context = build_sdk_context_for_message(&message);
-    
+
     let cleaned_images: Option<Vec<String>> = images.map(|imgs| {
         imgs.into_iter()
             .map(|img| {
@@ -1709,7 +1890,10 @@ async fn process_chat_message(
     });
 
     let mut vision_context = String::new();
-    if message.to_lowercase().contains("look") || message.to_lowercase().contains("see") || message.to_lowercase().contains("describe") {
+    if message.to_lowercase().contains("look")
+        || message.to_lowercase().contains("see")
+        || message.to_lowercase().contains("describe")
+    {
         if let Ok(analysis) = vision_service::analyze_current_viewport().await {
             vision_context = format!(
                 "\nVIEWPORT VISION ANALYSIS:\n- Description: {}\n- Detected Nodes: {:?}\n- Lighting: {}\n",
@@ -1720,7 +1904,17 @@ async fn process_chat_message(
 
     let mut spatial_context = String::new();
     let lower_msg = message.to_lowercase();
-    if lower_msg.contains("left") || lower_msg.contains("right") || lower_msg.contains("behind") || lower_msg.contains("front") || lower_msg.contains("above") || lower_msg.contains("below") || lower_msg.contains("where") || lower_msg.contains("spatial") || lower_msg.contains("position") || lower_msg.contains("near") {
+    if lower_msg.contains("left")
+        || lower_msg.contains("right")
+        || lower_msg.contains("behind")
+        || lower_msg.contains("front")
+        || lower_msg.contains("above")
+        || lower_msg.contains("below")
+        || lower_msg.contains("where")
+        || lower_msg.contains("spatial")
+        || lower_msg.contains("position")
+        || lower_msg.contains("near")
+    {
         spatial_context = vision_service::fetch_spatial_context();
     }
 
@@ -1751,7 +1945,10 @@ async fn process_chat_message(
 
     if std::env::var("DAZPILOT_DEV_MOCK_AI").ok().as_deref() == Some("1") {
         return Ok(ChatResponse {
-            content: format!("Plan: {}\n{}{}{}{}", message, execution_summary, vision_context, spatial_context, conflict_info),
+            content: format!(
+                "Plan: {}\n{}{}{}{}",
+                message, execution_summary, vision_context, spatial_context, conflict_info
+            ),
             action,
         });
     }
@@ -1779,17 +1976,14 @@ async fn process_chat_message(
 
     let active_provider = match provider {
         Some(p) => p,
-        None => database::get_setting("ai_provider")?
-            .unwrap_or_else(|| {
-                std::env::var("DAZPILOT_AI_BACKEND")
-                    .unwrap_or_else(|_| "local-gguf".to_string())
-            }),
+        None => database::get_setting("ai_provider")?.unwrap_or_else(|| {
+            std::env::var("DAZPILOT_AI_BACKEND").unwrap_or_else(|_| "local-gguf".to_string())
+        }),
     };
 
     let active_model = match model {
         Some(m) => m,
-        None => database::get_setting("ai_model")?
-            .unwrap_or_else(|| "phi-2-q4".to_string()),
+        None => database::get_setting("ai_model")?.unwrap_or_else(|| "phi-2-q4".to_string()),
     };
 
     let api_key = match active_provider.as_str() {
@@ -1820,17 +2014,21 @@ async fn process_chat_message(
         temperature,
         max_tokens,
         cleaned_images,
-    ).await?;
-    
+    )
+    .await?;
+
     // Extract Javascript macro if present - emit for user approval instead of auto-executing
     if let Some(script) = extract_javascript_macro(&response_text) {
         let script_id = format!("script-{}", chrono::Utc::now().timestamp_millis());
-        let _ = app_handle.emit("script-suggestion", serde_json::json!({
-            "id": script_id,
-            "script": script,
-            "context": message,
-            "timestamp": chrono::Utc::now().to_rfc3339()
-        }));
+        let _ = app_handle.emit(
+            "script-suggestion",
+            serde_json::json!({
+                "id": script_id,
+                "script": script,
+                "context": message,
+                "timestamp": chrono::Utc::now().to_rfc3339()
+            }),
+        );
         return Ok(ChatResponse {
             content: format!(
                 "AI suggested a DazScript macro. Please review and approve it in the Script Approval panel.\n\nScript ID: {}\n\n{}",
@@ -1863,27 +2061,41 @@ fn extract_javascript_macro(text: &str) -> Option<String> {
 #[tauri::command]
 fn execute_approved_script(script: String) -> Result<String, String> {
     info!("User approved script execution");
-    mcp_client::send_mcp_request("run_script", serde_json::json!({
-        "script": script,
-        "args": {}
-    }))
-    .map(|r| r.result.unwrap_or_else(|| "Script executed successfully".to_string()))
+    mcp_client::send_mcp_request(
+        "run_script",
+        serde_json::json!({
+            "script": script,
+            "args": {}
+        }),
+    )
+    .map(|r| {
+        r.result
+            .unwrap_or_else(|| "Script executed successfully".to_string())
+    })
 }
 
 #[tauri::command]
-fn set_viewport_sync(enabled: bool, state: tauri::State<'_, std::sync::Arc<viewport_sync::ViewportSyncState>>) {
+fn set_viewport_sync(
+    enabled: bool,
+    state: tauri::State<'_, std::sync::Arc<viewport_sync::ViewportSyncState>>,
+) {
     *state.enabled.lock().unwrap() = enabled;
 }
 
 #[tauri::command]
-fn set_viewport_fps(fps: u32, state: tauri::State<'_, std::sync::Arc<viewport_sync::ViewportSyncState>>) {
+fn set_viewport_fps(
+    fps: u32,
+    state: tauri::State<'_, std::sync::Arc<viewport_sync::ViewportSyncState>>,
+) {
     *state.fps.lock().unwrap() = fps.clamp(1, 30);
 }
 
 #[tauri::command]
 fn capture_viewport_single() -> Result<String, String> {
-    let resp = mcp_client::send_mcp_request("capture_viewport", serde_json::json!({ "path": "stream" }))?;
-    resp.data.as_ref()
+    let resp =
+        mcp_client::send_mcp_request("capture_viewport", serde_json::json!({ "path": "stream" }))?;
+    resp.data
+        .as_ref()
         .and_then(|d| d.get("data"))
         .and_then(|v| v.as_str())
         .map(|s| s.to_string())
@@ -1913,7 +2125,12 @@ fn analyze_shell_file(path: String) -> Option<ShellInfo> {
 #[tauri::command]
 fn ai_ask_question(question: String, options: Vec<String>, allow_custom: bool) -> String {
     let question_id = format!("q-{}", chrono::Utc::now().timestamp_millis());
-    log::info!("AI question asked: {} - Options: {:?}, Custom: {}", question, options, allow_custom);
+    log::info!(
+        "AI question asked: {} - Options: {:?}, Custom: {}",
+        question,
+        options,
+        allow_custom
+    );
     question_id
 }
 
@@ -1990,7 +2207,10 @@ fn get_asset_thumbnail(asset_path: String) -> Option<String> {
 // ─── Subsystem 3: Figure Resolver ─────────────────────────────────────────────
 
 #[tauri::command]
-fn resolve_compatible_assets(figure_id: String, category: Option<String>) -> Vec<library_scanner::AssetInfo> {
+fn resolve_compatible_assets(
+    figure_id: String,
+    category: Option<String>,
+) -> Vec<library_scanner::AssetInfo> {
     figure_resolver::resolve_compatible_assets(&figure_id, category.as_deref())
 }
 
@@ -2013,36 +2233,59 @@ fn get_figure_expressions(figure_id: String) -> Vec<library_scanner::AssetInfo> 
 
 #[tauri::command]
 fn bridge_get_figure_morphs(figure_id: String) -> Result<serde_json::Value, String> {
-    mcp_client::send_mcp_request("get_figure_morphs", serde_json::json!({ "figure_id": figure_id }))
-        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+    mcp_client::send_mcp_request(
+        "get_figure_morphs",
+        serde_json::json!({ "figure_id": figure_id }),
+    )
+    .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
 }
 
 #[tauri::command]
 fn bridge_get_fitted_items(figure_id: String) -> Result<serde_json::Value, String> {
-    mcp_client::send_mcp_request("get_fitted_items", serde_json::json!({ "figure_id": figure_id }))
-        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+    mcp_client::send_mcp_request(
+        "get_fitted_items",
+        serde_json::json!({ "figure_id": figure_id }),
+    )
+    .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
 }
 
 #[tauri::command]
 fn bridge_get_active_expressions(figure_id: String) -> Result<serde_json::Value, String> {
-    mcp_client::send_mcp_request("get_active_expressions", serde_json::json!({ "figure_id": figure_id }))
-        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+    mcp_client::send_mcp_request(
+        "get_active_expressions",
+        serde_json::json!({ "figure_id": figure_id }),
+    )
+    .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
 }
 
 #[tauri::command]
 fn bridge_get_material_zones(figure_id: String) -> Result<serde_json::Value, String> {
-    mcp_client::send_mcp_request("get_material_zones", serde_json::json!({ "figure_id": figure_id }))
-        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+    mcp_client::send_mcp_request(
+        "get_material_zones",
+        serde_json::json!({ "figure_id": figure_id }),
+    )
+    .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
 }
 
 #[tauri::command]
-fn bridge_apply_morph(figure_id: String, morph_id: String, value: f32) -> Result<serde_json::Value, String> {
-    mcp_client::send_mcp_request("apply_morph", serde_json::json!({ "figure_id": figure_id, "morph_id": morph_id, "value": value }))
-        .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
+fn bridge_apply_morph(
+    figure_id: String,
+    morph_id: String,
+    value: f32,
+) -> Result<serde_json::Value, String> {
+    mcp_client::send_mcp_request(
+        "apply_morph",
+        serde_json::json!({ "figure_id": figure_id, "morph_id": morph_id, "value": value }),
+    )
+    .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
 }
 
 #[tauri::command]
-fn bridge_apply_expression(figure_id: String, expression_id: String, value: f32) -> Result<serde_json::Value, String> {
+fn bridge_apply_expression(
+    figure_id: String,
+    expression_id: String,
+    value: f32,
+) -> Result<serde_json::Value, String> {
     mcp_client::send_mcp_request("apply_expression", serde_json::json!({ "figure_id": figure_id, "expression_id": expression_id, "value": value }))
         .map(|r| r.data.unwrap_or_else(|| serde_json::json!({})))
 }

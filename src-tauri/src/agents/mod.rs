@@ -1,10 +1,10 @@
-pub mod task_planner;
-pub mod asset_selection;
 pub mod animation_agent;
+pub mod asset_selection;
 pub mod conflict_resolution;
-pub mod render_agent;
 pub mod physics_agent;
+pub mod render_agent;
 pub mod scene_composer;
+pub mod task_planner;
 
 use serde::{Deserialize, Serialize};
 

@@ -1,11 +1,11 @@
-use crate::agents::{self, AgentRequest, AgentResponse, AgentAction};
+use crate::agents::{self, AgentAction, AgentRequest, AgentResponse};
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
-    
+
     // 1. Check for conflicts first as a proactive step
     let conflict_resp = agents::conflict_resolution::execute(request.clone());
-    
+
     let mut actions = vec![];
     let mut results = vec![];
 
@@ -25,7 +25,11 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
         }
     }
 
-    if input.contains("load") || input.contains("apply") || input.contains("find") || input.contains("search") {
+    if input.contains("load")
+        || input.contains("apply")
+        || input.contains("find")
+        || input.contains("search")
+    {
         let resp = agents::asset_selection::execute(request.clone());
         if resp.success {
             results.push(resp.result.unwrap_or_default());
@@ -61,7 +65,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
     if results.is_empty() && !actions.is_empty() {
         results.push(format!("Decomposed into {} action(s)", actions.len()));
     }
-    
+
     AgentResponse {
         success: true,
         result: Some(results.join("\n")),
@@ -72,7 +76,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
 
 fn parse_and_create_actions(input: &str) -> Vec<AgentAction> {
     let mut actions = vec![];
-    
+
     if input.contains("select") && (input.contains("figure") || input.contains("node")) {
         actions.push(AgentAction {
             action_type: "select_node".to_string(),
@@ -80,7 +84,7 @@ fn parse_and_create_actions(input: &str) -> Vec<AgentAction> {
             args: vec!["genesis_8_female".to_string()],
         });
     }
-    
+
     if input.contains("create") {
         if input.contains("light") {
             actions.push(AgentAction {
@@ -96,7 +100,7 @@ fn parse_and_create_actions(input: &str) -> Vec<AgentAction> {
             });
         }
     }
-    
+
     if actions.is_empty() {
         actions.push(AgentAction {
             action_type: "chat".to_string(),
@@ -104,6 +108,6 @@ fn parse_and_create_actions(input: &str) -> Vec<AgentAction> {
             args: vec![input.to_string()],
         });
     }
-    
+
     actions
 }

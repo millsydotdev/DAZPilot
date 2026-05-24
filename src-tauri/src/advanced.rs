@@ -218,7 +218,12 @@ pub fn import_model(path: &str, settings: ImportSettings) -> ImportResult {
 }
 
 pub fn export_scene(node_id: &str, path: &str, settings: ExportSettings) -> ExportResult {
-    log::info!("Exporting node {} to {} as {:?}", node_id, path, settings.format);
+    log::info!(
+        "Exporting node {} to {} as {:?}",
+        node_id,
+        path,
+        settings.format
+    );
 
     if let Some(parent) = std::path::Path::new(path).parent() {
         if let Err(e) = std::fs::create_dir_all(parent) {
@@ -254,9 +259,12 @@ pub fn export_scene(node_id: &str, path: &str, settings: ExportSettings) -> Expo
                 .unwrap_or_else(|| format!("Daz export requested for {}", path)),
         },
         Err(bridge_err) => {
-            log::warn!("Bridge export_scene failed, trying DazScript fallback: {}", bridge_err);
+            log::warn!(
+                "Bridge export_scene failed, trying DazScript fallback: {}",
+                bridge_err
+            );
             export_via_dazscript(node_id, path, &settings)
-        }
+        },
     }
 }
 
@@ -299,7 +307,9 @@ fn export_via_dazscript(node_id: &str, path: &str, settings: &ExportSettings) ->
         serde_json::json!({ "script": script, "args": {} }),
     ) {
         Ok(resp) => {
-            let msg = resp.result.unwrap_or_else(|| format!("Export requested via DazScript for {}", path));
+            let msg = resp
+                .result
+                .unwrap_or_else(|| format!("Export requested via DazScript for {}", path));
             ExportResult {
                 success: true,
                 file_path: path.to_string(),
@@ -311,41 +321,50 @@ fn export_via_dazscript(node_id: &str, path: &str, settings: &ExportSettings) ->
                     .unwrap_or(0),
                 message: msg,
             }
-        }
+        },
         Err(e) => ExportResult {
             success: false,
             file_path: path.to_string(),
             file_size: 0,
-            message: format!("Export not completed (bridge and DazScript both failed): {}", e),
+            message: format!(
+                "Export not completed (bridge and DazScript both failed): {}",
+                e
+            ),
         },
     }
 }
 
 pub fn batch_export(batch: BatchExport) -> BatchResult {
     log::info!("Batch exporting {} assets", batch.assets.len());
-    
+
     if let Err(e) = std::fs::create_dir_all(&batch.output_directory) {
         return BatchResult {
             total: batch.assets.len() as u32,
             succeeded: 0,
             failed: batch.assets.len() as u32,
-            results: batch.assets.iter().map(|asset| {
-                ExportResult {
+            results: batch
+                .assets
+                .iter()
+                .map(|asset| ExportResult {
                     success: false,
                     file_path: format!("{}/{}.obj", batch.output_directory, asset),
                     file_size: 0,
                     message: format!("Failed to create batch export directory: {}", e),
-                }
-            }).collect(),
+                })
+                .collect(),
         };
     }
-    
+
     let mut results = vec![];
     let mut succeeded = 0u32;
     let mut failed = 0u32;
-    
+
     for asset in &batch.assets {
-        let result = export_scene(asset, &format!("{}/{}.obj", batch.output_directory, asset), batch.settings.clone());
+        let result = export_scene(
+            asset,
+            &format!("{}/{}.obj", batch.output_directory, asset),
+            batch.settings.clone(),
+        );
         if result.success {
             succeeded += 1;
         } else {
@@ -353,7 +372,7 @@ pub fn batch_export(batch: BatchExport) -> BatchResult {
         }
         results.push(result);
     }
-    
+
     BatchResult {
         total: batch.assets.len() as u32,
         succeeded,
@@ -407,7 +426,13 @@ pub fn add_camera_action(composition: &mut SceneComposition, action: CameraActio
     composition.camera_work.push(action);
 }
 
-pub fn add_transition(composition: &mut SceneComposition, from: &str, to: &str, trans_type: TransitionType, duration: f32) {
+pub fn add_transition(
+    composition: &mut SceneComposition,
+    from: &str,
+    to: &str,
+    trans_type: TransitionType,
+    duration: f32,
+) {
     composition.transitions.push(Transition {
         from_sequence: from.to_string(),
         to_sequence: to.to_string(),
@@ -417,45 +442,69 @@ pub fn add_transition(composition: &mut SceneComposition, from: &str, to: &str, 
 }
 
 pub fn get_supported_import_formats() -> Vec<String> {
-    vec!["OBJ".to_string(), "FBX".to_string(), "glTF".to_string(), "DAE".to_string(), "PLY".to_string()]
+    vec![
+        "OBJ".to_string(),
+        "FBX".to_string(),
+        "glTF".to_string(),
+        "DAE".to_string(),
+        "PLY".to_string(),
+    ]
 }
 
 pub fn get_supported_export_formats() -> Vec<String> {
-    vec!["OBJ".to_string(), "FBX".to_string(), "glTF".to_string(), "DAE".to_string(), "DAZ".to_string(), "PNG".to_string(), "JPEG".to_string(), "MP4".to_string()]
+    vec![
+        "OBJ".to_string(),
+        "FBX".to_string(),
+        "glTF".to_string(),
+        "DAE".to_string(),
+        "DAZ".to_string(),
+        "PNG".to_string(),
+        "JPEG".to_string(),
+        "MP4".to_string(),
+    ]
 }
 
 pub fn get_export_presets() -> HashMap<String, ExportSettings> {
     let mut presets = HashMap::new();
-    
-    presets.insert("web".to_string(), ExportSettings {
-        format: ExportFormat::Gltf,
-        quality: ExportQuality::Medium,
-        include_materials: true,
-        include_animations: true,
-        bake_textures: false,
-        compression: true,
-        selected_only: false,
-    });
-    
-    presets.insert("archival".to_string(), ExportSettings {
-        format: ExportFormat::Daz,
-        quality: ExportQuality::Ultra,
-        include_materials: true,
-        include_animations: true,
-        bake_textures: false,
-        compression: false,
-        selected_only: false,
-    });
-    
-    presets.insert("web3d".to_string(), ExportSettings {
-        format: ExportFormat::Gltf,
-        quality: ExportQuality::Low,
-        include_materials: true,
-        include_animations: false,
-        bake_textures: true,
-        compression: true,
-        selected_only: false,
-    });
-    
+
+    presets.insert(
+        "web".to_string(),
+        ExportSettings {
+            format: ExportFormat::Gltf,
+            quality: ExportQuality::Medium,
+            include_materials: true,
+            include_animations: true,
+            bake_textures: false,
+            compression: true,
+            selected_only: false,
+        },
+    );
+
+    presets.insert(
+        "archival".to_string(),
+        ExportSettings {
+            format: ExportFormat::Daz,
+            quality: ExportQuality::Ultra,
+            include_materials: true,
+            include_animations: true,
+            bake_textures: false,
+            compression: false,
+            selected_only: false,
+        },
+    );
+
+    presets.insert(
+        "web3d".to_string(),
+        ExportSettings {
+            format: ExportFormat::Gltf,
+            quality: ExportQuality::Low,
+            include_materials: true,
+            include_animations: false,
+            bake_textures: true,
+            compression: true,
+            selected_only: false,
+        },
+    );
+
     presets
 }

@@ -1,6 +1,6 @@
 //! Scene Composition Agent: orchestrates multi-step scene creation.
 
-use crate::agents::{AgentRequest, AgentResponse, AgentAction};
+use crate::agents::{AgentAction, AgentRequest, AgentResponse};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,7 +25,10 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
             action: AgentAction {
                 action_type: "load".to_string(),
                 command: "load_asset".to_string(),
-                args: vec!["/environments/cyberpunk_street.duf".to_string(), "Environment".to_string()],
+                args: vec![
+                    "/environments/cyberpunk_street.duf".to_string(),
+                    "Environment".to_string(),
+                ],
             },
         });
         steps.push(CompositionStep {

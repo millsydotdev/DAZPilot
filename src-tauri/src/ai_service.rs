@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use crate::{local_ai, ollama_service};
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use once_cell::sync::Lazy;
-use crate::{local_ai, ollama_service};
 
 static AI_SERVICE: Lazy<Mutex<Option<AiService>>> = Lazy::new(|| Mutex::new(None));
 
@@ -64,17 +64,17 @@ impl AiService {
                 log::info!("Loading model from: {}", model_path);
                 self.loaded = true;
                 Ok(())
-            }
+            },
             AiBackend::ExternalApi(_) => {
                 log::info!("Using external API - no local model needed");
                 self.loaded = true;
                 Ok(())
-            }
+            },
             AiBackend::Mock => {
                 log::info!("Mock AI service - no model loading needed");
                 self.loaded = true;
                 Ok(())
-            }
+            },
         }
     }
 
@@ -86,17 +86,20 @@ impl AiService {
         match self.backend {
             AiBackend::LocalLlamaCpp => self.local_chat(request),
             AiBackend::Mock => self.mock_chat(request),
-            AiBackend::ExternalApi(ref url) => {
-                self.external_chat(request, url)
-            }
+            AiBackend::ExternalApi(ref url) => self.external_chat(request, url),
         }
     }
 
     fn local_chat(&self, request: ChatRequest) -> Result<ChatResponse, String> {
         if !local_ai::is_local_server_running() {
-            let model_path = local_ai::first_local_model_path()
-                .ok_or_else(|| "No local GGUF model found. Use first launch setup to download a GGUF model.".to_string())?;
-            local_ai::start_local_server(&model_path.to_string_lossy(), local_ai::get_local_ai_port())?;
+            let model_path = local_ai::first_local_model_path().ok_or_else(|| {
+                "No local GGUF model found. Use first launch setup to download a GGUF model."
+                    .to_string()
+            })?;
+            local_ai::start_local_server(
+                &model_path.to_string_lossy(),
+                local_ai::get_local_ai_port(),
+            )?;
         }
 
         let prompt = request
@@ -106,7 +109,8 @@ impl AiService {
             .collect::<Vec<_>>()
             .join("\n");
         let content = tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(local_ai::chat_with_local(prompt, request.model.clone()))
+            tokio::runtime::Handle::current()
+                .block_on(local_ai::chat_with_local(prompt, request.model.clone()))
         })?;
         Ok(ChatResponse {
             content,
@@ -116,12 +120,14 @@ impl AiService {
     }
 
     fn mock_chat(&self, request: ChatRequest) -> Result<ChatResponse, String> {
-        let last_message = request.messages.last()
+        let last_message = request
+            .messages
+            .last()
             .map(|m| m.content.as_str())
             .unwrap_or("");
 
         let response = generate_mock_response(last_message, request.temperature);
-        
+
         Ok(ChatResponse {
             content: response,
             model: self.model_name.clone(),
@@ -131,7 +137,9 @@ impl AiService {
 
     fn external_chat(&self, request: ChatRequest, _url: &str) -> Result<ChatResponse, String> {
         let model_name = request.model.clone();
-        let msgs: Vec<ollama_service::ChatMessage> = request.messages.iter()
+        let msgs: Vec<ollama_service::ChatMessage> = request
+            .messages
+            .iter()
             .map(|m| ollama_service::ChatMessage {
                 role: m.role.clone(),
                 content: m.content.clone(),
@@ -144,9 +152,10 @@ impl AiService {
             tokio::runtime::Handle::current().block_on(ollama_service::ollama_chat(
                 request.model,
                 msgs,
-                request.temperature
+                request.temperature,
             ))
-        }).map_err(|e| format!("Ollama error: {}", e))?;
+        })
+        .map_err(|e| format!("Ollama error: {}", e))?;
 
         Ok(ChatResponse {
             content: response.message.content,
@@ -171,10 +180,16 @@ impl AiService {
 fn generate_mock_response(input: &str, _temperature: f32) -> String {
     let input_lower = input.to_lowercase();
 
-    if input_lower.contains("select") || input_lower.contains("node") || input_lower.contains("figure") {
+    if input_lower.contains("select")
+        || input_lower.contains("node")
+        || input_lower.contains("figure")
+    {
         return "I'll select that figure in the scene. Executing: select_node(node_id=\"genesis_8_female\")".to_string();
     }
-    if input_lower.contains("load") || input_lower.contains("asset") || input_lower.contains("morph") {
+    if input_lower.contains("load")
+        || input_lower.contains("asset")
+        || input_lower.contains("morph")
+    {
         return "Loading the asset. Executing: load_asset(path=\"My Library/Assets/clothing.dsf\", options={})".to_string();
     }
     if input_lower.contains("pose") || input_lower.contains("apply") {
@@ -201,10 +216,10 @@ pub fn init_ai_service(backend: AiBackend) -> Result<(), String> {
     };
     let mut service = AiService::new(selected_backend);
     service.load_model("models/phi-2-q4.gguf")?;
-    
+
     let mut global = AI_SERVICE.lock().unwrap_or_else(|e| e.into_inner());
     *global = Some(service);
-    
+
     Ok(())
 }
 
@@ -212,12 +227,10 @@ pub fn chat(prompt: String) -> Result<ChatResponse, String> {
     let global = AI_SERVICE.lock().unwrap_or_else(|e| e.into_inner());
     if let Some(ref service) = *global {
         let request = ChatRequest {
-            messages: vec![
-                ChatMessage {
-                    role: "user".to_string(),
-                    content: prompt,
-                }
-            ],
+            messages: vec![ChatMessage {
+                role: "user".to_string(),
+                content: prompt,
+            }],
             model: "phi-2-q4".to_string(),
             temperature: 0.7,
             max_tokens: 512,

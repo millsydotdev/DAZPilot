@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 
+use crate::ai_system::{Entity, EntityType, Intent};
+use crate::reasoning::planner::{Goal, GoalPriority, Planner, PlanningContext};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use crate::ai_system::{Intent, Entity, EntityType};
-use crate::reasoning::planner::{Planner, PlanningContext, Goal, GoalPriority};
 
 static REASONING_PLANNER: Mutex<Option<Planner>> = Mutex::new(None);
 
@@ -58,13 +58,19 @@ fn extract_frame_and_value(input: &str) -> (f32, f32) {
     for i in 0..words.len() {
         let word = words[i];
         if (word == "frame" || word == "at" || word == "on") && i + 1 < words.len() {
-            if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric() && c != '.').parse::<f32>() {
+            if let Ok(val) = words[i + 1]
+                .trim_matches(|c: char| !c.is_numeric() && c != '.')
+                .parse::<f32>()
+            {
                 frame = val;
                 frame_found = true;
             }
         }
         if (word == "to" || word == "value" || word == "val") && i + 1 < words.len() {
-            if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric() && c != '-' && c != '.').parse::<f32>() {
+            if let Ok(val) = words[i + 1]
+                .trim_matches(|c: char| !c.is_numeric() && c != '-' && c != '.')
+                .parse::<f32>()
+            {
                 value = val;
                 value_found = true;
             }
@@ -72,12 +78,21 @@ fn extract_frame_and_value(input: &str) -> (f32, f32) {
     }
 
     if !frame_found || !value_found {
-        let numbers: Vec<f32> = words.iter()
-            .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric() && c != '-' && c != '.').parse::<f32>().ok())
+        let numbers: Vec<f32> = words
+            .iter()
+            .filter_map(|w| {
+                w.trim_matches(|c: char| !c.is_numeric() && c != '-' && c != '.')
+                    .parse::<f32>()
+                    .ok()
+            })
             .collect();
         if numbers.len() >= 2 {
-            if !value_found { value = numbers[0]; }
-            if !frame_found { frame = numbers[1]; }
+            if !value_found {
+                value = numbers[0];
+            }
+            if !frame_found {
+                frame = numbers[1];
+            }
         } else if numbers.len() == 1 && !value_found {
             value = numbers[0];
         }
@@ -88,7 +103,8 @@ fn extract_frame_and_value(input: &str) -> (f32, f32) {
 
 fn extract_property(input: &str) -> String {
     let lower = input.to_lowercase();
-    let words: Vec<&str> = lower.split_whitespace()
+    let words: Vec<&str> = lower
+        .split_whitespace()
         .map(|w| w.trim_matches(|c: char| !c.is_alphabetic()))
         .collect();
 
@@ -107,16 +123,25 @@ fn extract_property(input: &str) -> String {
             "twist" => return "twist".to_string(),
             "intensity" => return "intensity".to_string(),
             "color" => return "color".to_string(),
-            _ => {}
+            _ => {},
         }
     }
 
     let clean_input = lower.replace("keyframe", "");
     let common_props = vec![
-        "xtranslate", "ytranslate", "ztranslate",
-        "xrot", "yrot", "zrot",
-        "rotation", "position", "scale", "bend", "twist",
-        "intensity", "color"
+        "xtranslate",
+        "ytranslate",
+        "ztranslate",
+        "xrot",
+        "yrot",
+        "zrot",
+        "rotation",
+        "position",
+        "scale",
+        "bend",
+        "twist",
+        "intensity",
+        "color",
     ];
     for prop in common_props {
         if clean_input.contains(prop) {
@@ -131,7 +156,9 @@ fn extract_property(input: &str) -> String {
     let words: Vec<&str> = lower.split_whitespace().collect();
     if let Some(pos) = words.iter().position(|&w| w == "property") {
         if pos + 1 < words.len() {
-            return words[pos + 1].trim_matches(|c: char| !c.is_alphanumeric()).to_string();
+            return words[pos + 1]
+                .trim_matches(|c: char| !c.is_alphanumeric())
+                .to_string();
         }
     }
     "yRot".to_string()
@@ -146,13 +173,13 @@ fn extract_node_id(input: &str) -> String {
         return "Genesis 9".to_string();
     }
     if let Some(start) = input.find('"') {
-        if let Some(end) = input[start+1..].find('"') {
-            return input[start+1..start+1+end].to_string();
+        if let Some(end) = input[start + 1..].find('"') {
+            return input[start + 1..start + 1 + end].to_string();
         }
     }
     if let Some(start) = input.find('\'') {
-        if let Some(end) = input[start+1..].find('\'') {
-            return input[start+1..start+1+end].to_string();
+        if let Some(end) = input[start + 1..].find('\'') {
+            return input[start + 1..start + 1 + end].to_string();
         }
     }
     "".to_string()
@@ -176,12 +203,23 @@ fn extract_interpolation(input: &str) -> String {
 pub fn extract_asset_search_query(input: &str) -> Option<String> {
     let lower = input.to_lowercase();
     let prefixes = vec![
-        "load asset", "load", "apply pose", "apply", "add figure", "add node", "add", "put on", "equip", "use", "bring in", "import"
+        "load asset",
+        "load",
+        "apply pose",
+        "apply",
+        "add figure",
+        "add node",
+        "add",
+        "put on",
+        "equip",
+        "use",
+        "bring in",
+        "import",
     ];
-    
+
     let mut target = String::new();
     let mut matched_prefix = false;
-    
+
     for prefix in prefixes {
         if lower.starts_with(prefix) {
             target = input[prefix.len()..].trim().to_string();
@@ -193,12 +231,14 @@ pub fn extract_asset_search_query(input: &str) -> Option<String> {
             break;
         }
     }
-    
+
     if !matched_prefix {
         target = input.to_string();
     }
-    
-    let filler_words = vec!["the", "a", "an", "some", "to", "in", "into", "on", "scene", "figure"];
+
+    let filler_words = vec![
+        "the", "a", "an", "some", "to", "in", "into", "on", "scene", "figure",
+    ];
     let words: Vec<&str> = target.split_whitespace().collect();
     let mut clean_words = vec![];
     for word in words {
@@ -208,7 +248,7 @@ pub fn extract_asset_search_query(input: &str) -> Option<String> {
             clean_words.push(word);
         }
     }
-    
+
     if clean_words.is_empty() {
         None
     } else {
@@ -221,7 +261,13 @@ pub fn search_best_matching_asset(query: &str) -> Option<String> {
     let matcher = crate::asset_matcher::MultiStrategyMatcher::new();
     let result = matcher.search_best(query);
     if let Some(ref matched) = result {
-        log::info!("Asset match via {}: {} (score={}, path={})", matched.strategy, matched.name, matched.score, matched.path);
+        log::info!(
+            "Asset match via {}: {} (score={}, path={})",
+            matched.strategy,
+            matched.name,
+            matched.score,
+            matched.path
+        );
     } else {
         // Fallback to original single-query FTS
         let guard = match crate::database::get_db() {
@@ -237,7 +283,10 @@ pub fn search_best_matching_asset(query: &str) -> Option<String> {
         let sql = "SELECT user_assets.asset_path FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 1";
         let mut stmt = conn.prepare(sql).ok()?;
         let mut rows = stmt.query(rusqlite::params![fts]).ok()?;
-        return rows.next().ok()?.and_then(|row| row.get::<_, String>(0).ok());
+        return rows
+            .next()
+            .ok()?
+            .and_then(|row| row.get::<_, String>(0).ok());
     }
     result.map(|a| a.path)
 }
@@ -264,21 +313,31 @@ pub fn plan_validated_action(input: &str) -> Option<StructuredAiAction> {
 }
 
 fn plan_seek_to_frame(lower: &str) -> Option<StructuredAiAction> {
-    if !((lower.contains("seek") || lower.contains("go to") || lower.contains("jump")) && lower.contains("frame")) {
+    if !((lower.contains("seek") || lower.contains("go to") || lower.contains("jump"))
+        && lower.contains("frame"))
+    {
         return None;
     }
     let words: Vec<&str> = lower.split_whitespace().collect();
     let mut frame = None;
     for i in 0..words.len() {
         if words[i] == "frame" && i + 1 < words.len() {
-            if let Ok(val) = words[i+1].trim_matches(|c: char| !c.is_numeric()).parse::<i32>() {
+            if let Ok(val) = words[i + 1]
+                .trim_matches(|c: char| !c.is_numeric())
+                .parse::<i32>()
+            {
                 frame = Some(val);
             }
         }
     }
     if frame.is_none() {
-        frame = words.iter()
-            .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
+        frame = words
+            .iter()
+            .filter_map(|w| {
+                w.trim_matches(|c: char| !c.is_numeric())
+                    .parse::<i32>()
+                    .ok()
+            })
             .next();
     }
     frame.map(|f| StructuredAiAction {
@@ -291,12 +350,23 @@ fn plan_seek_to_frame(lower: &str) -> Option<StructuredAiAction> {
 }
 
 fn plan_set_timeline_range(lower: &str) -> Option<StructuredAiAction> {
-    if !(lower.contains("range") || (lower.contains("timeline") && (lower.contains("limit") || lower.contains("set") || lower.contains("duration") || lower.contains("frames")))) {
+    if !(lower.contains("range")
+        || (lower.contains("timeline")
+            && (lower.contains("limit")
+                || lower.contains("set")
+                || lower.contains("duration")
+                || lower.contains("frames"))))
+    {
         return None;
     }
     let words: Vec<&str> = lower.split_whitespace().collect();
-    let numbers: Vec<i32> = words.iter()
-        .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
+    let numbers: Vec<i32> = words
+        .iter()
+        .filter_map(|w| {
+            w.trim_matches(|c: char| !c.is_numeric())
+                .parse::<i32>()
+                .ok()
+        })
         .collect();
 
     let (start, end) = if numbers.len() >= 2 {
@@ -321,8 +391,13 @@ fn plan_dforce_simulation(lower: &str) -> Option<StructuredAiAction> {
         return None;
     }
     let words: Vec<&str> = lower.split_whitespace().collect();
-    let numbers: Vec<u32> = words.iter()
-        .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<u32>().ok())
+    let numbers: Vec<u32> = words
+        .iter()
+        .filter_map(|w| {
+            w.trim_matches(|c: char| !c.is_numeric())
+                .parse::<u32>()
+                .ok()
+        })
         .collect();
 
     let (start, end) = if numbers.len() >= 2 {
@@ -336,8 +411,16 @@ fn plan_dforce_simulation(lower: &str) -> Option<StructuredAiAction> {
     let mut node_id = String::new();
     for word in words {
         let wl = word.to_lowercase();
-        if wl.contains("dress") || wl.contains("shirt") || wl.contains("skirt") || wl.contains("pants") || wl.contains("hair") || wl.contains("cloth") {
-            node_id = word.trim_matches(|c: char| !c.is_alphanumeric()).to_string();
+        if wl.contains("dress")
+            || wl.contains("shirt")
+            || wl.contains("skirt")
+            || wl.contains("pants")
+            || wl.contains("hair")
+            || wl.contains("cloth")
+        {
+            node_id = word
+                .trim_matches(|c: char| !c.is_alphanumeric())
+                .to_string();
             break;
         }
     }
@@ -437,12 +520,24 @@ fn plan_set_light_property(lower: &str, input: &str) -> Option<StructuredAiActio
 }
 
 fn plan_render_settings(lower: &str) -> Option<StructuredAiAction> {
-    if !(lower.contains("render") && (lower.contains("resolution") || lower.contains("size") || lower.contains("1920") || lower.contains("4k") || lower.contains("output") || lower.contains("image") || lower.contains("picture"))) {
+    if !(lower.contains("render")
+        && (lower.contains("resolution")
+            || lower.contains("size")
+            || lower.contains("1920")
+            || lower.contains("4k")
+            || lower.contains("output")
+            || lower.contains("image")
+            || lower.contains("picture")))
+    {
         return None;
     }
     let numbers: Vec<i32> = lower
         .split_whitespace()
-        .filter_map(|w| w.trim_matches(|c: char| !c.is_numeric()).parse::<i32>().ok())
+        .filter_map(|w| {
+            w.trim_matches(|c: char| !c.is_numeric())
+                .parse::<i32>()
+                .ok()
+        })
         .collect();
     let (width, height) = if numbers.len() >= 2 {
         (numbers[0], numbers[1])
@@ -462,8 +557,17 @@ fn plan_render_settings(lower: &str) -> Option<StructuredAiAction> {
 }
 
 fn plan_add_figure(lower: &str) -> Option<StructuredAiAction> {
-    if !((lower.contains("add") || lower.contains("create") || lower.contains("load") || lower.contains("build") || lower.contains("make"))
-        && (lower.contains("figure") || lower.contains("genesis") || lower.contains("character") || lower.contains("model") || lower.contains("person") || lower.contains("human")))
+    if !((lower.contains("add")
+        || lower.contains("create")
+        || lower.contains("load")
+        || lower.contains("build")
+        || lower.contains("make"))
+        && (lower.contains("figure")
+            || lower.contains("genesis")
+            || lower.contains("character")
+            || lower.contains("model")
+            || lower.contains("person")
+            || lower.contains("human")))
     {
         return None;
     }
@@ -471,11 +575,12 @@ fn plan_add_figure(lower: &str) -> Option<StructuredAiAction> {
     if lower.contains("smile") || lower.contains("frown") || lower.contains("expression") {
         return None;
     }
-    let figure_type = if lower.contains("genesis 9") || lower.contains("g9") || lower.contains("genesis9") {
-        "genesis9"
-    } else {
-        "genesis8"
-    };
+    let figure_type =
+        if lower.contains("genesis 9") || lower.contains("g9") || lower.contains("genesis9") {
+            "genesis9"
+        } else {
+            "genesis8"
+        };
     Some(StructuredAiAction {
         command: "add_figure".to_string(),
         args: serde_json::json!({ "figure_type": figure_type }),
@@ -486,7 +591,10 @@ fn plan_add_figure(lower: &str) -> Option<StructuredAiAction> {
 }
 
 fn plan_create_light(lower: &str) -> Option<StructuredAiAction> {
-    if !((lower.contains("create") || lower.contains("add") || lower.contains("new") || lower.contains("make"))
+    if !((lower.contains("create")
+        || lower.contains("add")
+        || lower.contains("new")
+        || lower.contains("make"))
         && (lower.contains("light") || lower.contains("lighting")))
     {
         return None;
@@ -510,18 +618,38 @@ fn plan_create_light(lower: &str) -> Option<StructuredAiAction> {
 }
 
 fn plan_apply_expression(lower: &str, _input: &str) -> Option<StructuredAiAction> {
-    if !(lower.contains("expression") || lower.contains("smile") || lower.contains("frown") || lower.contains("happy") || lower.contains("sad") || lower.contains("angry") || lower.contains("surprise") || lower.contains("blink")) {
+    if !(lower.contains("expression")
+        || lower.contains("smile")
+        || lower.contains("frown")
+        || lower.contains("happy")
+        || lower.contains("sad")
+        || lower.contains("angry")
+        || lower.contains("surprise")
+        || lower.contains("blink"))
+    {
         return None;
     }
-    let expression_id = if lower.contains("smile") || lower.contains("happy") { "smile" }
-        else if lower.contains("frown") || lower.contains("sad") || lower.contains("unhappy") { "frown" }
-        else if lower.contains("angry") || lower.contains("mad") { "angry" }
-        else if lower.contains("surprise") || lower.contains("shock") { "surprise" }
-        else if lower.contains("blink") || lower.contains("wink") || lower.contains("close eyes") { "eyes_closed" }
-        else { "" };
-    let value = if lower.contains("full") || lower.contains("maximum") || lower.contains("extreme") { 1.0 }
-        else if lower.contains("subtle") || lower.contains("slight") || lower.contains("gentle") { 0.3 }
-        else { 0.7 };
+    let expression_id = if lower.contains("smile") || lower.contains("happy") {
+        "smile"
+    } else if lower.contains("frown") || lower.contains("sad") || lower.contains("unhappy") {
+        "frown"
+    } else if lower.contains("angry") || lower.contains("mad") {
+        "angry"
+    } else if lower.contains("surprise") || lower.contains("shock") {
+        "surprise"
+    } else if lower.contains("blink") || lower.contains("wink") || lower.contains("close eyes") {
+        "eyes_closed"
+    } else {
+        ""
+    };
+    let value = if lower.contains("full") || lower.contains("maximum") || lower.contains("extreme")
+    {
+        1.0
+    } else if lower.contains("subtle") || lower.contains("slight") || lower.contains("gentle") {
+        0.3
+    } else {
+        0.7
+    };
     Some(StructuredAiAction {
         command: "apply_expression".to_string(),
         args: serde_json::json!({
@@ -536,7 +664,10 @@ fn plan_apply_expression(lower: &str, _input: &str) -> Option<StructuredAiAction
 }
 
 fn plan_scene_creation(lower: &str) -> Option<StructuredAiAction> {
-    if !((lower.contains("create") || lower.contains("make") || lower.contains("build") || lower.contains("new"))
+    if !((lower.contains("create")
+        || lower.contains("make")
+        || lower.contains("build")
+        || lower.contains("new"))
         && lower.contains("scene"))
     {
         return None;
@@ -551,7 +682,14 @@ fn plan_scene_creation(lower: &str) -> Option<StructuredAiAction> {
 }
 
 fn plan_load_asset(lower: &str, input: &str) -> Option<StructuredAiAction> {
-    if !(lower.contains("load") || lower.contains("apply") || lower.contains("add") || lower.contains("put on") || lower.contains("equip") || lower.contains("use") || lower.contains("import")) {
+    if !(lower.contains("load")
+        || lower.contains("apply")
+        || lower.contains("add")
+        || lower.contains("put on")
+        || lower.contains("equip")
+        || lower.contains("use")
+        || lower.contains("import"))
+    {
         return None;
     }
     let target = extract_asset_search_query(input)?;
@@ -569,11 +707,17 @@ fn plan_export_scene(lower: &str, input: &str) -> Option<StructuredAiAction> {
     if !(lower.contains("export") || lower.contains("save")) {
         return None;
     }
-    let format = if lower.contains("fbx") { "fbx" }
-        else if lower.contains("gltf") || lower.contains("glb") { "gltf" }
-        else if lower.contains("dae") { "dae" }
-        else if lower.contains("duf") || lower.contains("daz") { "daz" }
-        else { "obj" };
+    let format = if lower.contains("fbx") {
+        "fbx"
+    } else if lower.contains("gltf") || lower.contains("glb") {
+        "gltf"
+    } else if lower.contains("dae") {
+        "dae"
+    } else if lower.contains("duf") || lower.contains("daz") {
+        "daz"
+    } else {
+        "obj"
+    };
 
     let path = extract_asset_search_query(input)
         .filter(|_| lower.contains("to ") || lower.contains("as "))
@@ -602,23 +746,32 @@ fn plan_export_scene(lower: &str, input: &str) -> Option<StructuredAiAction> {
 }
 
 fn plan_legacy_command(lower: &str, input: &str) -> Option<StructuredAiAction> {
-    let (command, args, confidence) = if lower.contains("scene") && (lower.contains("info") || lower.contains("status")) {
-        ("get_scene_info", serde_json::json!({}), 0.9)
-    } else if lower.contains("list") && lower.contains("node") {
-        ("list_nodes", serde_json::json!({}), 0.9)
-    } else if lower.contains("selected") {
-        ("get_selected_nodes", serde_json::json!({}), 0.85)
-    } else if lower.contains("camera") && (lower.contains("list") || lower.contains("show")) {
-        ("get_cameras", serde_json::json!({}), 0.85)
-    } else if lower.contains("render") || lower.contains("preview") {
-        ("render_preview", serde_json::json!({}), 0.8)
-    } else if lower.contains("look") || lower.contains("vision") || lower.contains("see") || lower.contains("describe") {
-        ("capture_viewport", serde_json::json!({"path": "temp_vision.png"}), 0.9)
-    } else if lower.contains("geoshell") || lower.contains("shells") {
-        ("get_geoshells", serde_json::json!({}), 0.9)
-    } else {
-        return plan_with_reasoning_fallback(input);
-    };
+    let (command, args, confidence) =
+        if lower.contains("scene") && (lower.contains("info") || lower.contains("status")) {
+            ("get_scene_info", serde_json::json!({}), 0.9)
+        } else if lower.contains("list") && lower.contains("node") {
+            ("list_nodes", serde_json::json!({}), 0.9)
+        } else if lower.contains("selected") {
+            ("get_selected_nodes", serde_json::json!({}), 0.85)
+        } else if lower.contains("camera") && (lower.contains("list") || lower.contains("show")) {
+            ("get_cameras", serde_json::json!({}), 0.85)
+        } else if lower.contains("render") || lower.contains("preview") {
+            ("render_preview", serde_json::json!({}), 0.8)
+        } else if lower.contains("look")
+            || lower.contains("vision")
+            || lower.contains("see")
+            || lower.contains("describe")
+        {
+            (
+                "capture_viewport",
+                serde_json::json!({"path": "temp_vision.png"}),
+                0.9,
+            )
+        } else if lower.contains("geoshell") || lower.contains("shells") {
+            ("get_geoshells", serde_json::json!({}), 0.9)
+        } else {
+            return plan_with_reasoning_fallback(input);
+        };
 
     if crate::mcp_client::validate_command(command, &args).is_err() {
         return None;
@@ -639,7 +792,7 @@ fn plan_with_reasoning_fallback(input: &str) -> Option<StructuredAiAction> {
     if let Some(action) = plan_with_phrase_fallback(input) {
         return Some(action);
     }
-    
+
     // Try reasoning-based planning as a last resort
     plan_with_reasoning(input)
 }
@@ -647,7 +800,7 @@ fn plan_with_reasoning_fallback(input: &str) -> Option<StructuredAiAction> {
 fn plan_with_reasoning(input: &str) -> Option<StructuredAiAction> {
     // Create a goal from the input
     let goal = create_goal_from_input(input);
-    
+
     // Create planning context (simplified for now)
     let context = PlanningContext {
         scene_state: None,
@@ -656,7 +809,7 @@ fn plan_with_reasoning(input: &str) -> Option<StructuredAiAction> {
         available_assets: Vec::new(),
         constraints: Vec::new(),
     };
-    
+
     // Try to generate a plan using the reasoning planner
     let planner = get_reasoning_planner();
     if let Some(plan) = planner.plan_for_goal(&goal, &context) {
@@ -666,16 +819,20 @@ fn plan_with_reasoning(input: &str) -> Option<StructuredAiAction> {
             return Some(plan.steps[0].action.clone());
         }
     }
-    
+
     // If reasoning planning didn't work, return None
     None
 }
 
 fn create_goal_from_input(input: &str) -> Goal {
     let lower = input.to_lowercase();
-    
+
     // Determine intent using existing logic from ai_system.rs
-    let intent = if lower.contains("load") || lower.contains("apply") || lower.contains("wear") || lower.contains("put on") {
+    let intent = if lower.contains("load")
+        || lower.contains("apply")
+        || lower.contains("wear")
+        || lower.contains("put on")
+    {
         Intent::LoadAsset
     } else if lower.contains("pose") || lower.contains("position") || lower.contains("posture") {
         Intent::ApplyPose
@@ -704,12 +861,21 @@ fn create_goal_from_input(input: &str) -> Goal {
     } else {
         Intent::Unknown
     };
-    
+
     // Extract entities using existing logic
     let words: Vec<&str> = lower.split_whitespace().collect();
     let mut entities = Vec::new();
-    
-    let figure_patterns = vec!["genesis 8", "genesis 9", "g8f", "g8m", "g9f", "g9m", "female", "male"];
+
+    let figure_patterns = vec![
+        "genesis 8",
+        "genesis 9",
+        "g8f",
+        "g8m",
+        "g9f",
+        "g9m",
+        "female",
+        "male",
+    ];
     for pattern in figure_patterns {
         if lower.contains(pattern) {
             entities.push(Entity {
@@ -720,8 +886,10 @@ fn create_goal_from_input(input: &str) -> Goal {
             break;
         }
     }
-    
-    let clothing_patterns = vec!["shirt", "pants", "dress", "jacket", "skirt", "shoes", "boots"];
+
+    let clothing_patterns = vec![
+        "shirt", "pants", "dress", "jacket", "skirt", "shoes", "boots",
+    ];
     for pattern in clothing_patterns {
         if lower.contains(pattern) {
             entities.push(Entity {
@@ -731,7 +899,7 @@ fn create_goal_from_input(input: &str) -> Goal {
             });
         }
     }
-    
+
     for word in words {
         if let Ok(n) = word.parse::<f32>() {
             entities.push(Entity {
@@ -741,12 +909,15 @@ fn create_goal_from_input(input: &str) -> Goal {
             });
         }
     }
-    
+
     Goal {
-        id: format!("goal_{}", std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs()),
+        id: format!(
+            "goal_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs()
+        ),
         description: input.to_string(),
         intent,
         entities,
@@ -779,9 +950,13 @@ fn plan_with_phrase_fallback(input: &str) -> Option<StructuredAiAction> {
         let mut phrase = String::new();
         for (offset, word) in words.iter().enumerate().skip(i).take(3) {
             let j = i + offset;
-            if j > i { phrase.push(' '); }
+            if j > i {
+                phrase.push(' ');
+            }
             phrase.push_str(word);
-            if j > i { phrase.push(' '); }
+            if j > i {
+                phrase.push(' ');
+            }
             phrase.push_str(words[j]);
             if let Some(command) = crate::ai_system::map_phrase_to_command(&phrase) {
                 if command != "unknown" {
@@ -805,9 +980,19 @@ pub fn execute_structured_action(action: StructuredAiAction) -> Result<String, S
     crate::mcp_client::validate_command(&command, &args)?;
 
     // Start undo batch for modifying commands
-    let is_modifying = matches!(command.as_str(), "load_asset" | "apply_pose" | "add_node" | "add_figure" | "set_property"
-        | "set_material_property" | "set_morph" | "set_light" | "set_render_settings"
-        | "delete_node");
+    let is_modifying = matches!(
+        command.as_str(),
+        "load_asset"
+            | "apply_pose"
+            | "add_node"
+            | "add_figure"
+            | "set_property"
+            | "set_material_property"
+            | "set_morph"
+            | "set_light"
+            | "set_render_settings"
+            | "delete_node"
+    );
 
     if is_modifying {
         let _ = crate::mcp_client::send_mcp_request("begin_undo_batch", serde_json::json!({}));
@@ -816,28 +1001,43 @@ pub fn execute_structured_action(action: StructuredAiAction) -> Result<String, S
     let result = match crate::mcp_client::send_mcp_request(&command, args) {
         Ok(response) => {
             if is_modifying {
-                let _ = crate::mcp_client::send_mcp_request("accept_undo_batch", serde_json::json!({ "caption": format!("AI: {}", command) }));
-                crate::ai_system::enqueue_summary_event(format!("Command executed successfully: {} with args {}", command, action.args));
+                let _ = crate::mcp_client::send_mcp_request(
+                    "accept_undo_batch",
+                    serde_json::json!({ "caption": format!("AI: {}", command) }),
+                );
+                crate::ai_system::enqueue_summary_event(format!(
+                    "Command executed successfully: {} with args {}",
+                    command, action.args
+                ));
             }
-            Ok(response.result.or_else(|| response.data.map(|d| d.to_string())).unwrap_or_else(|| "ok".to_string()))
-        }
+            Ok(response
+                .result
+                .or_else(|| response.data.map(|d| d.to_string()))
+                .unwrap_or_else(|| "ok".to_string()))
+        },
         Err(e) => {
             if is_modifying {
-                let _ = crate::mcp_client::send_mcp_request("cancel_undo_batch", serde_json::json!({}));
+                let _ =
+                    crate::mcp_client::send_mcp_request("cancel_undo_batch", serde_json::json!({}));
             }
             Err(e)
-        }
+        },
     };
     result
 }
 
-fn resolve_action_for_bridge(action: &StructuredAiAction) -> Result<(String, serde_json::Value), String> {
+fn resolve_action_for_bridge(
+    action: &StructuredAiAction,
+) -> Result<(String, serde_json::Value), String> {
     if action.command != "add_figure" {
         return Ok((action.command.clone(), action.args.clone()));
     }
     if let Some(path) = action.args.get("path").and_then(|v| v.as_str()) {
         if !path.is_empty() {
-            return Ok(("load_asset".to_string(), serde_json::json!({ "path": path })));
+            return Ok((
+                "load_asset".to_string(),
+                serde_json::json!({ "path": path }),
+            ));
         }
     }
     let figure_type = action
@@ -851,7 +1051,10 @@ fn resolve_action_for_bridge(action: &StructuredAiAction) -> Result<(String, ser
         "Genesis 8 Female"
     };
     if let Some(path) = search_best_matching_asset(query) {
-        return Ok(("load_asset".to_string(), serde_json::json!({ "path": path })));
+        return Ok((
+            "load_asset".to_string(),
+            serde_json::json!({ "path": path }),
+        ));
     }
     Err(format!(
         "No indexed figure found for '{}'. Scan your Daz content library in Assets, then retry.",
@@ -863,10 +1066,14 @@ fn sdk_refs_for_command(command: &str) -> Vec<String> {
     match command {
         "get_scene_info" | "list_nodes" | "get_selected_nodes" | "select_node" => {
             vec!["DzScene".to_string(), "DzNode".to_string()]
-        }
+        },
         "get_cameras" => vec!["DzScene".to_string(), "DzCamera".to_string()],
-        "render_preview" | "capture_viewport" => vec!["DzRenderer".to_string(), "DzViewport".to_string()],
-        "load_asset" | "import_model" | "export_scene" => vec!["DzContentMgr".to_string(), "DzAsset".to_string()],
+        "render_preview" | "capture_viewport" => {
+            vec!["DzRenderer".to_string(), "DzViewport".to_string()]
+        },
+        "load_asset" | "import_model" | "export_scene" => {
+            vec!["DzContentMgr".to_string(), "DzAsset".to_string()]
+        },
         "apply_pose" => vec!["DzFigure".to_string(), "DzPose".to_string()],
         "run_script" => vec!["DzScript".to_string()],
         "set_morph" => vec!["DzMorph".to_string(), "DzFloatProperty".to_string()],
@@ -881,12 +1088,18 @@ fn sdk_refs_for_command(command: &str) -> Vec<String> {
 pub struct ConflictResolver;
 
 impl ConflictResolver {
-    pub fn detect_geoshell_conflicts(scene_context: &crate::ai_system::SceneContext) -> Vec<String> {
+    pub fn detect_geoshell_conflicts(
+        scene_context: &crate::ai_system::SceneContext,
+    ) -> Vec<String> {
         let mut conflicts = vec![];
         // If the user is trying to add a shell but one already exists on the active figure
         if let Some(ref figure) = scene_context.active_figure {
             // This is a simplified check; in a real app, we'd query bridge for specific shell targets
-            if scene_context.selected_nodes.iter().any(|n| n.contains("Shell")) {
+            if scene_context
+                .selected_nodes
+                .iter()
+                .any(|n| n.contains("Shell"))
+            {
                 conflicts.push(format!("Active figure '{}' already has visible Geometry Shells. Adding another might cause rendering artifacts.", figure));
             }
         }
@@ -896,27 +1109,37 @@ impl ConflictResolver {
 
 pub fn parse_natural_language_action(input: &str) -> Option<AiAction> {
     let input_lower = input.to_lowercase();
-    
-    if input_lower.contains("add") || input_lower.contains("create") || input_lower.contains("place") {
+
+    if input_lower.contains("add")
+        || input_lower.contains("create")
+        || input_lower.contains("place")
+    {
         return parse_add_command(&input_lower);
     }
-    
-    if input_lower.contains("set") || input_lower.contains("change") || input_lower.contains("make") {
+
+    if input_lower.contains("set") || input_lower.contains("change") || input_lower.contains("make")
+    {
         return parse_set_command(&input_lower);
     }
-    
-    if input_lower.contains("pose") || input_lower.contains("position") || input_lower.contains("rotate") {
+
+    if input_lower.contains("pose")
+        || input_lower.contains("position")
+        || input_lower.contains("rotate")
+    {
         return parse_pose_command(&input_lower);
     }
-    
+
     if input_lower.contains("light") || input_lower.contains("lighting") {
         return parse_lighting_command(&input_lower);
     }
-    
-    if input_lower.contains("camera") || input_lower.contains("view") || input_lower.contains("shot") {
+
+    if input_lower.contains("camera")
+        || input_lower.contains("view")
+        || input_lower.contains("shot")
+    {
         return parse_camera_command(&input_lower);
     }
-    
+
     None
 }
 
@@ -925,9 +1148,10 @@ fn parse_add_command(input: &str) -> Option<AiAction> {
         Some(AiAction {
             command: "add_light".to_string(),
             target: extract_target(input, vec!["point", "spot", "infinite", "area"]),
-            parameters: vec![
-                ActionParam { key: "light_type".to_string(), value: "point".to_string() },
-            ],
+            parameters: vec![ActionParam {
+                key: "light_type".to_string(),
+                value: "point".to_string(),
+            }],
             confidence: 0.9,
         })
     } else if input.contains("figure") || input.contains("character") {
@@ -962,9 +1186,10 @@ fn parse_set_command(input: &str) -> Option<AiAction> {
         Some(AiAction {
             command: "set_light_intensity".to_string(),
             target: "selected_light".to_string(),
-            parameters: vec![
-                ActionParam { key: "intensity".to_string(), value },
-            ],
+            parameters: vec![ActionParam {
+                key: "intensity".to_string(),
+                value,
+            }],
             confidence: 0.85,
         })
     } else if input.contains("color") || input.contains("colour") {
@@ -972,9 +1197,10 @@ fn parse_set_command(input: &str) -> Option<AiAction> {
         Some(AiAction {
             command: "set_material_color".to_string(),
             target: "selected_material".to_string(),
-            parameters: vec![
-                ActionParam { key: "color".to_string(), value: color },
-            ],
+            parameters: vec![ActionParam {
+                key: "color".to_string(),
+                value: color,
+            }],
             confidence: 0.8,
         })
     } else if input.contains("opacity") || input.contains("transparent") {
@@ -982,9 +1208,10 @@ fn parse_set_command(input: &str) -> Option<AiAction> {
         Some(AiAction {
             command: "set_opacity".to_string(),
             target: "selected".to_string(),
-            parameters: vec![
-                ActionParam { key: "opacity".to_string(), value },
-            ],
+            parameters: vec![ActionParam {
+                key: "opacity".to_string(),
+                value,
+            }],
             confidence: 0.85,
         })
     } else {
@@ -1006,13 +1233,14 @@ fn parse_pose_command(input: &str) -> Option<AiAction> {
     } else {
         "default"
     };
-    
+
     Some(AiAction {
         command: "apply_pose".to_string(),
         target: "selected_figure".to_string(),
-        parameters: vec![
-            ActionParam { key: "pose_type".to_string(), value: pose_type.to_string() },
-        ],
+        parameters: vec![ActionParam {
+            key: "pose_type".to_string(),
+            value: pose_type.to_string(),
+        }],
         confidence: 0.8,
     })
 }
@@ -1023,9 +1251,18 @@ fn parse_lighting_command(input: &str) -> Option<AiAction> {
             command: "setup_three_point_lighting".to_string(),
             target: "scene".to_string(),
             parameters: vec![
-                ActionParam { key: "key_intensity".to_string(), value: "1.0".to_string() },
-                ActionParam { key: "fill_intensity".to_string(), value: "0.5".to_string() },
-                ActionParam { key: "back_intensity".to_string(), value: "0.7".to_string() },
+                ActionParam {
+                    key: "key_intensity".to_string(),
+                    value: "1.0".to_string(),
+                },
+                ActionParam {
+                    key: "fill_intensity".to_string(),
+                    value: "0.5".to_string(),
+                },
+                ActionParam {
+                    key: "back_intensity".to_string(),
+                    value: "0.7".to_string(),
+                },
             ],
             confidence: 0.9,
         })
@@ -1033,18 +1270,20 @@ fn parse_lighting_command(input: &str) -> Option<AiAction> {
         Some(AiAction {
             command: "setup_dramatic_lighting".to_string(),
             target: "scene".to_string(),
-            parameters: vec![
-                ActionParam { key: "style".to_string(), value: "dramatic".to_string() },
-            ],
+            parameters: vec![ActionParam {
+                key: "style".to_string(),
+                value: "dramatic".to_string(),
+            }],
             confidence: 0.85,
         })
     } else if input.contains("soft") || input.contains("natural") {
         Some(AiAction {
             command: "setup_soft_lighting".to_string(),
             target: "scene".to_string(),
-            parameters: vec![
-                ActionParam { key: "style".to_string(), value: "soft".to_string() },
-            ],
+            parameters: vec![ActionParam {
+                key: "style".to_string(),
+                value: "soft".to_string(),
+            }],
             confidence: 0.85,
         })
     } else {
@@ -1067,13 +1306,14 @@ fn parse_camera_command(input: &str) -> Option<AiAction> {
     } else {
         "default"
     };
-    
+
     Some(AiAction {
         command: "setup_camera".to_string(),
         target: "main".to_string(),
-        parameters: vec![
-            ActionParam { key: "type".to_string(), value: camera_type.to_string() },
-        ],
+        parameters: vec![ActionParam {
+            key: "type".to_string(),
+            value: camera_type.to_string(),
+        }],
         confidence: 0.85,
     })
 }
@@ -1088,20 +1328,21 @@ fn extract_target(input: &str, options: Vec<&str>) -> String {
 }
 
 fn extract_numeric_value(input: &str) -> String {
-    let numbers: Vec<char> = input.chars()
+    let numbers: Vec<char> = input
+        .chars()
         .filter(|c| c.is_ascii_digit() || *c == '.')
         .collect();
-    
+
     if numbers.is_empty() {
         return "1.0".to_string();
     }
-    
+
     let value: String = numbers.into_iter().collect();
-    
+
     if value.is_empty() || value == "." {
         return "1.0".to_string();
     }
-    
+
     value
 }
 
@@ -1157,7 +1398,10 @@ fn execute_add_light(action: &AiAction) -> ActionResult {
     } else {
         "point_light".to_string()
     };
-    match crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": light_type, "name": format!("AI_{}", light_type) })) {
+    match crate::mcp_client::send_mcp_request(
+        "add_node",
+        serde_json::json!({ "type": light_type, "name": format!("AI_{}", light_type) }),
+    ) {
         Ok(resp) => ActionResult {
             success: resp.status == "ok",
             message: format!("Added {} to Daz3D scene", light_type),
@@ -1194,7 +1438,10 @@ fn execute_add_figure(action: &AiAction) -> ActionResult {
 }
 
 fn execute_add_prop(action: &AiAction) -> ActionResult {
-    match crate::mcp_client::send_mcp_request("load_asset", serde_json::json!({ "path": action.target })) {
+    match crate::mcp_client::send_mcp_request(
+        "load_asset",
+        serde_json::json!({ "path": action.target }),
+    ) {
         Ok(resp) => ActionResult {
             success: resp.status == "ok",
             message: format!("Requested Daz asset load for {}", action.target),
@@ -1202,14 +1449,20 @@ fn execute_add_prop(action: &AiAction) -> ActionResult {
         },
         Err(e) => ActionResult {
             success: false,
-            message: format!("Prop creation requires a real asset path and bridge support: {}", e),
+            message: format!(
+                "Prop creation requires a real asset path and bridge support: {}",
+                e
+            ),
             results: vec![],
         },
     }
 }
 
 fn execute_add_camera(action: &AiAction) -> ActionResult {
-    match crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": "camera", "name": format!("AI_Camera_{}", action.target) })) {
+    match crate::mcp_client::send_mcp_request(
+        "add_node",
+        serde_json::json!({ "type": "camera", "name": format!("AI_Camera_{}", action.target) }),
+    ) {
         Ok(resp) => ActionResult {
             success: resp.status == "ok",
             message: "Added camera to Daz3D scene".to_string(),
@@ -1224,16 +1477,21 @@ fn execute_add_camera(action: &AiAction) -> ActionResult {
 }
 
 fn execute_set_light_intensity(action: &AiAction) -> ActionResult {
-    let value = action.parameters.iter()
+    let value = action
+        .parameters
+        .iter()
         .find(|p| p.key == "intensity")
         .map(|p| p.value.clone())
         .unwrap_or_else(|| "1.0".to_string());
-    
-    match crate::mcp_client::send_mcp_request("set_property", serde_json::json!({
-        "node_id": "selected",
-        "property": "Intensity",
-        "value": value
-    })) {
+
+    match crate::mcp_client::send_mcp_request(
+        "set_property",
+        serde_json::json!({
+            "node_id": "selected",
+            "property": "Intensity",
+            "value": value
+        }),
+    ) {
         Ok(resp) => ActionResult {
             success: resp.status == "ok",
             message: format!("Set light intensity to {} in Daz3D", value),
@@ -1248,16 +1506,21 @@ fn execute_set_light_intensity(action: &AiAction) -> ActionResult {
 }
 
 fn execute_set_material_color(action: &AiAction) -> ActionResult {
-    let color = action.parameters.iter()
+    let color = action
+        .parameters
+        .iter()
         .find(|p| p.key == "color")
         .map(|p| p.value.clone())
         .unwrap_or_else(|| "255,255,255".to_string());
-    
-    match crate::mcp_client::send_mcp_request("set_material_property", serde_json::json!({
-        "node_id": "selected",
-        "property": "Base Color",
-        "value": color
-    })) {
+
+    match crate::mcp_client::send_mcp_request(
+        "set_material_property",
+        serde_json::json!({
+            "node_id": "selected",
+            "property": "Base Color",
+            "value": color
+        }),
+    ) {
         Ok(resp) => ActionResult {
             success: resp.status == "ok",
             message: format!("Set material color to RGB({}) in Daz3D", color),
@@ -1272,16 +1535,21 @@ fn execute_set_material_color(action: &AiAction) -> ActionResult {
 }
 
 fn execute_set_opacity(action: &AiAction) -> ActionResult {
-    let value = action.parameters.iter()
+    let value = action
+        .parameters
+        .iter()
         .find(|p| p.key == "opacity")
         .map(|p| p.value.clone())
         .unwrap_or_else(|| "1.0".to_string());
-    
-    match crate::mcp_client::send_mcp_request("set_material_property", serde_json::json!({
-        "node_id": "selected",
-        "property": "Opacity",
-        "value": value
-    })) {
+
+    match crate::mcp_client::send_mcp_request(
+        "set_material_property",
+        serde_json::json!({
+            "node_id": "selected",
+            "property": "Opacity",
+            "value": value
+        }),
+    ) {
         Ok(resp) => ActionResult {
             success: resp.status == "ok",
             message: format!("Set opacity to {} in Daz3D", value),
@@ -1296,12 +1564,17 @@ fn execute_set_opacity(action: &AiAction) -> ActionResult {
 }
 
 fn execute_apply_pose(action: &AiAction) -> ActionResult {
-    let pose_type = action.parameters.iter()
+    let pose_type = action
+        .parameters
+        .iter()
         .find(|p| p.key == "pose_type")
         .map(|p| p.value.clone())
         .unwrap_or_else(|| "default".to_string());
-    
-    match crate::mcp_client::send_mcp_request("apply_pose", serde_json::json!({ "pose": pose_type })) {
+
+    match crate::mcp_client::send_mcp_request(
+        "apply_pose",
+        serde_json::json!({ "pose": pose_type }),
+    ) {
         Ok(resp) => ActionResult {
             success: resp.status == "ok",
             message: format!("Applied {} pose to figure in Daz3D", pose_type),
@@ -1316,9 +1589,18 @@ fn execute_apply_pose(action: &AiAction) -> ActionResult {
 }
 
 fn execute_three_point_lighting(_action: &AiAction) -> ActionResult {
-    let _ = crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": "point_light", "name": "AI_Key_Light" }));
-    let _ = crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": "point_light", "name": "AI_Fill_Light" }));
-    let _ = crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": "point_light", "name": "AI_Back_Light" }));
+    let _ = crate::mcp_client::send_mcp_request(
+        "add_node",
+        serde_json::json!({ "type": "point_light", "name": "AI_Key_Light" }),
+    );
+    let _ = crate::mcp_client::send_mcp_request(
+        "add_node",
+        serde_json::json!({ "type": "point_light", "name": "AI_Fill_Light" }),
+    );
+    let _ = crate::mcp_client::send_mcp_request(
+        "add_node",
+        serde_json::json!({ "type": "point_light", "name": "AI_Back_Light" }),
+    );
 
     ActionResult {
         success: true,
@@ -1328,7 +1610,10 @@ fn execute_three_point_lighting(_action: &AiAction) -> ActionResult {
 }
 
 fn execute_dramatic_lighting(_action: &AiAction) -> ActionResult {
-    let _ = crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": "spot_light", "name": "AI_Dramatic_Spot" }));
+    let _ = crate::mcp_client::send_mcp_request(
+        "add_node",
+        serde_json::json!({ "type": "spot_light", "name": "AI_Dramatic_Spot" }),
+    );
     ActionResult {
         success: true,
         message: "Dramatic lighting setup added to Daz3D".to_string(),
@@ -1337,7 +1622,10 @@ fn execute_dramatic_lighting(_action: &AiAction) -> ActionResult {
 }
 
 fn execute_soft_lighting(_action: &AiAction) -> ActionResult {
-    let _ = crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": "distant_light", "name": "AI_Soft_Light" }));
+    let _ = crate::mcp_client::send_mcp_request(
+        "add_node",
+        serde_json::json!({ "type": "distant_light", "name": "AI_Soft_Light" }),
+    );
     ActionResult {
         success: true,
         message: "Soft lighting setup added to Daz3D".to_string(),
@@ -1346,13 +1634,18 @@ fn execute_soft_lighting(_action: &AiAction) -> ActionResult {
 }
 
 fn execute_setup_camera(action: &AiAction) -> ActionResult {
-    let camera_type = action.parameters.iter()
+    let camera_type = action
+        .parameters
+        .iter()
         .find(|p| p.key == "type")
         .map(|p| p.value.clone())
         .unwrap_or_else(|| "default".to_string());
-    
-    let _ = crate::mcp_client::send_mcp_request("add_node", serde_json::json!({ "type": "camera", "name": format!("AI_Camera_{}", camera_type) }));
-    
+
+    let _ = crate::mcp_client::send_mcp_request(
+        "add_node",
+        serde_json::json!({ "type": "camera", "name": format!("AI_Camera_{}", camera_type) }),
+    );
+
     ActionResult {
         success: true,
         message: format!("Set up {} camera shot", camera_type),
@@ -1362,39 +1655,43 @@ fn execute_setup_camera(action: &AiAction) -> ActionResult {
 
 pub fn generate_scene_description(input: &str) -> String {
     let input_lower = input.to_lowercase();
-    
+
     if input_lower.contains("sunset") && input_lower.contains("beach") {
         return r#"Creating sunset beach scene:
 - Add infinite light (warm orange, intensity 0.8)
 - Set sky environment (sunset gradient)
 - Add ground plane (sand texture)
-- Position camera for wide shot"#.to_string();
+- Position camera for wide shot"#
+            .to_string();
     }
-    
+
     if input_lower.contains("studio") || input_lower.contains("portrait") {
         return r#"Creating studio portrait scene:
 - Add key light (front-left, soft white)
 - Add fill light (front-right, 50% intensity)
 - Add back light for rim
-- Position camera for portrait (85mm focal length)"#.to_string();
+- Position camera for portrait (85mm focal length)"#
+            .to_string();
     }
-    
+
     if input_lower.contains("night") || input_lower.contains("dark") {
         return r#"Creating night scene:
 - Set ambient to very low
 - Add spot light (cool white)
 - Add subtle rim light
-- Dark background"#.to_string();
+- Dark background"#
+            .to_string();
     }
-    
+
     if input_lower.contains("heroic") || input_lower.contains("action") {
         return r#"Creating heroic action pose:
 - Apply heroic pose to figure
 - Set dramatic camera angle (low, wide)
 - Add rim lighting for silhouette
-- Dynamic camera position"#.to_string();
+- Dynamic camera position"#
+            .to_string();
     }
-    
+
     format!("Generating scene based on: {}", input)
 }
 
@@ -1462,7 +1759,10 @@ mod tests {
         assert_eq!(action.args["value"], 45.0);
         assert_eq!(action.args["interpolation"], "linear");
 
-        let action2 = plan_validated_action("animate x position of 'Genesis 8 Female' to -1.5 at frame 15 ease in").unwrap();
+        let action2 = plan_validated_action(
+            "animate x position of 'Genesis 8 Female' to -1.5 at frame 15 ease in",
+        )
+        .unwrap();
         assert_eq!(action2.command, "set_keyframe");
         assert_eq!(action2.args["node_id"], "Genesis 8 Female");
         assert_eq!(action2.args["property"], "xTranslate");
@@ -1473,19 +1773,28 @@ mod tests {
 
     #[test]
     fn test_extract_asset_search_query() {
-        assert_eq!(extract_asset_search_query("load Genesis 8 Female").unwrap(), "Genesis 8 Female");
-        assert_eq!(extract_asset_search_query("apply the cool pose").unwrap(), "cool pose");
-        assert_eq!(extract_asset_search_query("add a beautiful dress to the scene").unwrap(), "beautiful dress");
+        assert_eq!(
+            extract_asset_search_query("load Genesis 8 Female").unwrap(),
+            "Genesis 8 Female"
+        );
+        assert_eq!(
+            extract_asset_search_query("apply the cool pose").unwrap(),
+            "cool pose"
+        );
+        assert_eq!(
+            extract_asset_search_query("add a beautiful dress to the scene").unwrap(),
+            "beautiful dress"
+        );
     }
 
     #[test]
     fn test_fts_asset_search_and_loading() {
         let temp_dir = tempfile::tempdir().unwrap();
         let db_path = temp_dir.path().join("test_dazpilot.db");
-        
+
         let db = crate::database::SqliteDatabase::new(&db_path).unwrap();
         db.initialize().unwrap();
-        
+
         let conn = rusqlite::Connection::open(&db_path).unwrap();
         conn.execute(
             "INSERT INTO user_assets (user_id, asset_path, asset_name, original_name, category, subcategory, vendor, file_type, file_size) VALUES ('default', '/paths/hair.duf', 'Genesis 8 Hair', 'G8Hair', 'hair', 'hair', 'VendorA', 'duf', 1024)",
@@ -1500,15 +1809,15 @@ mod tests {
             "INSERT OR REPLACE INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path) SELECT id, asset_name, original_name, category, subcategory, vendor, asset_path FROM user_assets",
             []
         ).unwrap();
-        
+
         {
             let mut guard = crate::database::DATABASE.lock().unwrap();
             *guard = Some(db);
         }
-        
+
         let path = search_best_matching_asset("Sleek Shirt").unwrap();
         assert_eq!(path, "/paths/shirt.duf");
-        
+
         let path2 = search_best_matching_asset("Genesis Hair").unwrap();
         assert_eq!(path2, "/paths/hair.duf");
 
@@ -1564,6 +1873,9 @@ mod tests {
 
         // "image" keyword should not trigger add_figure
         let action2 = plan_validated_action("make an image");
-        assert_ne!(action2.as_ref().map(|a| a.command.as_str()), Some("add_figure"));
+        assert_ne!(
+            action2.as_ref().map(|a| a.command.as_str()),
+            Some("add_figure")
+        );
     }
 }

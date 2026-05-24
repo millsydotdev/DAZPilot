@@ -51,10 +51,13 @@ pub fn get_figure_morphs(figure_id: &str) -> Vec<AssetInfo> {
 pub fn get_figure_expressions(figure_id: &str) -> Vec<AssetInfo> {
     // Expressions are morphs with "expression" in name or subcategory
     let all_morphs = resolve_compatible_assets(figure_id, Some("morphs"));
-    all_morphs.into_iter().filter(|a| {
-        let lower = a.name.to_lowercase();
-        lower.contains("expression") || lower.contains("facial") || lower.contains("emotion")
-    }).collect()
+    all_morphs
+        .into_iter()
+        .filter(|a| {
+            let lower = a.name.to_lowercase();
+            lower.contains("expression") || lower.contains("facial") || lower.contains("emotion")
+        })
+        .collect()
 }
 
 pub fn get_figure_outfits(figure_id: &str) -> Vec<AssetInfo> {

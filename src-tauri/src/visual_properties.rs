@@ -14,17 +14,51 @@ pub struct VisualProperties {
 pub fn extract_visual_properties(name: &str, tags: &[String], _category: &str) -> VisualProperties {
     let combined = format!("{} {}", name, tags.join(" ")).to_lowercase();
 
-    let basic_colors = ["red", "blue", "green", "black", "white", "gold", "silver", "pink", "purple", "yellow", "orange", "brown", "gray", "grey", "dark", "neon", "metallic"];
-    let colors: Vec<String> = basic_colors.iter()
+    let basic_colors = [
+        "red", "blue", "green", "black", "white", "gold", "silver", "pink", "purple", "yellow",
+        "orange", "brown", "gray", "grey", "dark", "neon", "metallic",
+    ];
+    let colors: Vec<String> = basic_colors
+        .iter()
         .filter(|c| combined.contains(*c))
         .map(|c| c.to_string())
         .collect();
 
-    let basic_styles = ["casual", "formal", "fantasy", "sci-fi", "scifi", "gothic", "steampunk", "retro", "vintage", "sport", "beach", "winter", "asian", "wedding", "medieval", "cyberpunk", "magical", "cute", "sexy", "elegant", "military", "western", "underwear", "lingerie"];
-    let styles: Vec<String> = basic_styles.iter()
+    let basic_styles = [
+        "casual",
+        "formal",
+        "fantasy",
+        "sci-fi",
+        "scifi",
+        "gothic",
+        "steampunk",
+        "retro",
+        "vintage",
+        "sport",
+        "beach",
+        "winter",
+        "asian",
+        "wedding",
+        "medieval",
+        "cyberpunk",
+        "magical",
+        "cute",
+        "sexy",
+        "elegant",
+        "military",
+        "western",
+        "underwear",
+        "lingerie",
+    ];
+    let styles: Vec<String> = basic_styles
+        .iter()
         .filter(|s| combined.contains(*s))
         .map(|s| {
-            if *s == "scifi" { "sci-fi".to_string() } else { s.to_string() }
+            if *s == "scifi" {
+                "sci-fi".to_string()
+            } else {
+                s.to_string()
+            }
         })
         .collect();
 
@@ -89,15 +123,14 @@ pub async fn describe_all_assets() -> usize {
             Err(_) => return 0,
         };
 
-        stmt
-            .query_map(rusqlite::params![], |row| {
-                let path: String = row.get(0)?;
-                let thumb: String = row.get(1)?;
-                Ok((path, thumb))
-            })
-            .ok()
-            .map(|r| r.filter_map(|r| r.ok()).collect())
-            .unwrap_or_default()
+        stmt.query_map(rusqlite::params![], |row| {
+            let path: String = row.get(0)?;
+            let thumb: String = row.get(1)?;
+            Ok((path, thumb))
+        })
+        .ok()
+        .map(|r| r.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
     };
 
     if rows.is_empty() {
@@ -163,15 +196,20 @@ async fn describe_thumbnail(path: &str) -> Option<String> {
     let b64 = base64::engine::general_purpose::STANDARD.encode(&image_bytes);
 
     let host = crate::database::get_setting("ollama_host")
-        .ok().flatten().filter(|h| !h.is_empty())
+        .ok()
+        .flatten()
+        .filter(|h| !h.is_empty())
         .unwrap_or_else(|| "http://localhost:11434".to_string());
     let model = crate::database::get_setting("ollama_vision_model")
-        .ok().flatten().filter(|m| !m.is_empty())
+        .ok()
+        .flatten()
+        .filter(|m| !m.is_empty())
         .unwrap_or_else(|| "llava".to_string());
 
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(60))
-        .build().ok()?;
+        .build()
+        .ok()?;
 
     let request = serde_json::json!({
         "model": model,
@@ -187,7 +225,9 @@ async fn describe_thumbnail(path: &str) -> Option<String> {
     let resp = client
         .post(format!("{}/api/chat", host))
         .json(&request)
-        .send().await.ok()?;
+        .send()
+        .await
+        .ok()?;
 
     if !resp.status().is_success() {
         return None;

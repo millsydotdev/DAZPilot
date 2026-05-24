@@ -5,8 +5,6 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-
-
 /// Asset conflict types
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ConflictType {
@@ -67,83 +65,85 @@ pub fn scan_asset_conflicts(root_path: &str) -> ConflictScanResult {
         .filter_map(|e| e.ok())
         .filter(|e| {
             let p = e.path();
-            p.extension().is_some_and(|ext| 
-                ext == "dsf" || ext == "duf"
-            )
+            p.extension()
+                .is_some_and(|ext| ext == "dsf" || ext == "duf")
         });
 
     for entry in entries {
-            let path = entry.path();
-            total_scanned += 1;
+        let path = entry.path();
+        total_scanned += 1;
 
-            // Try to parse as JSON (DSF/DUF files)
-            if let Ok(content) = fs::read_to_string(path) {
-                if let Ok(data) = serde_json::from_str::<serde_json::Value>(&content) {
-                    // Check for material conflicts
-                    if let Some(mat_lib) = data.get("material_library").and_then(|m| m.as_array()) {
-                        let material_ids: Vec<String> = mat_lib
-                            .iter()
-                            .filter_map(|m| m.get("id").and_then(|id| id.as_str()).map(String::from))
-                            .collect();
-                        
-                        // Group by material ID to find duplicates within the same file
-                        let mut id_counts: HashMap<String, usize> = HashMap::new();
-                        for id in &material_ids {
-                            *id_counts.entry(id.clone()).or_insert(0) += 1;
-                        }
-                        
-                        for (id, count) in id_counts {
-                            if count > 1 {
-                                conflicts.push(AssetConflict {
-                                    conflict_type: ConflictType::MaterialZone,
-                                    name: id,
-                                    files: vec![path.to_string_lossy().to_string()],
-                                    severity: "high".to_string(),
-                                });
-                            }
-                        }
+        // Try to parse as JSON (DSF/DUF files)
+        if let Ok(content) = fs::read_to_string(path) {
+            if let Ok(data) = serde_json::from_str::<serde_json::Value>(&content) {
+                // Check for material conflicts
+                if let Some(mat_lib) = data.get("material_library").and_then(|m| m.as_array()) {
+                    let material_ids: Vec<String> = mat_lib
+                        .iter()
+                        .filter_map(|m| m.get("id").and_then(|id| id.as_str()).map(String::from))
+                        .collect();
+
+                    // Group by material ID to find duplicates within the same file
+                    let mut id_counts: HashMap<String, usize> = HashMap::new();
+                    for id in &material_ids {
+                        *id_counts.entry(id.clone()).or_insert(0) += 1;
                     }
 
-                    // Check for morph conflicts — global dedup across files
-                    let morph_sources = ["morph_library", "modifier_library"];
-                    for source in morph_sources.iter() {
-                        if let Some(morph_lib) = data.get(source).and_then(|m| m.as_array()) {
-                            for morph in morph_lib {
-                                if let Some(id) = morph.get("id").and_then(|i| i.as_str()) {
-                                    let path_str = path.to_string_lossy().to_string();
-                                    let entry = global_morph_ids.entry(id.to_string()).or_default();
-                                    if !entry.contains(&path_str) {
-                                        entry.push(path_str);
-                                    }
+                    for (id, count) in id_counts {
+                        if count > 1 {
+                            conflicts.push(AssetConflict {
+                                conflict_type: ConflictType::MaterialZone,
+                                name: id,
+                                files: vec![path.to_string_lossy().to_string()],
+                                severity: "high".to_string(),
+                            });
+                        }
+                    }
+                }
+
+                // Check for morph conflicts — global dedup across files
+                let morph_sources = ["morph_library", "modifier_library"];
+                for source in morph_sources.iter() {
+                    if let Some(morph_lib) = data.get(source).and_then(|m| m.as_array()) {
+                        for morph in morph_lib {
+                            if let Some(id) = morph.get("id").and_then(|i| i.as_str()) {
+                                let path_str = path.to_string_lossy().to_string();
+                                let entry = global_morph_ids.entry(id.to_string()).or_default();
+                                if !entry.contains(&path_str) {
+                                    entry.push(path_str);
                                 }
                             }
                         }
                     }
+                }
 
-                    // Check for UV conflicts
-                    if let Some(uv_lib) = data.get("uv_library").and_then(|u| u.as_array()) {
-                        let uv_names: Vec<String> = uv_lib
-                            .iter()
-                            .filter_map(|u| u.get("name").and_then(|n| n.as_str()).map(String::from))
-                            .collect();
-                        let mut uv_counts: HashMap<String, Vec<String>> = HashMap::new();
-                        for uv_name in &uv_names {
-                            uv_counts.entry(uv_name.clone()).or_default().push(path.to_string_lossy().to_string());
-                        }
-                        for (name, paths) in uv_counts {
-                            if paths.len() > 1 {
-                                conflicts.push(AssetConflict {
-                                    conflict_type: ConflictType::UVSet,
-                                    name,
-                                    files: paths,
-                                    severity: "medium".to_string(),
-                                });
-                            }
+                // Check for UV conflicts
+                if let Some(uv_lib) = data.get("uv_library").and_then(|u| u.as_array()) {
+                    let uv_names: Vec<String> = uv_lib
+                        .iter()
+                        .filter_map(|u| u.get("name").and_then(|n| n.as_str()).map(String::from))
+                        .collect();
+                    let mut uv_counts: HashMap<String, Vec<String>> = HashMap::new();
+                    for uv_name in &uv_names {
+                        uv_counts
+                            .entry(uv_name.clone())
+                            .or_default()
+                            .push(path.to_string_lossy().to_string());
+                    }
+                    for (name, paths) in uv_counts {
+                        if paths.len() > 1 {
+                            conflicts.push(AssetConflict {
+                                conflict_type: ConflictType::UVSet,
+                                name,
+                                files: paths,
+                                severity: "medium".to_string(),
+                            });
                         }
                     }
                 }
             }
         }
+    }
 
     // Cross-file morph conflict detection
     for (morph_id, files) in &global_morph_ids {
@@ -191,14 +191,19 @@ pub fn detect_uv_conflicts(assets: &[crate::library_scanner::AssetInfo]) -> Vec<
 }
 
 /// Check if an asset is compatible with a loaded figure
-pub fn check_compatibility_mismatch(asset: &crate::library_scanner::AssetInfo, loaded_figure: &str) -> bool {
+pub fn check_compatibility_mismatch(
+    asset: &crate::library_scanner::AssetInfo,
+    loaded_figure: &str,
+) -> bool {
     if asset.compatibility_base.is_empty() {
         // No compatibility info means we can't determine — assume compatible
         return false;
     }
     // If the loaded figure name appears in any compatibility_base entry, it's compatible
     let figure_lower = loaded_figure.to_lowercase();
-    !asset.compatibility_base.iter().any(|base| figure_lower.contains(&base.to_lowercase()) || base.to_lowercase().contains(&figure_lower))
+    !asset.compatibility_base.iter().any(|base| {
+        figure_lower.contains(&base.to_lowercase()) || base.to_lowercase().contains(&figure_lower)
+    })
 }
 
 /// Fix shell material zone conflicts by adding prefixes
@@ -223,7 +228,7 @@ pub fn fix_shell_material_zones(shell_path: &str, prefix: &str) -> AssetFixResul
                 fixed_files: vec![],
                 errors: vec![format!("Failed to read file: {}", e)],
             };
-        }
+        },
     };
 
     // Parse JSON
@@ -235,11 +240,14 @@ pub fn fix_shell_material_zones(shell_path: &str, prefix: &str) -> AssetFixResul
                 fixed_files: vec![],
                 errors: vec![format!("Failed to parse JSON: {}", e)],
             };
-        }
+        },
     };
 
     // Rename material zones
-    if let Some(mat_lib) = data.get_mut("material_library").and_then(|m| m.as_array_mut()) {
+    if let Some(mat_lib) = data
+        .get_mut("material_library")
+        .and_then(|m| m.as_array_mut())
+    {
         for mat in mat_lib {
             if let Some(id_val) = mat.get_mut("id") {
                 if let Some(id) = id_val.as_str() {
@@ -252,12 +260,24 @@ pub fn fix_shell_material_zones(shell_path: &str, prefix: &str) -> AssetFixResul
 
     // Add fix metadata
     if let Some(obj) = data.get_mut("asset_info").and_then(|a| a.as_object_mut()) {
-        obj.insert("material_zones_fixed".to_string(), serde_json::Value::Bool(true));
-        obj.insert("prefix_added".to_string(), serde_json::Value::String(prefix.to_string()));
+        obj.insert(
+            "material_zones_fixed".to_string(),
+            serde_json::Value::Bool(true),
+        );
+        obj.insert(
+            "prefix_added".to_string(),
+            serde_json::Value::String(prefix.to_string()),
+        );
     } else {
         let mut new_obj = serde_json::Map::new();
-        new_obj.insert("material_zones_fixed".to_string(), serde_json::Value::Bool(true));
-        new_obj.insert("prefix_added".to_string(), serde_json::Value::String(prefix.to_string()));
+        new_obj.insert(
+            "material_zones_fixed".to_string(),
+            serde_json::Value::Bool(true),
+        );
+        new_obj.insert(
+            "prefix_added".to_string(),
+            serde_json::Value::String(prefix.to_string()),
+        );
         data["asset_info"] = serde_json::Value::Object(new_obj);
     }
 
@@ -393,8 +413,14 @@ mod tests {
     #[test]
     fn test_prefix_detection() {
         assert_eq!(detect_prefix_from_conflict("Torso"), "FIXED_".to_string());
-        assert_eq!(detect_prefix_from_conflict("GP_Majora_Torso"), "GM_".to_string());
-        assert_eq!(detect_prefix_from_conflict("GP_Minora_Torso"), "GMin_".to_string());
+        assert_eq!(
+            detect_prefix_from_conflict("GP_Majora_Torso"),
+            "GM_".to_string()
+        );
+        assert_eq!(
+            detect_prefix_from_conflict("GP_Minora_Torso"),
+            "GMin_".to_string()
+        );
     }
 
     #[test]

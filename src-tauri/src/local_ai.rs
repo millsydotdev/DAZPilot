@@ -1,11 +1,12 @@
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use once_cell::sync::Lazy;
 
-static LLAMA_SERVER: Lazy<Arc<Mutex<Option<LlamaServer>>>> = Lazy::new(|| Arc::new(Mutex::new(None)));
+static LLAMA_SERVER: Lazy<Arc<Mutex<Option<LlamaServer>>>> =
+    Lazy::new(|| Arc::new(Mutex::new(None)));
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LocalModelInfo {
@@ -26,15 +27,23 @@ impl LlamaServer {
             .join(llama_server_binary_name());
 
         if !exe_path.exists() {
-            return Err(format!("{} not found at: {}", llama_server_binary_name(), exe_path.display()));
+            return Err(format!(
+                "{} not found at: {}",
+                llama_server_binary_name(),
+                exe_path.display()
+            ));
         }
 
         let child = Command::new(&exe_path)
             .args([
-                "-m", model_path,
-                "-c", "4096",
-                "--port", &port.to_string(),
-                "--host", "127.0.0.1",
+                "-m",
+                model_path,
+                "-c",
+                "4096",
+                "--port",
+                &port.to_string(),
+                "--host",
+                "127.0.0.1",
             ])
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -43,10 +52,7 @@ impl LlamaServer {
 
         thread::sleep(std::time::Duration::from_secs(2));
 
-        Ok(LlamaServer {
-            child,
-            port,
-        })
+        Ok(LlamaServer { child, port })
     }
 
     pub fn stop(&mut self) {
@@ -91,9 +97,7 @@ pub fn get_models_dir() -> std::path::PathBuf {
         }
     }
 
-    bundled_resource_dir()
-        .unwrap_or_default()
-        .join("models")
+    bundled_resource_dir().unwrap_or_default().join("models")
 }
 
 pub fn get_local_ai_port() -> u16 {
@@ -104,7 +108,6 @@ pub fn get_local_ai_port() -> u16 {
     }
     8080
 }
-
 
 pub fn list_local_models() -> Vec<LocalModelInfo> {
     let models_dir = get_models_dir();
@@ -117,9 +120,10 @@ pub fn list_local_models() -> Vec<LocalModelInfo> {
                 let size = std::fs::metadata(&path)
                     .map(|m| m.len() / (1024 * 1024))
                     .unwrap_or(0);
-                
+
                 models.push(LocalModelInfo {
-                    name: path.file_stem()
+                    name: path
+                        .file_stem()
                         .and_then(|n| n.to_str())
                         .unwrap_or("unknown")
                         .to_string(),
@@ -147,14 +151,14 @@ pub fn first_local_model_path() -> Option<std::path::PathBuf> {
 
 pub fn start_local_server(model_path: &str, port: u16) -> Result<(), String> {
     let mut server = LLAMA_SERVER.lock().unwrap_or_else(|e| e.into_inner());
-    
+
     if server.is_some() {
-        return Ok(()); 
+        return Ok(());
     }
-    
+
     let srv = LlamaServer::start(model_path, port)?;
     *server = Some(srv);
-    
+
     println!("Local AI server started on port {}", port);
     Ok(())
 }

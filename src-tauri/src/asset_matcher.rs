@@ -23,64 +23,135 @@ impl Default for MultiStrategyMatcher {
 impl MultiStrategyMatcher {
     pub fn new() -> Self {
         let mut map: HashMap<&'static str, Vec<&'static str>> = HashMap::new();
-        map.insert("genesis", vec!["figure", "character", "model", "avatar", "base"]);
-        map.insert("figure", vec!["genesis", "character", "model", "avatar", "humanoid"]);
-        map.insert("character", vec!["figure", "genesis", "model", "person", "humanoid"]);
+        map.insert(
+            "genesis",
+            vec!["figure", "character", "model", "avatar", "base"],
+        );
+        map.insert(
+            "figure",
+            vec!["genesis", "character", "model", "avatar", "humanoid"],
+        );
+        map.insert(
+            "character",
+            vec!["figure", "genesis", "model", "person", "humanoid"],
+        );
         map.insert("model", vec!["figure", "genesis", "character", "mesh"]);
-        map.insert("outfit", vec!["clothing", "attire", "dress", "garment", "costume", "wear"]);
-        map.insert("clothing", vec!["outfit", "attire", "garment", "costume", "wear"]);
+        map.insert(
+            "outfit",
+            vec!["clothing", "attire", "dress", "garment", "costume", "wear"],
+        );
+        map.insert(
+            "clothing",
+            vec!["outfit", "attire", "garment", "costume", "wear"],
+        );
         map.insert("dress", vec!["outfit", "clothing", "gown", "frock"]);
         map.insert("hair", vec!["hairstyle", "coiffure", "hairdo", "locks"]);
         map.insert("pose", vec!["posture", "stance", "position", "attitude"]);
-        map.insert("morph", vec!["shape", "form", "deformation", "adjust", "modify"]);
-        map.insert("light", vec!["illumination", "lighting", "lamp", "luminary"]);
+        map.insert(
+            "morph",
+            vec!["shape", "form", "deformation", "adjust", "modify"],
+        );
+        map.insert(
+            "light",
+            vec!["illumination", "lighting", "lamp", "luminary"],
+        );
         map.insert("texture", vec!["material", "shader", "surface", "skin"]);
         map.insert("material", vec!["texture", "shader", "surface"]);
-        map.insert("environment", vec!["env", "background", "set", "world", "scene", "location"]);
+        map.insert(
+            "environment",
+            vec!["env", "background", "set", "world", "scene", "location"],
+        );
         map.insert("prop", vec!["accessory", "object", "item", "decoration"]);
-        map.insert("weapon", vec!["sword", "gun", "blade", "bow", "staff", "axe"]);
-        map.insert("fantasy", vec!["magical", "medieval", "mythical", "enchanted", "elven"]);
-        map.insert("sci_fi", vec!["futuristic", "scifi", "cyberpunk", "robot", "tech", "space"]);
-        map.insert("casual", vec!["everyday", "relaxed", "informal", "lounge", "comfortable"]);
-        map.insert("formal", vec!["elegant", "fancy", "dressy", "suit", "tuxedo", "sophisticated"]);
+        map.insert(
+            "weapon",
+            vec!["sword", "gun", "blade", "bow", "staff", "axe"],
+        );
+        map.insert(
+            "fantasy",
+            vec!["magical", "medieval", "mythical", "enchanted", "elven"],
+        );
+        map.insert(
+            "sci_fi",
+            vec!["futuristic", "scifi", "cyberpunk", "robot", "tech", "space"],
+        );
+        map.insert(
+            "casual",
+            vec!["everyday", "relaxed", "informal", "lounge", "comfortable"],
+        );
+        map.insert(
+            "formal",
+            vec![
+                "elegant",
+                "fancy",
+                "dressy",
+                "suit",
+                "tuxedo",
+                "sophisticated",
+            ],
+        );
         map.insert("female", vec!["woman", "girl", "feminine", "lady"]);
         map.insert("male", vec!["man", "guy", "masculine", "gentleman"]);
         map.insert("baby", vec!["infant", "toddler", "child", "kid", "young"]);
         map.insert("sword", vec!["blade", "weapon", "scimitar", "longsword"]);
-        map.insert("gun", vec!["pistol", "rifle", "weapon", "blaster", "firearm"]);
+        map.insert(
+            "gun",
+            vec!["pistol", "rifle", "weapon", "blaster", "firearm"],
+        );
         map.insert("chair", vec!["seat", "throne", "bench", "stool"]);
         map.insert("table", vec!["desk", "counter", "stand"]);
         map.insert("bed", vec!["cot", "bunk", "mattress"]);
         map.insert("animal", vec!["creature", "beast", "pet", "monster"]);
         map.insert("car", vec!["vehicle", "auto", "automobile", "truck"]);
-        map.insert("building", vec!["house", "structure", "architecture", "castle", "tower"]);
+        map.insert(
+            "building",
+            vec!["house", "structure", "architecture", "castle", "tower"],
+        );
         map.insert("interior", vec!["indoor", "room", "inside", "house"]);
-        map.insert("exterior", vec!["outdoor", "outside", "landscape", "nature"]);
-        map.insert("water", vec!["ocean", "sea", "lake", "river", "pool", "liquid"]);
+        map.insert(
+            "exterior",
+            vec!["outdoor", "outside", "landscape", "nature"],
+        );
+        map.insert(
+            "water",
+            vec!["ocean", "sea", "lake", "river", "pool", "liquid"],
+        );
         map.insert("fire", vec!["flame", "burning", "blaze", "inferno"]);
-        map.insert("jewelry", vec!["jewellery", "necklace", "ring", "bracelet", "gem", "crown"]);
+        map.insert(
+            "jewelry",
+            vec!["jewellery", "necklace", "ring", "bracelet", "gem", "crown"],
+        );
         map.insert("shoe", vec!["shoes", "boot", "sandal", "footwear", "heel"]);
         Self { synonym_map: map }
     }
 
     fn normalize_word(word: &str) -> String {
-        word.to_lowercase().chars().filter(|c| c.is_alphanumeric()).collect()
+        word.to_lowercase()
+            .chars()
+            .filter(|c| c.is_alphanumeric())
+            .collect()
     }
 
     pub fn expand_with_synonyms(&self, query: &str) -> Vec<String> {
-        let words: Vec<String> = query.split_whitespace().map(Self::normalize_word).filter(|w| !w.is_empty()).collect();
+        let words: Vec<String> = query
+            .split_whitespace()
+            .map(Self::normalize_word)
+            .filter(|w| !w.is_empty())
+            .collect();
         if words.is_empty() {
             return vec![];
         }
-        let expansions: Vec<Vec<String>> = words.iter().map(|word| {
-            if let Some(syns) = self.synonym_map.get(word.as_str()) {
-                let mut options = vec![word.clone()];
-                options.extend(syns.iter().map(|s| s.to_string()));
-                options
-            } else {
-                vec![word.clone()]
-            }
-        }).collect();
+        let expansions: Vec<Vec<String>> = words
+            .iter()
+            .map(|word| {
+                if let Some(syns) = self.synonym_map.get(word.as_str()) {
+                    let mut options = vec![word.clone()];
+                    options.extend(syns.iter().map(|s| s.to_string()));
+                    options
+                } else {
+                    vec![word.clone()]
+                }
+            })
+            .collect();
 
         let mut results = Vec::new();
         let mut stack: Vec<Vec<String>> = vec![vec![]];
@@ -111,7 +182,9 @@ impl MultiStrategyMatcher {
             }
         }
         let total = query_words.len() as f32;
-        if total == 0.0 { return 0.0; }
+        if total == 0.0 {
+            return 0.0;
+        }
         let exact_ratio = matched as f32 / total;
         let partial_ratio = partial as f32 / total;
         exact_ratio + partial_ratio * 0.4
@@ -140,8 +213,14 @@ impl MultiStrategyMatcher {
             Some(c) => c,
             None => return vec![],
         };
-        let keywords: Vec<String> = query.split_whitespace()
-            .map(|w| w.to_lowercase().chars().filter(|c| c.is_alphanumeric()).collect())
+        let keywords: Vec<String> = query
+            .split_whitespace()
+            .map(|w| {
+                w.to_lowercase()
+                    .chars()
+                    .filter(|c| c.is_alphanumeric())
+                    .collect()
+            })
             .filter(|w: &String| !w.is_empty())
             .collect();
         if keywords.is_empty() {
@@ -156,13 +235,24 @@ impl MultiStrategyMatcher {
                     loop {
                         match rows.next() {
                             Ok(Some(row)) => {
-                                if let (Ok(path), Ok(name)) = (row.get::<_, String>(0), row.get::<_, String>(1)) {
+                                if let (Ok(path), Ok(name)) =
+                                    (row.get::<_, String>(0), row.get::<_, String>(1))
+                                {
                                     let category: Option<String> = row.get(2).ok().flatten();
                                     let tags_str: Option<String> = row.get(3).ok().flatten();
-                                    let tags: Vec<String> = tags_str.and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default();
-                                    all_results.push(MatchedAsset { path, name, score: 0.85, strategy: "vision_desc".into(), category, tags });
+                                    let tags: Vec<String> = tags_str
+                                        .and_then(|s| serde_json::from_str(&s).ok())
+                                        .unwrap_or_default();
+                                    all_results.push(MatchedAsset {
+                                        path,
+                                        name,
+                                        score: 0.85,
+                                        strategy: "vision_desc".into(),
+                                        category,
+                                        tags,
+                                    });
                                 }
-                            }
+                            },
                             Ok(None) => break,
                             Err(_) => break,
                         }
@@ -170,7 +260,11 @@ impl MultiStrategyMatcher {
                 }
             }
         }
-        all_results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        all_results.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         all_results.dedup_by_key(|a| a.path.clone());
         all_results.truncate(10);
         all_results
@@ -208,19 +302,32 @@ impl MultiStrategyMatcher {
         loop {
             match rows.next() {
                 Ok(Some(row)) => {
-                    let path: String = match row.get(0) { Ok(p) => p, Err(_) => continue };
-                    let name: String = match row.get(1) { Ok(n) => n, Err(_) => continue };
+                    let path: String = match row.get(0) {
+                        Ok(p) => p,
+                        Err(_) => continue,
+                    };
+                    let name: String = match row.get(1) {
+                        Ok(n) => n,
+                        Err(_) => continue,
+                    };
                     let category: Option<String> = row.get(2).ok().flatten();
                     let tags_str: Option<String> = row.get(3).ok().flatten();
-                    let bm25_score: f64 = match row.get(4) { Ok(s) => s, Err(_) => continue };
-                    let tags: Vec<String> = tags_str.and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default();
+                    let bm25_score: f64 = match row.get(4) {
+                        Ok(s) => s,
+                        Err(_) => continue,
+                    };
+                    let tags: Vec<String> = tags_str
+                        .and_then(|s| serde_json::from_str(&s).ok())
+                        .unwrap_or_default();
                     results.push(MatchedAsset {
-                        path, name,
+                        path,
+                        name,
                         score: (1.0 / (1.0 + bm25_score as f32)).clamp(0.0, 1.0),
                         strategy: "fts".into(),
-                        category, tags,
+                        category,
+                        tags,
                     });
-                }
+                },
                 Ok(None) => break,
                 Err(_) => break,
             }
@@ -242,8 +349,14 @@ impl MultiStrategyMatcher {
             Ok(r) => r,
             Err(_) => return vec![],
         };
-        let query_words: Vec<String> = query.split_whitespace()
-            .map(|w| w.to_lowercase().chars().filter(|c| c.is_alphanumeric()).collect())
+        let query_words: Vec<String> = query
+            .split_whitespace()
+            .map(|w| {
+                w.to_lowercase()
+                    .chars()
+                    .filter(|c| c.is_alphanumeric())
+                    .collect()
+            })
             .filter(|w: &String| !w.is_empty())
             .collect();
         if query_words.is_empty() {
@@ -253,21 +366,40 @@ impl MultiStrategyMatcher {
         loop {
             match rows.next() {
                 Ok(Some(row)) => {
-                    let path: String = match row.get::<_, String>(0) { Ok(p) => p, Err(_) => continue };
-                    let name: String = match row.get::<_, String>(1) { Ok(n) => n, Err(_) => continue };
+                    let path: String = match row.get::<_, String>(0) {
+                        Ok(p) => p,
+                        Err(_) => continue,
+                    };
+                    let name: String = match row.get::<_, String>(1) {
+                        Ok(n) => n,
+                        Err(_) => continue,
+                    };
                     let category: Option<String> = row.get(2).ok().flatten();
                     let tags_str: Option<String> = row.get(3).ok().flatten();
-                    let tags: Vec<String> = tags_str.and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default();
+                    let tags: Vec<String> = tags_str
+                        .and_then(|s| serde_json::from_str(&s).ok())
+                        .unwrap_or_default();
                     let score = Self::score_fuzzy(&name, &query_words);
                     if score > 0.0 {
-                        results.push(MatchedAsset { path, name, score, strategy: "fuzzy".into(), category, tags });
+                        results.push(MatchedAsset {
+                            path,
+                            name,
+                            score,
+                            strategy: "fuzzy".into(),
+                            category,
+                            tags,
+                        });
                     }
-                }
+                },
                 Ok(None) => break,
                 Err(_) => break,
             }
         }
-        results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        results.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         results.truncate(10);
         results
     }
@@ -284,20 +416,33 @@ impl MultiStrategyMatcher {
         let mut all_results: Vec<MatchedAsset> = Vec::new();
         for expanded in &expansions {
             let fts = crate::format_fts_query(expanded);
-            if fts.is_empty() { continue; }
+            if fts.is_empty() {
+                continue;
+            }
             let sql = "SELECT user_assets.asset_path, user_assets.asset_name, user_assets.category, user_assets.tags FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 5";
             if let Ok(mut stmt) = conn.prepare(sql) {
                 if let Ok(mut rows) = stmt.query(rusqlite::params![fts]) {
                     loop {
                         match rows.next() {
                             Ok(Some(row)) => {
-                                if let (Ok(path), Ok(name)) = (row.get::<_, String>(0), row.get::<_, String>(1)) {
+                                if let (Ok(path), Ok(name)) =
+                                    (row.get::<_, String>(0), row.get::<_, String>(1))
+                                {
                                     let category: Option<String> = row.get(2).ok().flatten();
                                     let tags_str: Option<String> = row.get(3).ok().flatten();
-                                    let tags: Vec<String> = tags_str.and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default();
-                                    all_results.push(MatchedAsset { path, name, score: 0.7, strategy: "synonym".into(), category, tags });
+                                    let tags: Vec<String> = tags_str
+                                        .and_then(|s| serde_json::from_str(&s).ok())
+                                        .unwrap_or_default();
+                                    all_results.push(MatchedAsset {
+                                        path,
+                                        name,
+                                        score: 0.7,
+                                        strategy: "synonym".into(),
+                                        category,
+                                        tags,
+                                    });
                                 }
-                            }
+                            },
                             Ok(None) => break,
                             Err(_) => break,
                         }
@@ -305,7 +450,11 @@ impl MultiStrategyMatcher {
                 }
             }
         }
-        all_results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        all_results.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         all_results.dedup_by_key(|a| a.path.clone());
         all_results.truncate(5);
         all_results
@@ -317,7 +466,8 @@ impl MultiStrategyMatcher {
             None => return vec![],
         };
         let query_lower = query.to_lowercase();
-        let keywords: Vec<String> = query_lower.split_whitespace()
+        let keywords: Vec<String> = query_lower
+            .split_whitespace()
             .map(|w| w.chars().filter(|c| c.is_alphanumeric()).collect())
             .filter(|w: &String| !w.is_empty())
             .collect();
@@ -333,13 +483,24 @@ impl MultiStrategyMatcher {
                     loop {
                         match rows.next() {
                             Ok(Some(row)) => {
-                                if let (Ok(path), Ok(name)) = (row.get::<_, String>(0), row.get::<_, String>(1)) {
+                                if let (Ok(path), Ok(name)) =
+                                    (row.get::<_, String>(0), row.get::<_, String>(1))
+                                {
                                     let category: Option<String> = row.get(2).ok().flatten();
                                     let tags_str: Option<String> = row.get(3).ok().flatten();
-                                    let tags: Vec<String> = tags_str.and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default();
-                                    results.push(MatchedAsset { path, name, score: 0.5, strategy: "keyword".into(), category, tags });
+                                    let tags: Vec<String> = tags_str
+                                        .and_then(|s| serde_json::from_str(&s).ok())
+                                        .unwrap_or_default();
+                                    results.push(MatchedAsset {
+                                        path,
+                                        name,
+                                        score: 0.5,
+                                        strategy: "keyword".into(),
+                                        category,
+                                        tags,
+                                    });
                                 }
-                            }
+                            },
                             Ok(None) => break,
                             Err(_) => break,
                         }
@@ -347,7 +508,11 @@ impl MultiStrategyMatcher {
                 }
             }
         }
-        results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        results.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         results.dedup_by_key(|a| a.path.clone());
         results.truncate(10);
         results
@@ -381,7 +546,9 @@ mod tests {
         let matcher = MultiStrategyMatcher::new();
         let results = matcher.expand_with_synonyms("female outfit");
         assert!(results.len() > 1);
-        assert!(results.iter().any(|r| r.contains("female") && r.contains("outfit")));
+        assert!(results
+            .iter()
+            .any(|r| r.contains("female") && r.contains("outfit")));
     }
 
     #[test]
@@ -393,29 +560,38 @@ mod tests {
 
     #[test]
     fn test_score_fuzzy_exact_match() {
-        let score = MultiStrategyMatcher::score_fuzzy("Summer Dress", &["summer".to_string(), "dress".to_string()]);
+        let score = MultiStrategyMatcher::score_fuzzy(
+            "Summer Dress",
+            &["summer".to_string(), "dress".to_string()],
+        );
         assert!(score > 0.9);
     }
 
     #[test]
     fn test_score_fuzzy_partial_match() {
-        let score = MultiStrategyMatcher::score_fuzzy("Sunlight Maxi Dress", &["summer".to_string(), "dress".to_string()]);
+        let score = MultiStrategyMatcher::score_fuzzy(
+            "Sunlight Maxi Dress",
+            &["summer".to_string(), "dress".to_string()],
+        );
         assert!(score > 0.0);
         assert!(score < 1.0);
     }
 
     #[test]
     fn test_score_fuzzy_no_match() {
-        let score = MultiStrategyMatcher::score_fuzzy("Rustic Armor", &["flower".to_string(), "garden".to_string()]);
+        let score = MultiStrategyMatcher::score_fuzzy(
+            "Rustic Armor",
+            &["flower".to_string(), "garden".to_string()],
+        );
         assert_eq!(score, 0.0);
     }
 
     #[test]
     fn test_normalize_word() {
         assert_eq!(MultiStrategyMatcher::normalize_word("Hello!"), "hello");
-        assert_eq!(MultiStrategyMatcher::normalize_word("  foo-bar  "), "foobar");
+        assert_eq!(
+            MultiStrategyMatcher::normalize_word("  foo-bar  "),
+            "foobar"
+        );
     }
 }
-
-
-

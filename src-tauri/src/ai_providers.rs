@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use std::time::Duration;
 use crate::{local_ai, ollama_service};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProviderModels {
@@ -60,18 +60,20 @@ pub async fn fetch_models(
                     let status = resp.status();
                     if status.is_success() {
                         if let Ok(res) = resp.json::<ollama_service::OllamaModelsResponse>().await {
-                            let mut models: Vec<String> = res.models.into_iter().map(|m| m.name).collect();
+                            let mut models: Vec<String> =
+                                res.models.into_iter().map(|m| m.name).collect();
                             models.sort();
                             return Ok(models);
                         }
                     }
                     Err(format!("Ollama returned status: {}", status))
-                }
+                },
                 Err(e) => Err(format!("Failed to connect to Ollama: {}", e)),
             }
-        }
+        },
         "openai" | "custom-openai" => {
-            let key = api_key.ok_or_else(|| "API Key is required to fetch OpenAI models.".to_string())?;
+            let key =
+                api_key.ok_or_else(|| "API Key is required to fetch OpenAI models.".to_string())?;
             let default_endpoint = if provider == "openai" {
                 "https://api.openai.com/v1"
             } else {
@@ -81,33 +83,46 @@ pub async fn fetch_models(
             let url = format!("{}/models", endpoint.trim_end_matches('/'));
 
             let mut headers = HeaderMap::new();
-            headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", key)).map_err(|e| e.to_string())?);
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", key)).map_err(|e| e.to_string())?,
+            );
 
             match client.get(&url).headers(headers).send().await {
                 Ok(resp) => {
                     let status = resp.status();
                     if status.is_success() {
                         if let Ok(res) = resp.json::<OpenAiModelsResponse>().await {
-                            let mut models: Vec<String> = res.data.into_iter().map(|m| m.id).collect();
+                            let mut models: Vec<String> =
+                                res.data.into_iter().map(|m| m.id).collect();
                             models.sort();
                             return Ok(models);
                         }
                     }
-                    Err(format!("OpenAI/Compatible endpoint returned status: {}", status))
-                }
+                    Err(format!(
+                        "OpenAI/Compatible endpoint returned status: {}",
+                        status
+                    ))
+                },
                 Err(e) => Err(format!("Failed to fetch OpenAI models: {}", e)),
             }
-        }
+        },
         "gemini" => {
-            let key = api_key.ok_or_else(|| "API Key is required to fetch Gemini models.".to_string())?;
-            let url = format!("https://generativelanguage.googleapis.com/v1beta/models?key={}", key);
+            let key =
+                api_key.ok_or_else(|| "API Key is required to fetch Gemini models.".to_string())?;
+            let url = format!(
+                "https://generativelanguage.googleapis.com/v1beta/models?key={}",
+                key
+            );
 
             match client.get(&url).send().await {
                 Ok(resp) => {
                     let status = resp.status();
                     if status.is_success() {
                         if let Ok(res) = resp.json::<GeminiModelsResponse>().await {
-                            let mut models: Vec<String> = res.models.into_iter()
+                            let mut models: Vec<String> = res
+                                .models
+                                .into_iter()
                                 .map(|m| m.name.replace("models/", ""))
                                 .collect();
                             models.sort();
@@ -115,10 +130,10 @@ pub async fn fetch_models(
                         }
                     }
                     Err(format!("Gemini API returned status: {}", status))
-                }
+                },
                 Err(e) => Err(format!("Failed to fetch Gemini models: {}", e)),
             }
-        }
+        },
         "anthropic" => {
             // Anthropic doesn't have a public models list API endpoint, return popular options
             Ok(vec![
@@ -131,7 +146,7 @@ pub async fn fetch_models(
                 "claude-3-sonnet-20240229".to_string(),
                 "claude-3-haiku-20240307".to_string(),
             ])
-        }
+        },
         "local-gguf" => {
             let models = local_ai::list_local_models();
             let mut names: Vec<String> = models.into_iter().map(|m| m.name).collect();
@@ -140,7 +155,7 @@ pub async fn fetch_models(
                 names.push("phi-2-q4.gguf".to_string()); // Default fallback
             }
             Ok(names)
-        }
+        },
         _ => Err(format!("Unknown provider: {}", provider)),
     }
 }
@@ -165,7 +180,7 @@ pub async fn run_chat(
                     .unwrap_or_default()
                     .unwrap_or_else(|| "http://localhost:11434".to_string())
             });
-            
+
             // Re-map images to OllamaChat request format (needs raw base64)
             let cleaned_images: Option<Vec<String>> = images.map(|imgs| {
                 imgs.into_iter()
@@ -181,23 +196,29 @@ pub async fn run_chat(
 
             let service = ollama_service::OllamaService::with_host(&host);
             if !service.is_running().await {
-                return Err("Ollama service is not running or unreachable at the configured host.".to_string());
+                return Err(
+                    "Ollama service is not running or unreachable at the configured host."
+                        .to_string(),
+                );
             }
 
-            let chat_response = service.chat(
-                model,
-                vec![ollama_service::ChatMessage {
-                    role: "user".to_string(),
-                    content: prompt,
-                    images: cleaned_images,
-                }],
-                temperature,
-            ).await?;
+            let chat_response = service
+                .chat(
+                    model,
+                    vec![ollama_service::ChatMessage {
+                        role: "user".to_string(),
+                        content: prompt,
+                        images: cleaned_images,
+                    }],
+                    temperature,
+                )
+                .await?;
 
             Ok(chat_response.message.content)
-        }
+        },
         "openai" | "custom-openai" => {
-            let key = api_key.ok_or_else(|| "API Key is required for OpenAI/Compatible chat.".to_string())?;
+            let key = api_key
+                .ok_or_else(|| "API Key is required for OpenAI/Compatible chat.".to_string())?;
             let default_endpoint = if provider == "openai" {
                 "https://api.openai.com/v1"
             } else {
@@ -207,7 +228,10 @@ pub async fn run_chat(
             let url = format!("{}/chat/completions", endpoint.trim_end_matches('/'));
 
             let mut headers = HeaderMap::new();
-            headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", key)).map_err(|e| e.to_string())?);
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", key)).map_err(|e| e.to_string())?,
+            );
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
             // Build payload containing text and optional base64 images
@@ -224,10 +248,13 @@ pub async fn run_chat(
                         } else {
                             format!("data:image/jpeg;base64,{}", img)
                         };
-                        content_array.as_array_mut().unwrap().push(serde_json::json!({
-                            "type": "image_url",
-                            "image_url": { "url": formatted_img }
-                        }));
+                        content_array
+                            .as_array_mut()
+                            .unwrap()
+                            .push(serde_json::json!({
+                                "type": "image_url",
+                                "image_url": { "url": formatted_img }
+                            }));
                     }
 
                     serde_json::json!({
@@ -259,13 +286,24 @@ pub async fn run_chat(
                 })
             };
 
-            match client.post(&url).headers(headers).json(&payload).send().await {
+            match client
+                .post(&url)
+                .headers(headers)
+                .json(&payload)
+                .send()
+                .await
+            {
                 Ok(resp) => {
                     if resp.status().is_success() {
-                        let res_json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+                        let res_json: serde_json::Value =
+                            resp.json().await.map_err(|e| e.to_string())?;
                         if let Some(choices) = res_json.get("choices").and_then(|c| c.as_array()) {
                             if let Some(first) = choices.first() {
-                                if let Some(content) = first.get("message").and_then(|m| m.get("content")).and_then(|c| c.as_str()) {
+                                if let Some(content) = first
+                                    .get("message")
+                                    .and_then(|m| m.get("content"))
+                                    .and_then(|c| c.as_str())
+                                {
                                     return Ok(content.to_string());
                                 }
                             }
@@ -275,10 +313,10 @@ pub async fn run_chat(
                         let err_text = resp.text().await.unwrap_or_default();
                         Err(format!("OpenAI error ({}): {}", url, err_text))
                     }
-                }
+                },
                 Err(e) => Err(format!("OpenAI request failed: {}", e)),
             }
-        }
+        },
         "gemini" => {
             let key = api_key.ok_or_else(|| "Gemini API Key is required.".to_string())?;
             let url = format!(
@@ -297,7 +335,8 @@ pub async fn run_chat(
                         if let Some(comma_pos) = img.find(',') {
                             if let Some(colon_pos) = img[..comma_pos].find(':') {
                                 if let Some(semi_pos) = img[colon_pos..comma_pos].find(';') {
-                                    mime_type = img[colon_pos + 1..colon_pos + semi_pos].to_string();
+                                    mime_type =
+                                        img[colon_pos + 1..colon_pos + semi_pos].to_string();
                                 }
                             }
                             img[comma_pos + 1..].to_string()
@@ -330,12 +369,21 @@ pub async fn run_chat(
             match client.post(&url).json(&payload).send().await {
                 Ok(resp) => {
                     if resp.status().is_success() {
-                        let res_json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-                        if let Some(candidates) = res_json.get("candidates").and_then(|c| c.as_array()) {
+                        let res_json: serde_json::Value =
+                            resp.json().await.map_err(|e| e.to_string())?;
+                        if let Some(candidates) =
+                            res_json.get("candidates").and_then(|c| c.as_array())
+                        {
                             if let Some(first) = candidates.first() {
-                                if let Some(parts) = first.get("content").and_then(|c| c.get("parts")).and_then(|p| p.as_array()) {
+                                if let Some(parts) = first
+                                    .get("content")
+                                    .and_then(|c| c.get("parts"))
+                                    .and_then(|p| p.as_array())
+                                {
                                     if let Some(p_first) = parts.first() {
-                                        if let Some(text) = p_first.get("text").and_then(|t| t.as_str()) {
+                                        if let Some(text) =
+                                            p_first.get("text").and_then(|t| t.as_str())
+                                        {
                                             return Ok(text.to_string());
                                         }
                                     }
@@ -347,16 +395,19 @@ pub async fn run_chat(
                         let err_text = resp.text().await.unwrap_or_default();
                         Err(format!("Gemini API error: {}", err_text))
                     }
-                }
+                },
                 Err(e) => Err(format!("Gemini request failed: {}", e)),
             }
-        }
+        },
         "anthropic" => {
             let key = api_key.ok_or_else(|| "Anthropic API Key is required.".to_string())?;
             let url = "https://api.anthropic.com/v1/messages";
 
             let mut headers = HeaderMap::new();
-            headers.insert("x-api-key", HeaderValue::from_str(&key).map_err(|e| e.to_string())?);
+            headers.insert(
+                "x-api-key",
+                HeaderValue::from_str(&key).map_err(|e| e.to_string())?,
+            );
             headers.insert("anthropic-version", HeaderValue::from_static("2023-06-01"));
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
@@ -373,7 +424,8 @@ pub async fn run_chat(
                             if let Some(comma_pos) = img.find(',') {
                                 if let Some(colon_pos) = img[..comma_pos].find(':') {
                                     if let Some(semi_pos) = img[colon_pos..comma_pos].find(';') {
-                                        mime_type = img[colon_pos + 1..colon_pos + semi_pos].to_string();
+                                        mime_type =
+                                            img[colon_pos + 1..colon_pos + semi_pos].to_string();
                                     }
                                 }
                                 img[comma_pos + 1..].to_string()
@@ -423,10 +475,17 @@ pub async fn run_chat(
                 })
             };
 
-            match client.post(url).headers(headers).json(&payload).send().await {
+            match client
+                .post(url)
+                .headers(headers)
+                .json(&payload)
+                .send()
+                .await
+            {
                 Ok(resp) => {
                     if resp.status().is_success() {
-                        let res_json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+                        let res_json: serde_json::Value =
+                            resp.json().await.map_err(|e| e.to_string())?;
                         if let Some(content) = res_json.get("content").and_then(|c| c.as_array()) {
                             if let Some(first) = content.first() {
                                 if let Some(text) = first.get("text").and_then(|t| t.as_str()) {
@@ -439,15 +498,18 @@ pub async fn run_chat(
                         let err_text = resp.text().await.unwrap_or_default();
                         Err(format!("Anthropic API error: {}", err_text))
                     }
-                }
+                },
                 Err(e) => Err(format!("Anthropic request failed: {}", e)),
             }
-        }
+        },
         "local-gguf" => {
             if !local_ai::is_local_server_running() {
                 let model_path = local_ai::first_local_model_path()
                     .ok_or_else(|| "No local GGUF model found. Choose one in settings or download GGUF weights first.".to_string())?;
-                local_ai::start_local_server(&model_path.to_string_lossy(), local_ai::get_local_ai_port())?;
+                local_ai::start_local_server(
+                    &model_path.to_string_lossy(),
+                    local_ai::get_local_ai_port(),
+                )?;
             }
 
             let mut gguf_prompt = prompt.clone();
@@ -463,7 +525,7 @@ pub async fn run_chat(
 
             let response_text = local_ai::chat_with_local(gguf_prompt, model.to_string()).await?;
             Ok(response_text)
-        }
+        },
         _ => Err(format!("Unsupported provider: {}", provider)),
     }
 }

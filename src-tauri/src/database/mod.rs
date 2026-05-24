@@ -1,24 +1,22 @@
-
-
 pub mod schema;
 
-use std::sync::Mutex;
 use once_cell::sync::Lazy;
+use std::sync::Mutex;
 
 pub static DATABASE: Lazy<Mutex<Option<SqliteDatabase>>> = Lazy::new(|| Mutex::new(None));
 
 pub fn init_database(app_data_dir: &std::path::Path) -> Result<(), String> {
     let db_path = app_data_dir.join("dazpilot.db");
-    
-    let db = SqliteDatabase::new(&db_path)
-        .map_err(|e| format!("Failed to create database: {}", e))?;
-    
+
+    let db =
+        SqliteDatabase::new(&db_path).map_err(|e| format!("Failed to create database: {}", e))?;
+
     db.initialize()
         .map_err(|e| format!("Failed to initialize database: {}", e))?;
-    
+
     let mut guard = DATABASE.lock().map_err(|e| e.to_string())?;
     *guard = Some(db);
-    
+
     Ok(())
 }
 
@@ -36,11 +34,12 @@ impl SqliteDatabase {
             path: path.to_path_buf(),
         })
     }
-    
+
     pub fn initialize(&self) -> Result<(), rusqlite::Error> {
         let conn = rusqlite::Connection::open(&self.path)?;
-        
-        if let Err(e) = conn.execute_batch(r#"
+
+        if let Err(e) = conn.execute_batch(
+            r#"
             -- Core tables
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
@@ -82,7 +81,8 @@ impl SqliteDatabase {
                 tags TEXT,
                 FOREIGN KEY (source_id) REFERENCES content_sources(id)
             );
-        "#) {
+        "#,
+        ) {
             log::warn!("Core schema creation non-fatal: {}", e);
         }
 
@@ -384,10 +384,10 @@ impl SqliteDatabase {
             );
             "#
         )?;
-        
+
         Ok(())
     }
-    
+
     pub fn execute(&self, sql: &str) -> Result<(), rusqlite::Error> {
         let conn = rusqlite::Connection::open(&self.path)?;
         conn.execute_batch(sql)
@@ -396,7 +396,7 @@ impl SqliteDatabase {
     pub fn path(&self) -> &std::path::Path {
         &self.path
     }
-    
+
     pub fn query<T, F>(&self, sql: &str, mapper: F) -> Result<Vec<T>, rusqlite::Error>
     where
         F: FnMut(&rusqlite::Row<'_>) -> rusqlite::Result<T>,
@@ -488,7 +488,8 @@ pub fn load_notes() -> Result<Vec<DbNote>, String> {
             })
         })
         .map_err(|e| e.to_string())?;
-    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+    rows.collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())
 }
 
 pub fn save_note(note: &DbNote) -> Result<(), String> {
@@ -535,7 +536,8 @@ pub fn load_todos() -> Result<Vec<DbTodo>, String> {
             })
         })
         .map_err(|e| e.to_string())?;
-    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+    rows.collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())
 }
 
 pub fn save_todo(todo: &DbTodo) -> Result<(), String> {
@@ -573,4 +575,3 @@ pub fn clear_completed_todos() -> Result<(), String> {
     .map_err(|e| e.to_string())?;
     Ok(())
 }
-

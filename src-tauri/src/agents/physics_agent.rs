@@ -1,6 +1,6 @@
 //! Physics Agent: configures and runs dForce simulations.
 
-use crate::agents::{AgentRequest, AgentResponse, AgentAction};
+use crate::agents::{AgentAction, AgentRequest, AgentResponse};
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
@@ -10,15 +10,19 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
     if input.contains("simulate") || input.contains("dforce") || input.contains("physics") {
         let mut start_frame = "0".to_string();
         let mut end_frame = "30".to_string();
-        
+
         // Very basic frame extraction
         let words: Vec<&str> = input.split_whitespace().collect();
         for i in 0..words.len() {
             if words[i] == "from" && i + 1 < words.len() {
-                start_frame = words[i+1].trim_matches(|c: char| !c.is_numeric()).to_string();
+                start_frame = words[i + 1]
+                    .trim_matches(|c: char| !c.is_numeric())
+                    .to_string();
             }
             if words[i] == "to" && i + 1 < words.len() {
-                end_frame = words[i+1].trim_matches(|c: char| !c.is_numeric()).to_string();
+                end_frame = words[i + 1]
+                    .trim_matches(|c: char| !c.is_numeric())
+                    .to_string();
             }
         }
 

@@ -1,6 +1,6 @@
-use crate::agents::{AgentRequest, AgentResponse, AgentAction};
-use crate::vision_service;
+use crate::agents::{AgentAction, AgentRequest, AgentResponse};
 use crate::asset_fixer;
+use crate::vision_service;
 
 pub fn execute(_request: AgentRequest) -> AgentResponse {
     let report = vision_service::detect_asset_conflicts_from_scene();
@@ -18,7 +18,10 @@ pub fn execute(_request: AgentRequest) -> AgentResponse {
     let mut results = vec![];
 
     for conflict in report.conflicts {
-        results.push(format!("[{}] {}: {}", conflict.severity, conflict.conflict_type, conflict.fix_suggestion));
+        results.push(format!(
+            "[{}] {}: {}",
+            conflict.severity, conflict.conflict_type, conflict.fix_suggestion
+        ));
 
         match conflict.conflict_type.as_str() {
             "Multiple_Shells_Detected" | "MaterialZone" => {
@@ -29,7 +32,7 @@ pub fn execute(_request: AgentRequest) -> AgentResponse {
                         args: vec![first_asset.clone(), "AI_FIX_".to_string()],
                     });
                 }
-            }
+            },
             "MorphId" => {
                 results.push("Morph ID conflict detected across assets. Recommendation: ensure each morph file uses unique morph IDs.".to_string());
                 actions.push(AgentAction {
@@ -37,7 +40,7 @@ pub fn execute(_request: AgentRequest) -> AgentResponse {
                     command: "chat".to_string(),
                     args: vec![format!("Morph ID conflict: {}", conflict.fix_suggestion)],
                 });
-            }
+            },
             "UVSet" => {
                 results.push("UV set name overlap detected. Recommendation: check UV set naming in your assets.".to_string());
                 actions.push(AgentAction {
@@ -45,14 +48,14 @@ pub fn execute(_request: AgentRequest) -> AgentResponse {
                     command: "chat".to_string(),
                     args: vec![format!("UV conflict: {}", conflict.fix_suggestion)],
                 });
-            }
+            },
             _ => {
                 actions.push(AgentAction {
                     action_type: "warn_conflict".to_string(),
                     command: "chat".to_string(),
                     args: vec![format!("Conflict detected: {}", conflict.fix_suggestion)],
                 });
-            }
+            },
         }
     }
 
@@ -69,7 +72,10 @@ pub fn execute(_request: AgentRequest) -> AgentResponse {
 pub fn check_before_load(asset_path: &str) -> asset_fixer::ConflictScanResult {
     // Scan the asset file directly for conflicts
     let path = std::path::Path::new(asset_path);
-    let parent = path.parent().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
+    let parent = path
+        .parent()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_default();
     if parent.is_empty() {
         return asset_fixer::ConflictScanResult {
             total_scanned: 0,

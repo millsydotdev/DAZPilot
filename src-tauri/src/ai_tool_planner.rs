@@ -33,12 +33,20 @@ pub fn build_command_catalog_prompt() -> String {
                 "set_light" => " property: 'intensity'(float), 'color'('R,G,B'), 'enable'(bool).",
                 "set_camera" => " camera name from get_cameras. focal_length: 35(wide)-200(tele).",
                 "set_render_options" => " pixel_samples: 16(draft) to 4096(final).",
-                "set_render_settings" => " Quick width/height presets: 1920x1080(HD), 3840x2160(4K).",
-                "set_material_property" => " Common: 'Base Color', 'Roughness', 'Metallic', 'Opacity'.",
-                "set_material_texture" => " channel: 'Base Color', 'Roughness', 'Normal', 'Metallic'.",
+                "set_render_settings" => {
+                    " Quick width/height presets: 1920x1080(HD), 3840x2160(4K)."
+                },
+                "set_material_property" => {
+                    " Common: 'Base Color', 'Roughness', 'Metallic', 'Opacity'."
+                },
+                "set_material_texture" => {
+                    " channel: 'Base Color', 'Roughness', 'Normal', 'Metallic'."
+                },
                 "search_content" => " type: figure, clothing, hair, pose, material, prop.",
                 "apply_expression" => " expression_id from get_active_expressions. value: 0.0-1.0.",
-                "set_bone_transform" => " bone_name from list_bones. rotation: [x,y,z] Euler degrees.",
+                "set_bone_transform" => {
+                    " bone_name from list_bones. rotation: [x,y,z] Euler degrees."
+                },
                 "run_dforce_simulation" => " Requires dForce clothing fitted to figure.",
                 _ => "",
             };
@@ -57,7 +65,11 @@ pub fn build_command_catalog_prompt() -> String {
         };
         lines.push(format!(
             "- {} ({}): {} | params: {}{}",
-            schema.name, schema.category, schema.description, params, notes!(schema.name)
+            schema.name,
+            schema.category,
+            schema.description,
+            params,
+            notes!(schema.name)
         ));
     }
     lines.join("\n")
@@ -121,28 +133,43 @@ fn ai_action_sdk_refs(command: &str) -> Vec<String> {
 
 pub fn build_tool_planning_prompt(user_message: &str, scene_summary: &str) -> String {
     let scenario_guidance = if user_message.to_lowercase().contains("scene")
-        || (user_message.to_lowercase().contains("create") || user_message.to_lowercase().contains("make") || user_message.to_lowercase().contains("build"))
+        || (user_message.to_lowercase().contains("create")
+            || user_message.to_lowercase().contains("make")
+            || user_message.to_lowercase().contains("build"))
     {
         "SCENE CREATION GUIDANCE: Choose add_figure(figure_type='genesis9') as the first action.\n\
          Use 'genesis9' for latest figures (preferred) or 'genesis8' for legacy. The add_figure\n\
          action returns the node_id needed for future commands. After adding a figure, the user\n\
          will follow up with pose, clothing, lighting, and render requests."
-    } else if user_message.to_lowercase().contains("render") || user_message.to_lowercase().contains("output") || user_message.to_lowercase().contains("image") {
+    } else if user_message.to_lowercase().contains("render")
+        || user_message.to_lowercase().contains("output")
+        || user_message.to_lowercase().contains("image")
+    {
         "RENDER GUIDANCE: Use set_render_options(pixel_samples=64) for quick preview or\n\
          set_render_options(pixel_samples=512) for final quality. Then use set_render_settings\n\
          for output dimensions (width=1920, height=1080)."
-    } else if user_message.to_lowercase().contains("light") || user_message.to_lowercase().contains("illuminate") {
+    } else if user_message.to_lowercase().contains("light")
+        || user_message.to_lowercase().contains("illuminate")
+    {
         "LIGHTING GUIDANCE: Use add_node with type='point_light' for fill, 'spot_light' for key,\n\
          'distant_light' for sun. Then set_light to configure intensity/color. 3-point lighting:\n\
          key light (bright, warm), fill light (half intensity, cool), rim light (from behind)."
-    } else if user_message.to_lowercase().contains("pose") || user_message.to_lowercase().contains("position") {
+    } else if user_message.to_lowercase().contains("pose")
+        || user_message.to_lowercase().contains("position")
+    {
         "POSE GUIDANCE: Use set_bone_transform for individual bone adjustments, or search_content\n\
          (type='pose') to find DUF pose files, then apply_pose with the full path."
-    } else if user_message.to_lowercase().contains("morph") || user_message.to_lowercase().contains("shape") || user_message.to_lowercase().contains("face") {
+    } else if user_message.to_lowercase().contains("morph")
+        || user_message.to_lowercase().contains("shape")
+        || user_message.to_lowercase().contains("face")
+    {
         "MORPH GUIDANCE: Use set_morph with morph names like 'Head_Height', 'Waist_Width', \n\
           'Breast_Size', or 'Cheek_Bone'. Values: 0.0=neutral, 0.5=half, 1.0=full. Use\n\
           search_content(type='figure') first if the node_id is unknown."
-    } else if user_message.to_lowercase().contains("preset") || user_message.to_lowercase().contains("save scene") || user_message.to_lowercase().contains("load scene") {
+    } else if user_message.to_lowercase().contains("preset")
+        || user_message.to_lowercase().contains("save scene")
+        || user_message.to_lowercase().contains("load scene")
+    {
         "PRESET GUIDANCE: Use natural language to save and load scene configurations.\n\
            Examples: 'Save current lighting as a preset', 'Load my 3-point lighting preset', \n\
            'Save this camera angle as a portrait preset'. Presets can be for lighting, camera, figure poses, or full scenes."
@@ -177,18 +204,10 @@ pub async fn plan_with_llm_tools(
     base_url: Option<String>,
 ) -> Option<StructuredAiAction> {
     let prompt = build_tool_planning_prompt(user_message, scene_summary);
-    let response = crate::ai_providers::run_chat(
-        provider,
-        model,
-        prompt,
-        api_key,
-        base_url,
-        0.1,
-        512,
-        None,
-    )
-    .await
-    .ok()?;
+    let response =
+        crate::ai_providers::run_chat(provider, model, prompt, api_key, base_url, 0.1, 512, None)
+            .await
+            .ok()?;
     parse_llm_tool_plan(&response)
 }
 
@@ -214,7 +233,7 @@ pub fn merge_plans(
             } else {
                 Some(l)
             }
-        }
+        },
         (Some(h), None) => Some(h),
         (None, Some(l)) => Some(l),
         (None, None) => None,

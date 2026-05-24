@@ -69,11 +69,23 @@ pub fn get_timeline_state() -> TimelineState {
     match crate::mcp_client::send_mcp_request("get_timeline_state", serde_json::json!({})) {
         Ok(resp) => {
             if let Some(data) = resp.data {
-                let cf = data.get("current_frame").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
-                let _sf = data.get("start_frame").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
-                let ef = data.get("end_frame").and_then(|v| v.as_f64()).unwrap_or(300.0) as f32;
+                let cf = data
+                    .get("current_frame")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0) as f32;
+                let _sf = data
+                    .get("start_frame")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0) as f32;
+                let ef = data
+                    .get("end_frame")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(300.0) as f32;
                 let fps = data.get("fps").and_then(|v| v.as_f64()).unwrap_or(30.0) as f32;
-                let playing = data.get("is_playing").and_then(|v| v.as_bool()).unwrap_or(false);
+                let playing = data
+                    .get("is_playing")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
                 TimelineState {
                     current_frame: cf,
                     total_frames: ef,
@@ -90,7 +102,7 @@ pub fn get_timeline_state() -> TimelineState {
                     active_figure: None,
                 }
             }
-        }
+        },
         Err(_) => TimelineState {
             current_frame: 0.0,
             total_frames: 300.0,
@@ -141,7 +153,7 @@ pub fn toggle_loop() {
 
 pub fn apply_pose_to_figure(pose_file: &str, figure_id: &str) -> AnimationResult {
     log::info!("Applying pose {} to figure {}", pose_file, figure_id);
-    
+
     AnimationResult {
         success: true,
         message: format!("Applied pose {} to {}", pose_file, figure_id),
@@ -153,14 +165,20 @@ pub fn apply_pose_to_figure(pose_file: &str, figure_id: &str) -> AnimationResult
     }
 }
 
-pub fn create_keyframe(node_id: &str, property: &str, frame: f32, value: f32, interp: InterpolationType) -> AnimationResult {
+pub fn create_keyframe(
+    node_id: &str,
+    property: &str,
+    frame: f32,
+    value: f32,
+    interp: InterpolationType,
+) -> AnimationResult {
     log::info!("Creating keyframe for {} at frame {}", node_id, frame);
 
     let interp_str = match interp {
-        InterpolationType::Linear  => "linear",
-        InterpolationType::EaseIn  => "tcb",
+        InterpolationType::Linear => "linear",
+        InterpolationType::EaseIn => "tcb",
         InterpolationType::EaseOut => "tcb",
-        InterpolationType::Bezier  => "hermite",
+        InterpolationType::Bezier => "hermite",
     };
 
     match crate::mcp_client::send_mcp_request(
@@ -187,7 +205,11 @@ pub fn create_keyframe(node_id: &str, property: &str, frame: f32, value: f32, in
 }
 
 pub fn run_dforce_simulation(node_id: &str, start_frame: u32, end_frame: u32) -> AnimationResult {
-    log::info!("Running dForce simulation from frame {} to {}", start_frame, end_frame);
+    log::info!(
+        "Running dForce simulation from frame {} to {}",
+        start_frame,
+        end_frame
+    );
     match crate::mcp_client::send_mcp_request(
         "run_dforce_simulation",
         serde_json::json!({
@@ -198,7 +220,10 @@ pub fn run_dforce_simulation(node_id: &str, start_frame: u32, end_frame: u32) ->
     ) {
         Ok(_) => AnimationResult {
             success: true,
-            message: format!("dForce simulation complete ({} → {} frames)", start_frame, end_frame),
+            message: format!(
+                "dForce simulation complete ({} → {} frames)",
+                start_frame, end_frame
+            ),
             data: None,
         },
         Err(e) => AnimationResult {
@@ -211,7 +236,7 @@ pub fn run_dforce_simulation(node_id: &str, start_frame: u32, end_frame: u32) ->
 
 pub fn load_animation(anim_file: &str) -> AnimationResult {
     log::info!("Loading animation from {}", anim_file);
-    
+
     AnimationResult {
         success: true,
         message: format!("Loaded animation from {}", anim_file),
@@ -309,7 +334,8 @@ fn load_poses_from_db() -> Result<Vec<Pose>, String> {
             })
         })
         .map_err(|e| e.to_string())?;
-    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+    rows.collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())
 }
 
 #[cfg(test)]

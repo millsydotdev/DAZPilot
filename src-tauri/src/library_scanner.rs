@@ -1,12 +1,12 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use flate2::read::GzDecoder;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-use walkdir::WalkDir;
 use std::collections::HashMap;
 use std::io::Read;
-use flate2::read::GzDecoder;
+use std::path::PathBuf;
+use walkdir::WalkDir;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContentPath {
@@ -64,16 +64,36 @@ const SUPPORTED_EXTENSIONS: &[&str] = &[
 ];
 
 const CATEGORY_PATTERNS: &[(&str, &[&str])] = &[
-    ("figures", &["figure", "genesis", "victoria", "michael", "david", "youth", "person"]),
-    ("clothing", &["clothing", "outfit", "shirt", "pants", "dress", "jacket", "top", "bottom", "skirt", "wear"]),
+    (
+        "figures",
+        &[
+            "figure", "genesis", "victoria", "michael", "david", "youth", "person",
+        ],
+    ),
+    (
+        "clothing",
+        &[
+            "clothing", "outfit", "shirt", "pants", "dress", "jacket", "top", "bottom", "skirt",
+            "wear",
+        ],
+    ),
     ("hair", &["hair", "hairstyle", "ponytail", "braid"]),
     ("poses", &["pose", "poseable"]),
-    ("materials", &["material", "shader", "texture", "skin", "makeup"]),
+    (
+        "materials",
+        &["material", "shader", "texture", "skin", "makeup"],
+    ),
     ("morphs", &["morph", "shape", "modifier", "jcm"]),
-    ("environments", &["environment", "scene", "hdri", "sky", "backdrop"]),
+    (
+        "environments",
+        &["environment", "scene", "hdri", "sky", "backdrop"],
+    ),
     ("lights", &["light", "illumination"]),
     ("cameras", &["camera"]),
-    ("animations", &["animation", "anim", "walk", "run", "bounce"]),
+    (
+        "animations",
+        &["animation", "anim", "walk", "run", "bounce"],
+    ),
 ];
 
 fn get_daz_content_dirs_from_registry() -> Vec<String> {
@@ -119,7 +139,8 @@ pub fn get_default_content_paths() -> Vec<ContentPath> {
                 } else if dir_path.contains("My DAZ 3D Library") {
                     "Public Daz Library".to_string()
                 } else {
-                    path_buf.file_name()
+                    path_buf
+                        .file_name()
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_else(|| format!("Daz Library {}", i))
                 };
@@ -184,7 +205,11 @@ pub fn scan_directory(path: &str) -> ScanResult {
     let path_buf = PathBuf::from(path);
     if !path_buf.exists() {
         errors.push(format!("Path does not exist: {}", path));
-        return ScanResult { total_files: 0, categorized, errors };
+        return ScanResult {
+            total_files: 0,
+            categorized,
+            errors,
+        };
     }
 
     for entry in WalkDir::new(path)
@@ -194,7 +219,7 @@ pub fn scan_directory(path: &str) -> ScanResult {
         .filter_map(|e| e.ok())
     {
         let file_path = entry.path();
-        
+
         if !file_path.is_file() {
             continue;
         }
@@ -216,31 +241,62 @@ pub fn scan_directory(path: &str) -> ScanResult {
             .to_string();
 
         let lower_name = file_name.to_lowercase();
-        if lower_name == "daz_host" || lower_name == "vibebridge" || lower_name == "dazai_bridge" || lower_name == "dazpilotbridge" {
+        if lower_name == "daz_host"
+            || lower_name == "vibebridge"
+            || lower_name == "dazai_bridge"
+            || lower_name == "dazpilotbridge"
+        {
             continue;
         }
 
         let file_size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-        
+
         let metadata = read_asset_metadata(file_path);
         let (category, subcategory) = detect_category(&file_name, &extension, &metadata);
 
         let thumbnail_path = detect_companion_thumbnail(file_path);
-        let compatibility_base: Vec<String> = metadata.get("compatibility_base")
+        let compatibility_base: Vec<String> = metadata
+            .get("compatibility_base")
             .and_then(|v| serde_json::from_str(v).ok())
             .unwrap_or_default();
         let dforce_enabled = metadata.contains_key("dforce_enabled");
-        let asset_type_detail = metadata.get("asset_type_detail").or_else(|| metadata.get("type")).cloned();
-        let vendor = metadata.get("vendor").or_else(|| metadata.get("asset_info.contributor")).cloned();
+        let asset_type_detail = metadata
+            .get("asset_type_detail")
+            .or_else(|| metadata.get("type"))
+            .cloned();
+        let vendor = metadata
+            .get("vendor")
+            .or_else(|| metadata.get("asset_info.contributor"))
+            .cloned();
         let mut tags = Vec::new();
         // Infer tags from filename
         let lower = file_name.to_lowercase();
-        if lower.contains("female") || lower.contains("woman") || lower.contains("girl") || lower.contains("victoria") { tags.push("female".to_string()); }
-        if lower.contains("male") || lower.contains("man") || lower.contains("boy") || lower.contains("michael") { tags.push("male".to_string()); }
-        if lower.contains("casual") || lower.contains("relax") { tags.push("casual".to_string()); }
-        if lower.contains("formal") || lower.contains("elegant") || lower.contains("business") { tags.push("formal".to_string()); }
-        if lower.contains("sport") || lower.contains("athletic") || lower.contains("fitness") { tags.push("sport".to_string()); }
-        if dforce_enabled || lower.contains("dforce") || lower.contains("d-force") { tags.push("dforce".to_string()); }
+        if lower.contains("female")
+            || lower.contains("woman")
+            || lower.contains("girl")
+            || lower.contains("victoria")
+        {
+            tags.push("female".to_string());
+        }
+        if lower.contains("male")
+            || lower.contains("man")
+            || lower.contains("boy")
+            || lower.contains("michael")
+        {
+            tags.push("male".to_string());
+        }
+        if lower.contains("casual") || lower.contains("relax") {
+            tags.push("casual".to_string());
+        }
+        if lower.contains("formal") || lower.contains("elegant") || lower.contains("business") {
+            tags.push("formal".to_string());
+        }
+        if lower.contains("sport") || lower.contains("athletic") || lower.contains("fitness") {
+            tags.push("sport".to_string());
+        }
+        if dforce_enabled || lower.contains("dforce") || lower.contains("d-force") {
+            tags.push("dforce".to_string());
+        }
 
         let asset = AssetInfo {
             path: file_path.to_string_lossy().to_string(),
@@ -273,7 +329,11 @@ pub fn scan_directory(path: &str) -> ScanResult {
     }
 }
 
-fn detect_category(file_name: &str, extension: &str, metadata: &HashMap<String, String>) -> (String, Option<String>) {
+fn detect_category(
+    file_name: &str,
+    extension: &str,
+    metadata: &HashMap<String, String>,
+) -> (String, Option<String>) {
     if let Some(asset_type) = metadata.get("type").or_else(|| metadata.get("asset_type")) {
         let lower_type = asset_type.to_lowercase();
         if lower_type.contains("pose") {
@@ -342,25 +402,26 @@ fn detect_companion_thumbnail(path: &std::path::Path) -> Option<String> {
 
 fn read_asset_metadata(path: &std::path::Path) -> HashMap<String, String> {
     let mut metadata = HashMap::new();
-    
+
     // Only read first 512KB to avoid memory issues with large files
     const MAX_READ_SIZE: usize = 512 * 1024;
-    
+
     let Ok(mut file) = std::fs::File::open(path) else {
         return metadata;
     };
-    
+
     let mut buffer = vec![0u8; MAX_READ_SIZE];
     let bytes_read = match file.read(&mut buffer) {
         Ok(n) => n,
         Err(_) => return metadata,
     };
     buffer.truncate(bytes_read);
-    
+
     // Check for Gzip header (1f 8b) - only decompress if small enough
     let content = if bytes_read > 2 && buffer[0] == 0x1f && buffer[1] == 0x8b {
         // Only decompress if the file is small enough to avoid memory issues
-        if bytes_read < 10 * 1024 * 1024 { // 10MB limit
+        if bytes_read < 10 * 1024 * 1024 {
+            // 10MB limit
             let mut decoder = GzDecoder::new(&buffer[..bytes_read]);
             let mut decompressed = String::new();
             if decoder.read_to_string(&mut decompressed).is_ok() {
@@ -385,7 +446,10 @@ fn read_asset_metadata(path: &std::path::Path) -> HashMap<String, String> {
         // Extract compatibility_base as JSON array string
         if let Some(cb) = json.get("compatibility_base") {
             if let Some(arr) = cb.as_array() {
-                let strs: Vec<String> = arr.iter().filter_map(|v| v.as_str().map(String::from)).collect();
+                let strs: Vec<String> = arr
+                    .iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect();
                 if !strs.is_empty() {
                     if let Ok(json_str) = serde_json::to_string(&strs) {
                         metadata.insert("compatibility_base".to_string(), json_str);
@@ -402,15 +466,22 @@ fn read_asset_metadata(path: &std::path::Path) -> HashMap<String, String> {
                             if let Some(viewer) = preview.get("viewer_settings") {
                                 // Detect dForce via simulation_settings key presence
                                 if viewer.get("simulation_settings").is_some() {
-                                    metadata.insert("dforce_enabled".to_string(), "true".to_string());
+                                    metadata
+                                        .insert("dforce_enabled".to_string(), "true".to_string());
                                     // Also detect dForce from top-level asset_type if available
                                 }
                             }
                         }
                         // Try to find compatibility_base in node.structure
                         if let Some(structure) = node.get("structure") {
-                            if let Some(cb_arr) = structure.get("compatibility_base").and_then(|v| v.as_array()) {
-                                let strs: Vec<String> = cb_arr.iter().filter_map(|v| v.as_str().map(String::from)).collect();
+                            if let Some(cb_arr) = structure
+                                .get("compatibility_base")
+                                .and_then(|v| v.as_array())
+                            {
+                                let strs: Vec<String> = cb_arr
+                                    .iter()
+                                    .filter_map(|v| v.as_str().map(String::from))
+                                    .collect();
                                 if !strs.is_empty() {
                                     if let Ok(json_str) = serde_json::to_string(&strs) {
                                         metadata.insert("compatibility_base".to_string(), json_str);
@@ -433,7 +504,9 @@ fn read_asset_metadata(path: &std::path::Path) -> HashMap<String, String> {
                 let detail = match asset_type_val.to_lowercase().as_str() {
                     t if t.contains("wearable") => "wearable",
                     t if t.contains("pose") => "pose_preset",
-                    t if t.contains("morph") || t.contains("shape") || t.contains("modifier") => "morph",
+                    t if t.contains("morph") || t.contains("shape") || t.contains("modifier") => {
+                        "morph"
+                    },
                     t if t.contains("material") || t.contains("shader") => "material_preset",
                     t if t.contains("scene") => "scene",
                     t if t.contains("prop") || t.contains("accessory") => "prop",
@@ -511,9 +584,14 @@ fn persist_assets(categorized: &CategorizedAssets) {
 
     for assets in groups {
         for asset in assets {
-            let compatibility_json = serde_json::to_string(&asset.compatibility_base).unwrap_or_default();
+            let compatibility_json =
+                serde_json::to_string(&asset.compatibility_base).unwrap_or_default();
             let tags_json = serde_json::to_string(&asset.tags).unwrap_or_default();
-            let visual_props = crate::visual_properties::extract_visual_properties(&asset.name, &asset.tags, &asset.category);
+            let visual_props = crate::visual_properties::extract_visual_properties(
+                &asset.name,
+                &asset.tags,
+                &asset.category,
+            );
             let visual_props_json = serde_json::to_string(&visual_props).unwrap_or_default();
             let _ = tx.execute(
                 "INSERT OR REPLACE INTO user_assets (user_id, asset_path, asset_name, original_name, category, subcategory, vendor, file_type, file_size, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, visual_properties) VALUES ('default', ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
@@ -556,7 +634,9 @@ pub fn scan_multiple_paths(paths: &[String]) -> ScanResult {
         combined.poses.extend(result.categorized.poses);
         combined.materials.extend(result.categorized.materials);
         combined.morphs.extend(result.categorized.morphs);
-        combined.environments.extend(result.categorized.environments);
+        combined
+            .environments
+            .extend(result.categorized.environments);
         combined.lights.extend(result.categorized.lights);
         combined.cameras.extend(result.categorized.cameras);
         combined.animations.extend(result.categorized.animations);

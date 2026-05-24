@@ -1,5 +1,5 @@
 //! Result Type Aliases
-//! 
+//!
 //! Provides convenient Result type aliases for the application.
 
 use crate::core::error::AppError;

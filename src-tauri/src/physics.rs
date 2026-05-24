@@ -174,7 +174,11 @@ pub fn create_hair_physics(node_id: &str) -> HairPhysics {
 }
 
 pub fn enable_dforce(node_id: &str, enabled: bool) -> SimulationResult {
-    log::info!("dForce {} for node {}", if enabled { "enabled" } else { "disabled" }, node_id);
+    log::info!(
+        "dForce {} for node {}",
+        if enabled { "enabled" } else { "disabled" },
+        node_id
+    );
 
     // Use run_script to toggle dForce on the node via DazScript
     let script = format!(
@@ -232,7 +236,12 @@ pub fn set_simulation_quality(quality: SimulationQuality) -> SimulationResult {
 
 pub fn run_simulation(start_frame: u32, end_frame: u32) -> SimulationResult {
     let frames = end_frame - start_frame;
-    log::info!("Running dForce simulation from frame {} to {} ({} frames)", start_frame, end_frame, frames);
+    log::info!(
+        "Running dForce simulation from frame {} to {} ({} frames)",
+        start_frame,
+        end_frame,
+        frames
+    );
 
     // If bridge is not connected, return local result
     if !crate::mcp_client::is_connected() {
@@ -456,7 +465,12 @@ pub fn stop_particle_emission(system_name: &str) -> SimulationResult {
 
 pub fn bake_to_keyframes(start_frame: u32, end_frame: u32) -> BakeResult {
     let frames = end_frame - start_frame;
-    log::info!("Baking physics to keyframes: {} to {} ({} frames)", start_frame, end_frame, frames);
+    log::info!(
+        "Baking physics to keyframes: {} to {} ({} frames)",
+        start_frame,
+        end_frame,
+        frames
+    );
 
     // If bridge is not connected, return local result
     if !crate::mcp_client::is_connected() {

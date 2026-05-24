@@ -2,10 +2,10 @@
 
 pub mod vector_store;
 
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Mutex;
-use once_cell::sync::Lazy;
 use tokio::sync::mpsc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -92,8 +92,13 @@ pub struct AiResponse {
     pub confidence: f32,
 }
 
-static EVENT_QUEUE: Lazy<Mutex<Option<mpsc::UnboundedSender<String>>>> = Lazy::new(|| Mutex::new(None));
-static SESSION_SUMMARY: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("Initial session state. Nothing has happened yet.")));
+static EVENT_QUEUE: Lazy<Mutex<Option<mpsc::UnboundedSender<String>>>> =
+    Lazy::new(|| Mutex::new(None));
+static SESSION_SUMMARY: Lazy<Mutex<String>> = Lazy::new(|| {
+    Mutex::new(String::from(
+        "Initial session state. Nothing has happened yet.",
+    ))
+});
 
 pub fn enqueue_summary_event(event: String) {
     let mut q = EVENT_QUEUE.lock().unwrap();
@@ -103,13 +108,13 @@ pub fn enqueue_summary_event(event: String) {
 
         tokio::spawn(async move {
             let mut batched_events = Vec::new();
-            
+
             while let Some(ev) = rx.recv().await {
                 batched_events.push(ev);
-                
+
                 let timeout = tokio::time::sleep(std::time::Duration::from_millis(2000));
                 tokio::pin!(timeout);
-                
+
                 loop {
                     tokio::select! {
                         _ = &mut timeout => {
@@ -123,7 +128,7 @@ pub fn enqueue_summary_event(event: String) {
                         }
                     }
                 }
-                
+
                 summarize_events(&batched_events).await;
                 batched_events.clear();
             }
@@ -137,7 +142,7 @@ pub fn enqueue_summary_event(event: String) {
 
 async fn summarize_events(events: &[String]) {
     let current_summary = SESSION_SUMMARY.lock().unwrap().clone();
-    
+
     let prompt = format!(
         "You are updating a technical architecture document. You MUST NOT write chronological history (e.g. 'I did X then Y'). You MUST only output the static current state of the architecture.\n\n\
         Current State:\n{}\n\n\
@@ -164,7 +169,7 @@ pub fn get_session_summary() -> String {
 
 static PHRASE_MAPPINGS: Lazy<Mutex<HashMap<String, PhraseMapping>>> = Lazy::new(|| {
     let mut map = HashMap::new();
-    
+
     let default_mappings = vec![
         ("load", "load_asset", "asset"),
         ("apply", "apply_asset", "asset"),
@@ -197,28 +202,31 @@ static PHRASE_MAPPINGS: Lazy<Mutex<HashMap<String, PhraseMapping>>> = Lazy::new(
         ("physics", "apply_physics", "physics"),
         ("dforce", "apply_physics", "physics"),
     ];
-    
+
     for (phrase, cmd, cat) in default_mappings {
-        map.insert(phrase.to_string(), PhraseMapping {
-            phrase: phrase.to_string(),
-            mapped_command: cmd.to_string(),
-            category: cat.to_string(),
-            usage_count: 0,
-            learned: false,
-        });
+        map.insert(
+            phrase.to_string(),
+            PhraseMapping {
+                phrase: phrase.to_string(),
+                mapped_command: cmd.to_string(),
+                category: cat.to_string(),
+                usage_count: 0,
+                learned: false,
+            },
+        );
     }
-    
+
     Mutex::new(map)
 });
 
 pub fn parse_natural_language(input: &str) -> ParsedCommand {
     let input_lower = input.to_lowercase();
     let words: Vec<&str> = input_lower.split_whitespace().collect();
-    
+
     let intent = detect_intent(&input_lower);
     let entities = extract_entities(&input_lower, &words);
     let confidence = calculate_confidence(&intent, &entities, &words);
-    
+
     ParsedCommand {
         intent,
         entities,
@@ -228,7 +236,11 @@ pub fn parse_natural_language(input: &str) -> ParsedCommand {
 }
 
 fn detect_intent(input: &str) -> Intent {
-    if input.contains("load") || input.contains("apply") || input.contains("wear") || input.contains("put on") {
+    if input.contains("load")
+        || input.contains("apply")
+        || input.contains("wear")
+        || input.contains("put on")
+    {
         Intent::LoadAsset
     } else if input.contains("pose") || input.contains("position") || input.contains("posture") {
         Intent::ApplyPose
@@ -261,8 +273,17 @@ fn detect_intent(input: &str) -> Intent {
 
 fn extract_entities(input: &str, words: &[&str]) -> Vec<Entity> {
     let mut entities = vec![];
-    
-    let figure_patterns = vec!["genesis 8", "genesis 9", "g8f", "g8m", "g9f", "g9m", "female", "male"];
+
+    let figure_patterns = vec![
+        "genesis 8",
+        "genesis 9",
+        "g8f",
+        "g8m",
+        "g9f",
+        "g9m",
+        "female",
+        "male",
+    ];
     for pattern in figure_patterns {
         if input.contains(pattern) {
             entities.push(Entity {
@@ -273,8 +294,10 @@ fn extract_entities(input: &str, words: &[&str]) -> Vec<Entity> {
             break;
         }
     }
-    
-    let clothing_patterns = vec!["shirt", "pants", "dress", "jacket", "skirt", "shoes", "boots"];
+
+    let clothing_patterns = vec![
+        "shirt", "pants", "dress", "jacket", "skirt", "shoes", "boots",
+    ];
     for pattern in clothing_patterns {
         if input.contains(pattern) {
             entities.push(Entity {
@@ -284,7 +307,7 @@ fn extract_entities(input: &str, words: &[&str]) -> Vec<Entity> {
             });
         }
     }
-    
+
     for word in words {
         if let Ok(n) = word.parse::<f32>() {
             entities.push(Entity {
@@ -294,7 +317,7 @@ fn extract_entities(input: &str, words: &[&str]) -> Vec<Entity> {
             });
         }
     }
-    
+
     entities
 }
 
@@ -304,27 +327,30 @@ fn calculate_confidence(intent: &Intent, entities: &[Entity], _words: &[&str]) -
         Intent::Query => 0.5,
         _ => 0.7,
     };
-    
+
     let entity_bonus = (entities.len() as f32) * 0.1;
     (base + entity_bonus).min(1.0)
 }
 
 pub fn map_phrase_to_command(phrase: &str) -> Option<String> {
     let map = PHRASE_MAPPINGS.lock().unwrap();
-    map.get(phrase.to_lowercase().as_str()).map(|m| m.mapped_command.clone())
+    map.get(phrase.to_lowercase().as_str())
+        .map(|m| m.mapped_command.clone())
 }
 
 pub fn learn_phrase(phrase: &str, command: &str, category: &str) {
     let mut map = PHRASE_MAPPINGS.lock().unwrap();
-    
-    let mapping = map.entry(phrase.to_lowercase()).or_insert_with(|| PhraseMapping {
-        phrase: phrase.to_lowercase(),
-        mapped_command: command.to_string(),
-        category: category.to_string(),
-        usage_count: 0,
-        learned: true,
-    });
-    
+
+    let mapping = map
+        .entry(phrase.to_lowercase())
+        .or_insert_with(|| PhraseMapping {
+            phrase: phrase.to_lowercase(),
+            mapped_command: command.to_string(),
+            category: category.to_string(),
+            usage_count: 0,
+            learned: true,
+        });
+
     mapping.usage_count += 1;
 }
 
@@ -348,8 +374,15 @@ pub fn build_scene_context() -> SceneContext {
     let mut selected_nodes = vec![];
     let mut selected_node_properties = vec![];
 
-    if let Ok(resp) = crate::mcp_client::send_mcp_request("get_selected_nodes", serde_json::json!({})) {
-        if let Some(nodes) = resp.data.as_ref().and_then(|d| d.get("nodes")).and_then(|n| n.as_array()) {
+    if let Ok(resp) =
+        crate::mcp_client::send_mcp_request("get_selected_nodes", serde_json::json!({}))
+    {
+        if let Some(nodes) = resp
+            .data
+            .as_ref()
+            .and_then(|d| d.get("nodes"))
+            .and_then(|n| n.as_array())
+        {
             for n in nodes {
                 if let Some(name) = n.get("name").and_then(|name| name.as_str()) {
                     selected_nodes.push(name.to_string());
@@ -359,8 +392,16 @@ pub fn build_scene_context() -> SceneContext {
     }
 
     if let Some(first_node) = selected_nodes.first() {
-        if let Ok(resp) = crate::mcp_client::send_mcp_request("get_node_properties", serde_json::json!({"node_id": first_node})) {
-            if let Some(props) = resp.data.as_ref().and_then(|d| d.get("properties")).and_then(|p| p.as_array()) {
+        if let Ok(resp) = crate::mcp_client::send_mcp_request(
+            "get_node_properties",
+            serde_json::json!({"node_id": first_node}),
+        ) {
+            if let Some(props) = resp
+                .data
+                .as_ref()
+                .and_then(|d| d.get("properties"))
+                .and_then(|p| p.as_array())
+            {
                 for p in props {
                     if let Some(name) = p.get("name").and_then(|name| name.as_str()) {
                         selected_node_properties.push(name.to_string());
@@ -382,7 +423,7 @@ pub fn build_scene_context() -> SceneContext {
 
 pub fn execute_ai_command(parsed: ParsedCommand) -> AiResponse {
     log::info!("Executing AI command: {:?}", parsed.intent);
-    
+
     let command = match parsed.intent {
         Intent::LoadAsset => "load_asset",
         Intent::ApplyPose => "apply_pose",
@@ -399,10 +440,14 @@ pub fn execute_ai_command(parsed: ParsedCommand) -> AiResponse {
         Intent::Query => "query",
         Intent::Unknown => "unknown",
     };
-    
+
     AiResponse {
         success: true,
-        message: format!("Executed {:?} with confidence {:.0}%", parsed.intent, parsed.confidence * 100.0),
+        message: format!(
+            "Executed {:?} with confidence {:.0}%",
+            parsed.intent,
+            parsed.confidence * 100.0
+        ),
         action_taken: Some(command.to_string()),
         entities_found: parsed.entities,
         confidence: parsed.confidence,

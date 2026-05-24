@@ -1,10 +1,10 @@
-use crate::agents::{AgentRequest, AgentResponse, AgentAction};
+use crate::agents::{AgentAction, AgentRequest, AgentResponse};
 use crate::ai_system::vector_store;
 use crate::asset_matcher::MultiStrategyMatcher;
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
-    
+
     let search_query = input
         .replace("load", "")
         .replace("the", "")
@@ -46,7 +46,10 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
             actions.push(AgentAction {
                 action_type: "suggest_load".to_string(),
                 command: "load_asset".to_string(),
-                args: vec![m.path.clone(), format!("{}_score:{:.2}", m.strategy, m.score)],
+                args: vec![
+                    m.path.clone(),
+                    format!("{}_score:{:.2}", m.strategy, m.score),
+                ],
             });
         }
     }
@@ -54,10 +57,16 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
     let result_msg = if actions.is_empty() {
         format!("No assets found for '{}' via any strategy.", search_query)
     } else {
-        format!("Found {} asset(s) for '{}' (strategies: {})",
+        format!(
+            "Found {} asset(s) for '{}' (strategies: {})",
             actions.len(),
             search_query,
-            if !semantic_results.is_empty() { "semantic" } else { "fts/fuzzy/synonym/keyword" })
+            if !semantic_results.is_empty() {
+                "semantic"
+            } else {
+                "fts/fuzzy/synonym/keyword"
+            }
+        )
     };
 
     AgentResponse {

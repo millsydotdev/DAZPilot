@@ -425,7 +425,14 @@ const COMMAND_SCHEMAS: &[CommandSchema] = &[
         name: "set_render_options",
         description: "Set render quality, resolution, and output options",
         category: "Render",
-        parameters: &["width", "height", "pixel_samples", "ray_trace_depth", "shading_rate", "gamma"],
+        parameters: &[
+            "width",
+            "height",
+            "pixel_samples",
+            "ray_trace_depth",
+            "shading_rate",
+            "gamma",
+        ],
         high_risk: false,
     },
     CommandSchema {
@@ -503,7 +510,9 @@ impl McpConnection {
     pub fn connect(host: &str, port: u16) -> Result<Self, String> {
         let addr = format!("{}:{}", host, port);
         let stream = TcpStream::connect_timeout(
-            &addr.parse().map_err(|e| format!("Invalid address: {}", e))?,
+            &addr
+                .parse()
+                .map_err(|e| format!("Invalid address: {}", e))?,
             Duration::from_secs(5),
         )
         .map_err(|e| format!("Daz bridge connection failed: {}", e))?;
@@ -541,7 +550,7 @@ impl McpConnection {
                         break;
                     }
                     buffer.push(byte[0] as char);
-                }
+                },
                 Ok(_) => break,
                 Err(e) => return Err(format!("Failed to read bridge response: {}", e)),
             }
@@ -703,7 +712,10 @@ pub fn send_mcp_request(command: &str, args: Value) -> Result<McpResponse, Strin
 
     let mut global = MCP_CLIENT.lock().unwrap();
     let Some(ref mut conn) = *global else {
-        return Err("Not connected to Daz3D. Start Daz Studio with DazPilotBridge loaded, then connect.".to_string());
+        return Err(
+            "Not connected to Daz3D. Start Daz Studio with DazPilotBridge loaded, then connect."
+                .to_string(),
+        );
     };
 
     let request = DazRequest {
@@ -722,7 +734,7 @@ pub fn send_mcp_request(command: &str, args: Value) -> Result<McpResponse, Strin
             } else {
                 Ok(resp)
             }
-        }
+        },
         Err(e) => {
             if conn.reconnect().is_ok() {
                 conn.send_json(&request)
@@ -730,7 +742,7 @@ pub fn send_mcp_request(command: &str, args: Value) -> Result<McpResponse, Strin
                 *global = None;
                 Err(format!("Daz bridge connection lost: {}", e))
             }
-        }
+        },
     }
 }
 
@@ -751,16 +763,20 @@ fn dev_mock_response(command: &str, args: &Value) -> Result<McpResponse, String>
             "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
             "dev_mock": true
         }),
-        "play_timeline"       => serde_json::json!({ "playing": true,  "dev_mock": true }),
-        "pause_timeline"      => serde_json::json!({ "playing": false, "dev_mock": true }),
-        "stop_timeline"       => serde_json::json!({ "frame": 0,       "dev_mock": true }),
-        "get_timeline_state"  => serde_json::json!({ "current_frame": 0, "start_frame": 0, "end_frame": 300, "fps": 30.0, "is_playing": false, "dev_mock": true }),
-        "get_figure_morphs"   => serde_json::json!({ "morphs": [{"id":"testMorph","label":"Test Morph","value":0.0,"min":0.0,"max":1.0,"type":"morph"}], "dev_mock": true }),
-        "get_fitted_items"    => serde_json::json!({ "items": [], "dev_mock": true }),
+        "play_timeline" => serde_json::json!({ "playing": true,  "dev_mock": true }),
+        "pause_timeline" => serde_json::json!({ "playing": false, "dev_mock": true }),
+        "stop_timeline" => serde_json::json!({ "frame": 0,       "dev_mock": true }),
+        "get_timeline_state" => {
+            serde_json::json!({ "current_frame": 0, "start_frame": 0, "end_frame": 300, "fps": 30.0, "is_playing": false, "dev_mock": true })
+        },
+        "get_figure_morphs" => {
+            serde_json::json!({ "morphs": [{"id":"testMorph","label":"Test Morph","value":0.0,"min":0.0,"max":1.0,"type":"morph"}], "dev_mock": true })
+        },
+        "get_fitted_items" => serde_json::json!({ "items": [], "dev_mock": true }),
         "get_active_expressions" => serde_json::json!({ "expressions": [], "dev_mock": true }),
-        "get_material_zones"  => serde_json::json!({ "materials": [], "dev_mock": true }),
-        "apply_morph"         => serde_json::json!({ "set": true, "dev_mock": true }),
-        "apply_expression"    => serde_json::json!({ "set": true, "dev_mock": true }),
+        "get_material_zones" => serde_json::json!({ "materials": [], "dev_mock": true }),
+        "apply_morph" => serde_json::json!({ "set": true, "dev_mock": true }),
+        "apply_expression" => serde_json::json!({ "set": true, "dev_mock": true }),
         _ => serde_json::json!({ "command": command, "args": args, "dev_mock": true }),
     };
 
@@ -823,7 +839,9 @@ mod tests {
     #[test]
     fn validates_required_arguments() {
         assert!(validate_command("select_node", &serde_json::json!({})).is_err());
-        assert!(validate_command("select_node", &serde_json::json!({ "node_id": "Genesis" })).is_ok());
+        assert!(
+            validate_command("select_node", &serde_json::json!({ "node_id": "Genesis" })).is_ok()
+        );
     }
 
     #[test]
@@ -844,7 +862,7 @@ mod tests {
                     "Error should mention bridge connection: {}",
                     err
                 );
-            }
+            },
             Ok(_) => panic!("Expected connection to fail"),
         }
     }
@@ -885,27 +903,45 @@ mod tests {
             ("get_scene_info", serde_json::json!({})),
             ("list_nodes", serde_json::json!({})),
             ("get_scene_assets", serde_json::json!({})),
-            ("add_figure", serde_json::json!({ "figure_type": "genesis9" })),
-            ("set_morph", serde_json::json!({
-                "node_id": "Genesis",
-                "morph": "Fitness",
-                "value": "0.5"
-            })),
-            ("set_light", serde_json::json!({
-                "node_id": "Light 1",
-                "property": "Intensity",
-                "value": "1.2"
-            })),
-            ("set_render_settings", serde_json::json!({
-                "width": "1920",
-                "height": "1080"
-            })),
+            (
+                "add_figure",
+                serde_json::json!({ "figure_type": "genesis9" }),
+            ),
+            (
+                "set_morph",
+                serde_json::json!({
+                    "node_id": "Genesis",
+                    "morph": "Fitness",
+                    "value": "0.5"
+                }),
+            ),
+            (
+                "set_light",
+                serde_json::json!({
+                    "node_id": "Light 1",
+                    "property": "Intensity",
+                    "value": "1.2"
+                }),
+            ),
+            (
+                "set_render_settings",
+                serde_json::json!({
+                    "width": "1920",
+                    "height": "1080"
+                }),
+            ),
             ("play_timeline", serde_json::json!({})),
             ("pause_timeline", serde_json::json!({})),
             ("stop_timeline", serde_json::json!({})),
             ("get_timeline_state", serde_json::json!({})),
-            ("get_figure_morphs", serde_json::json!({ "figure_id": "Genesis 9" })),
-            ("apply_morph", serde_json::json!({ "figure_id": "Genesis 9", "morph_id": "test", "value": 0.5 })),
+            (
+                "get_figure_morphs",
+                serde_json::json!({ "figure_id": "Genesis 9" }),
+            ),
+            (
+                "apply_morph",
+                serde_json::json!({ "figure_id": "Genesis 9", "morph_id": "test", "value": 0.5 }),
+            ),
         ];
         for (cmd, args) in commands {
             let resp = send_mcp_request(cmd, args);
@@ -939,7 +975,11 @@ mod tests {
     #[test]
     fn command_schemas_are_complete() {
         let commands = get_mcp_command_list();
-        assert!(commands.len() >= 30, "Should have at least 30 commands, got {}", commands.len());
+        assert!(
+            commands.len() >= 30,
+            "Should have at least 30 commands, got {}",
+            commands.len()
+        );
         assert!(commands.iter().any(|c| c.name == "get_scene_info"));
         assert!(commands.iter().any(|c| c.name == "load_asset"));
         assert!(commands.iter().any(|c| c.name == "run_script"));
@@ -948,7 +988,12 @@ mod tests {
     #[test]
     fn animation_commands_in_schema() {
         let names: Vec<&str> = COMMAND_SCHEMAS.iter().map(|s| s.name).collect();
-        for cmd in &["play_timeline", "pause_timeline", "stop_timeline", "get_timeline_state"] {
+        for cmd in &[
+            "play_timeline",
+            "pause_timeline",
+            "stop_timeline",
+            "get_timeline_state",
+        ] {
             assert!(names.contains(cmd), "missing animation schema: {}", cmd);
         }
     }
@@ -956,8 +1001,19 @@ mod tests {
     #[test]
     fn scene_property_commands_in_schema() {
         let names: Vec<&str> = COMMAND_SCHEMAS.iter().map(|s| s.name).collect();
-        for cmd in &["get_figure_morphs", "get_fitted_items", "get_active_expressions", "get_material_zones", "apply_morph", "apply_expression"] {
-            assert!(names.contains(cmd), "missing scene property schema: {}", cmd);
+        for cmd in &[
+            "get_figure_morphs",
+            "get_fitted_items",
+            "get_active_expressions",
+            "get_material_zones",
+            "apply_morph",
+            "apply_expression",
+        ] {
+            assert!(
+                names.contains(cmd),
+                "missing scene property schema: {}",
+                cmd
+            );
         }
     }
 
@@ -971,10 +1027,13 @@ mod tests {
             .unwrap()
             .join("plugins/daz3d-bridge/DazPilotBridgePlugin.cpp");
 
-        assert!(cpp_path.exists(), "C++ bridge source not found: {:?}", cpp_path);
+        assert!(
+            cpp_path.exists(),
+            "C++ bridge source not found: {:?}",
+            cpp_path
+        );
 
-        let source = std::fs::read_to_string(&cpp_path)
-            .expect("Failed to read C++ bridge source");
+        let source = std::fs::read_to_string(&cpp_path).expect("Failed to read C++ bridge source");
 
         let mut cpp_commands = std::collections::BTreeSet::new();
         for line in source.lines() {
@@ -989,20 +1048,32 @@ mod tests {
             }
         }
 
-        assert!(!cpp_commands.is_empty(), "No C++ commands extracted — check regex");
+        assert!(
+            !cpp_commands.is_empty(),
+            "No C++ commands extracted — check regex"
+        );
 
         let only_in_cpp: Vec<&&str> = cpp_commands.difference(&rust_commands).collect();
         let only_in_rust: Vec<&&str> = rust_commands.difference(&cpp_commands).collect();
 
         if !only_in_cpp.is_empty() || !only_in_rust.is_empty() {
-            let mut msg = String::from("Schema parity mismatch between C++ bridge and Rust mcp_client:\n");
+            let mut msg =
+                String::from("Schema parity mismatch between C++ bridge and Rust mcp_client:\n");
             if !only_in_cpp.is_empty() {
                 let list: Vec<&str> = only_in_cpp.iter().map(|s| **s).collect();
-                msg.push_str(&format!("\n  In C++ but NOT in Rust ({}): {}\n", list.len(), list.join(", ")));
+                msg.push_str(&format!(
+                    "\n  In C++ but NOT in Rust ({}): {}\n",
+                    list.len(),
+                    list.join(", ")
+                ));
             }
             if !only_in_rust.is_empty() {
                 let list: Vec<&str> = only_in_rust.iter().map(|s| **s).collect();
-                msg.push_str(&format!("\n  In Rust but NOT in C++ ({}): {}\n", list.len(), list.join(", ")));
+                msg.push_str(&format!(
+                    "\n  In Rust but NOT in C++ ({}): {}\n",
+                    list.len(),
+                    list.join(", ")
+                ));
             }
             msg.push_str("\nAdd missing schemas to COMMAND_SCHEMAS in mcp_client.rs or implement the command in DazPilotBridgePlugin.cpp");
             panic!("{}", msg);

@@ -64,7 +64,7 @@ fn ensure_embeddings_table(conn: &rusqlite::Connection) {
             asset_path TEXT PRIMARY KEY,
             embedding BLOB NOT NULL,
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-        );"
+        );",
     );
 }
 
@@ -90,7 +90,10 @@ fn read_embeddings_from_db() -> Vec<(String, Vec<f32>)> {
     if let Ok(rows) = stmt.query_map(rusqlite::params![], |row| {
         let path: String = row.get(0)?;
         let blob: Vec<u8> = row.get(1)?;
-        let emb: Vec<f32> = blob.chunks(4).map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]])).collect();
+        let emb: Vec<f32> = blob
+            .chunks(4)
+            .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+            .collect();
         Ok((path, emb))
     }) {
         for row in rows.flatten() {
@@ -121,17 +124,19 @@ pub async fn embed_all_assets() -> usize {
             Ok(s) => s,
             Err(_) => return 0,
         };
-        stmt
-            .query_map(rusqlite::params![], |row| {
-                let path: String = row.get(0)?;
-                let name: String = row.get(1)?;
-                let tags: String = row.get::<_, Option<String>>(3).unwrap_or_default().unwrap_or_default();
-                let desc: Option<String> = row.get(4).ok().flatten();
-                Ok((path, name, tags, desc))
-            })
-            .ok()
-            .map(|r| r.filter_map(|r| r.ok()).collect())
-            .unwrap_or_default()
+        stmt.query_map(rusqlite::params![], |row| {
+            let path: String = row.get(0)?;
+            let name: String = row.get(1)?;
+            let tags: String = row
+                .get::<_, Option<String>>(3)
+                .unwrap_or_default()
+                .unwrap_or_default();
+            let desc: Option<String> = row.get(4).ok().flatten();
+            Ok((path, name, tags, desc))
+        })
+        .ok()
+        .map(|r| r.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
     };
 
     let mut count = 0;
@@ -153,7 +158,8 @@ pub async fn embed_all_assets() -> usize {
                 "SELECT 1 FROM asset_embeddings WHERE asset_path=?1",
                 rusqlite::params![path],
                 |_| Ok(()),
-            ).is_ok()
+            )
+            .is_ok()
         };
         if already {
             continue;
@@ -210,14 +216,16 @@ pub async fn get_semantic_matches_async(query: &str) -> Vec<(String, f32)> {
 
 pub fn get_semantic_matches(query: &str) -> Vec<(String, f32)> {
     match tokio::runtime::Handle::try_current() {
-        Ok(handle) => tokio::task::block_in_place(|| handle.block_on(get_semantic_matches_async(query))),
+        Ok(handle) => {
+            tokio::task::block_in_place(|| handle.block_on(get_semantic_matches_async(query)))
+        },
         Err(_) => {
             if let Ok(rt) = tokio::runtime::Runtime::new() {
                 rt.block_on(get_semantic_matches_async(query))
             } else {
                 vec![]
             }
-        }
+        },
     }
 }
 
@@ -250,4 +258,3 @@ mod tests {
         assert_eq!(cosine_similarity(&[1.0, 0.0], &[1.0]), 0.0);
     }
 }
-
