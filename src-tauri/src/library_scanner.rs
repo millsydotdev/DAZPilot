@@ -98,8 +98,7 @@ const CATEGORY_PATTERNS: &[(&str, &[&str])] = &[
 
 fn get_daz_content_dirs_from_registry() -> Vec<String> {
     let mut dirs = vec![];
-    #[cfg(target_os = "windows")]
-    {
+    if cfg!(target_os = "windows") {
         if let Ok(output) = std::process::Command::new("reg")
             .args(["query", "HKCU\\Software\\DAZ\\Studio4"])
             .output()
