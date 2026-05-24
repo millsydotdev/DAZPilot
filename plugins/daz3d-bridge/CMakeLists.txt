@@ -66,7 +66,9 @@ set(QT_QTSQL_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtSql")
 set(QT_QTXML_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtXml")
 # The Qt4 libs and moc are bundled inside the Daz SDK
 set(QT_MOC_EXECUTABLE "${DAZ_SDK_BIN}/moc${CMAKE_EXECUTABLE_SUFFIX}")
-set(CMAKE_MOC_COMPILER "${QT_MOC_EXECUTABLE}")
+# Create an imported Qt4::moc target so AUTOMOC can find moc without find_package(Qt4)
+add_executable(Qt4::moc IMPORTED)
+set_property(TARGET Qt4::moc PROPERTY IMPORTED_LOCATION "${QT_MOC_EXECUTABLE}")
 
 # ── Qt4 targets from Daz SDK ──────────────────────────────────────────────
 # FindQt4.cmake was removed in CMake 3.28+, so we create targets manually
