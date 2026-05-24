@@ -73,7 +73,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p release/plugin
-          cp plugins/daz3d-bridge/dist/${{ matrix.bridge_file }} release/plugin/
+          cp plugins/daz3d-bridge/dist/Release/${{ matrix.bridge_file }} release/plugin/
           cp plugins/daz3d-bridge/README.md release/plugin/
           cd release/plugin
           7z a ../../${{ matrix.plugin_zip }}-${RELEASE_TAG}.zip ./*
