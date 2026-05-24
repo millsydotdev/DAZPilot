@@ -800,6 +800,11 @@ impl WorkflowKnowledgeBase {
         let mut steps = Vec::new();
         let mut _step_id_counter = 0;
         
+        let template_ids: Vec<String> = template.steps
+            .iter()
+            .map(|step| slugify_workflow_step(&step.description))
+            .collect();
+
         for (step_idx, template_step) in template.steps.iter().enumerate() {
             let step_id = format!("step_{}_{}", workflow_type as u32, step_idx);
             
@@ -826,16 +831,9 @@ impl WorkflowKnowledgeBase {
             // Convert prerequisites from template IDs to actual IDs
             let mut prerequisites = Vec::new();
             for prereq in &template_step.prerequisites {
-                // Find the step ID for this prerequisite
-                let mut found = false;
-                for (prev_idx, prev_template_step) in template.steps[..step_idx].iter().enumerate() {
-                    if prev_template_step.description.contains(prereq) {
-                        prerequisites.push(format!("step_{}_{}", workflow_type as u32, prev_idx));
-                        found = true;
-                        break;
-                    }
-                }
-                if !found {
+                if let Some(prev_idx) = template_ids[..step_idx].iter().position(|id| id == prereq) {
+                    prerequisites.push(format!("step_{}_{}", workflow_type as u32, prev_idx));
+                } else {
                     // If not found in previous steps, keep as-is (might be external reference)
                     prerequisites.push(prereq.clone());
                 }
@@ -887,4 +885,16 @@ impl WorkflowKnowledgeBase {
             workflow.success_rate = (1.0 - alpha) * workflow.success_rate + alpha * new_success;
         }
     }
+}
+
+fn slugify_workflow_step(description: &str) -> String {
+    description
+        .to_lowercase()
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+        .collect::<String>()
+        .split('_')
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>()
+        .join("_")
 }

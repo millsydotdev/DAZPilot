@@ -377,19 +377,113 @@ impl Planner {
     }
     
     /// Build a plan focused on specific assets
-    fn build_asset_plan(&self, _assets: Vec<String>, _figures: Vec<String>, _goal: &Goal, _context: &PlanningContext) -> Option<Plan> {
-        // TODO: Implement asset-focused planning
-        None
+    fn build_asset_plan(&self, assets: Vec<String>, figures: Vec<String>, goal: &Goal, context: &PlanningContext) -> Option<Plan> {
+        let mut steps = Vec::new();
+        let mut previous: Option<String> = None;
+
+        for figure in figures {
+            let step_id = format!("asset_figure_{}", steps.len());
+            let figure_type = if figure.to_lowercase().contains('9') { "genesis9" } else { "genesis8" };
+            steps.push(PlanStep {
+                id: step_id.clone(),
+                description: format!("Add {}", figure),
+                action: StructuredAiAction {
+                    command: "add_figure".to_string(),
+                    args: serde_json::json!({ "figure_type": figure_type }),
+                    confidence: 0.9,
+                    sdk_refs: vec!["DzFigure".to_string(), "DzContentMgr".to_string()],
+                    requires_confirmation: false,
+                },
+                prerequisites: previous.iter().cloned().collect(),
+                estimated_time_seconds: 5,
+                confidence: 0.9,
+                alternatives: Vec::new(),
+            });
+            previous = Some(step_id);
+        }
+
+        for asset in assets {
+            let step_id = format!("asset_load_{}", steps.len());
+            let (command, args, confidence, sdk_refs) = if let Some(path) = resolve_asset_path(&asset, None, context) {
+                (
+                    "load_asset".to_string(),
+                    serde_json::json!({ "path": path }),
+                    0.85,
+                    vec!["DzContentMgr".to_string(), "DzAsset".to_string()],
+                )
+            } else {
+                (
+                    "search_content".to_string(),
+                    serde_json::json!({ "query": asset, "type": "asset", "max_results": "10" }),
+                    0.65,
+                    vec!["DzContentMgr".to_string()],
+                )
+            };
+            steps.push(PlanStep {
+                id: step_id.clone(),
+                description: format!("Resolve {}", asset),
+                action: StructuredAiAction {
+                    command,
+                    args,
+                    confidence,
+                    sdk_refs,
+                    requires_confirmation: false,
+                },
+                prerequisites: previous.iter().cloned().collect(),
+                estimated_time_seconds: 5,
+                confidence,
+                alternatives: Vec::new(),
+            });
+            previous = Some(step_id);
+        }
+
+        if steps.is_empty() {
+            None
+        } else {
+            Some(self.plan_from_steps(goal, "Asset-focused composition plan", steps, RiskLevel::Low))
+        }
     }
     
     /// Build a plan based directly on intent (fallback to current behavior)
-    fn build_intent_plan(&self, _intent: Intent, _goal: &Goal, _context: &PlanningContext) -> Option<Plan> {
-        // TODO: Implement intent-based planning as fallback
-        None
+    fn build_intent_plan(&self, intent: Intent, goal: &Goal, _context: &PlanningContext) -> Option<Plan> {
+        let action = match intent {
+            Intent::CreateScene => StructuredAiAction {
+                command: "add_figure".to_string(),
+                args: serde_json::json!({ "figure_type": "genesis9" }),
+                confidence: 0.75,
+                sdk_refs: vec!["DzFigure".to_string()],
+                requires_confirmation: false,
+            },
+            Intent::CreateLight => StructuredAiAction {
+                command: "add_node".to_string(),
+                args: serde_json::json!({ "type": "point_light", "name": "AI_Key_Light" }),
+                confidence: 0.75,
+                sdk_refs: vec!["DzLight".to_string()],
+                requires_confirmation: false,
+            },
+            Intent::Render => StructuredAiAction {
+                command: "render_preview".to_string(),
+                args: serde_json::json!({}),
+                confidence: 0.75,
+                sdk_refs: vec!["DzRenderMgr".to_string()],
+                requires_confirmation: false,
+            },
+            _ => return None,
+        };
+
+        Some(self.plan_from_steps(goal, "Intent fallback plan", vec![PlanStep {
+            id: "intent_step_0".to_string(),
+            description: format!("Execute {:?}", intent),
+            action,
+            prerequisites: Vec::new(),
+            estimated_time_seconds: 5,
+            confidence: 0.75,
+            alternatives: Vec::new(),
+        }], RiskLevel::Low))
     }
     
     /// Convert a workflow step to a StructuredAiAction
-    fn workflow_step_to_action(&self, step: &WorkflowStep, _context: &PlanningContext) -> Option<StructuredAiAction> {
+    fn workflow_step_to_action(&self, step: &WorkflowStep, context: &PlanningContext) -> Option<StructuredAiAction> {
         match &step.action_type {
             ActionType::LoadAsset => {
                 // Extract asset type from parameters
@@ -412,12 +506,44 @@ impl Planner {
                            args_json = serde_json::json!({ "figure_type": figure_type.clone() });
                            conf = 0.9;
                        }
-                       "clothing" | "hair" | "pose" | "material" => {
-                           // For these, we'd need to search the asset library
-                           // For now, use a placeholder
-                           command_str = "load_asset".to_string();
-                           args_json = serde_json::json!({ "path": "TODO: resolve asset" });
-                           conf = 0.7;
+                       "clothing" | "hair" | "material" => {
+                           let query = step.parameters.get("query")
+                               .or_else(|| step.parameters.get("asset_query"))
+                               .cloned()
+                               .unwrap_or_else(|| asset_type.clone());
+                           if let Some(path) = resolve_asset_path(&query, Some(&asset_type), context) {
+                               command_str = "load_asset".to_string();
+                               args_json = serde_json::json!({ "path": path });
+                               conf = 0.82;
+                           } else {
+                               command_str = "search_content".to_string();
+                               args_json = serde_json::json!({
+                                   "query": query,
+                                   "type": asset_type,
+                                   "max_results": "10",
+                               });
+                               conf = 0.65;
+                           }
+                       }
+                       "pose" => {
+                           let query = step.parameters.get("query")
+                               .or_else(|| step.parameters.get("pose_type"))
+                               .cloned()
+                               .unwrap_or_else(|| "pose".to_string());
+                           if let Some(path) = resolve_asset_path(&query, Some("poses"), context)
+                               .or_else(|| resolve_asset_path(&query, Some("pose"), context)) {
+                               command_str = "apply_pose".to_string();
+                               args_json = serde_json::json!({ "pose_path": path, "figure_id": "selected" });
+                               conf = 0.82;
+                           } else {
+                               command_str = "search_content".to_string();
+                               args_json = serde_json::json!({
+                                   "query": query,
+                                   "type": "pose",
+                                   "max_results": "10",
+                               });
+                               conf = 0.65;
+                           }
                        }
                        "light" => {
                             let light_type_default = "point_light".to_string();
@@ -449,13 +575,24 @@ impl Planner {
                 let pose_type_default = "basic".to_string();
                 let pose_type = step.parameters.get("pose_type")
                     .unwrap_or(&pose_type_default);
-                Some(StructuredAiAction {
-                    command: "apply_pose".to_string(),
-                    args: serde_json::json!({ "pose": pose_type }),
-                    confidence: 0.8,
-                    sdk_refs: vec!["DzPose".to_string()],
-                    requires_confirmation: false,
-                })
+                if let Some(path) = resolve_asset_path(pose_type, Some("poses"), context)
+                    .or_else(|| resolve_asset_path(pose_type, Some("pose"), context)) {
+                    Some(StructuredAiAction {
+                        command: "apply_pose".to_string(),
+                        args: serde_json::json!({ "pose_path": path, "figure_id": "selected" }),
+                        confidence: 0.82,
+                        sdk_refs: vec!["DzPose".to_string()],
+                        requires_confirmation: false,
+                    })
+                } else {
+                    Some(StructuredAiAction {
+                        command: "apply_pose".to_string(),
+                        args: serde_json::json!({ "pose_path": "", "figure_id": "selected" }),
+                        confidence: 0.45,
+                        sdk_refs: vec!["DzPose".to_string()],
+                        requires_confirmation: false,
+                    })
+                }
             }
             ActionType::AdjustProperty => {
                 let prop_default = "unknown".to_string();
@@ -865,9 +1002,44 @@ impl Planner {
     
     /// Validate and refine a plan
     fn validate_and_refine(&self, plan: Plan, _context: &PlanningContext) -> Option<Plan> {
-        // TODO: Implement validation against constraints, permissions, asset availability
-        // For now, just return the plan as-is
-        Some(plan)
+        let wants_clear = plan.goal.description.to_lowercase().contains("clear")
+            || plan.goal.description.to_lowercase().contains("empty")
+            || plan.goal.description.to_lowercase().contains("from scratch");
+
+        let mut steps: Vec<PlanStep> = plan.steps.into_iter()
+            .filter(|step| {
+                if step.action.command == "clear_scene" && !wants_clear {
+                    return false;
+                }
+
+                !step.action.args
+                    .get("path")
+                    .and_then(|v| v.as_str())
+                    .map(|path| path.is_empty() || path.contains("TODO") || path.contains("unknown"))
+                    .unwrap_or(false)
+            })
+            .collect();
+
+        let valid_ids: std::collections::HashSet<String> = steps.iter().map(|step| step.id.clone()).collect();
+        for step in &mut steps {
+            step.prerequisites.retain(|prereq| valid_ids.contains(prereq));
+        }
+
+        if steps.is_empty() {
+            return None;
+        }
+
+        let estimated_total_time_seconds = steps.iter().map(|step| step.estimated_time_seconds).sum();
+        let confidence = steps.iter().map(|step| step.confidence).sum::<f32>() / steps.len() as f32;
+        let has_high_risk = steps.iter().any(|step| step.action.requires_confirmation);
+
+        Some(Plan {
+            steps,
+            estimated_total_time_seconds,
+            confidence,
+            risk_level: if has_high_risk { RiskLevel::High } else { plan.risk_level },
+            ..plan
+        })
     }
     
     /// Infer workflow type from goal
@@ -919,6 +1091,53 @@ impl Planner {
         
         None
     }
+
+    fn plan_from_steps(&self, goal: &Goal, description: &str, steps: Vec<PlanStep>, risk_level: RiskLevel) -> Plan {
+        let estimated_total_time_seconds = steps.iter().map(|s| s.estimated_time_seconds).sum();
+        let confidence = if steps.is_empty() {
+            0.0
+        } else {
+            steps.iter().map(|s| s.confidence).sum::<f32>() / steps.len() as f32
+        };
+        Plan {
+            id: format!("plan_{}_{}", std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs(), fastrand::u32(..)),
+            goal_id: goal.id.clone(),
+            goal: goal.clone(),
+            description: description.to_string(),
+            steps,
+            estimated_total_time_seconds,
+            confidence,
+            risk_level,
+            fallback_plan: None,
+        }
+    }
+}
+
+fn resolve_asset_path(query: &str, category: Option<&str>, context: &PlanningContext) -> Option<String> {
+    let query_lower = query.to_lowercase();
+    let category_lower = category.map(|c| c.to_lowercase());
+
+    context.available_assets.iter()
+        .find(|asset| {
+            let category_matches = category_lower
+                .as_ref()
+                .map(|category| asset.category.eq_ignore_ascii_case(category)
+                    || asset.category.eq_ignore_ascii_case(category.trim_end_matches('s')))
+                .unwrap_or(true);
+            category_matches && (
+                asset.name.to_lowercase().contains(&query_lower)
+                    || asset.tags.iter().any(|tag| tag.eq_ignore_ascii_case(query))
+                    || asset.visual_description
+                        .as_ref()
+                        .map(|desc| desc.to_lowercase().contains(&query_lower))
+                        .unwrap_or(false)
+            )
+        })
+        .map(|asset| asset.path.clone())
+        .or_else(|| crate::ai_action::search_best_matching_asset(query))
 }
 
 /// Analysis of a goal to inform planning

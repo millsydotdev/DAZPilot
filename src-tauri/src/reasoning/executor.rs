@@ -30,15 +30,12 @@ impl Executor {
         }
         
         // 2. Check if we're connected to Daz3D (if needed)
-        if !self.requires_daz3d_connection(plan) && !is_connected() {
-            // Check if we can proceed without connection (for planning-only steps)
-            if self.requires_daz3d_connection(plan) {
-                return ExecutionResult::Failed {
-                    reason: "Not connected to Daz3D".to_string(),
-                    details: "Please connect to Daz3D Studio before executing this plan".to_string(),
-                    step_executed: 0,
-                };
-            }
+        if self.requires_daz3d_connection(plan) && !is_connected() {
+            return ExecutionResult::Failed {
+                reason: "Not connected to Daz3D".to_string(),
+                details: "Please connect to Daz3D Studio before executing this plan".to_string(),
+                step_executed: 0,
+            };
         }
         
         // 3. Execute steps in order, respecting prerequisites
@@ -168,12 +165,12 @@ impl Executor {
     
     /// Execute a single step
     async fn execute_step(&self, step: &PlanStep, _context: &PlanningContext) -> ExecutionStepResult {
-        // TODO: In a full implementation, we would:
-        // 1. Extract any dynamic values from context
-        // 2. Apply templating to action.args
-        // 3. Execute via the MCP client
-        
-        // For now, execute the action directly
+        if Self::has_unresolved_optional_args(step) {
+            return ExecutionStepResult::Skipped {
+                reason: format!("Optional step '{}' skipped because required content was not resolved", step.description),
+            };
+        }
+
         match execute_structured_action(step.action.clone()) {
             Ok(output) => ExecutionStepResult::Success { output },
             Err(e) => ExecutionStepResult::Failed {
@@ -181,6 +178,21 @@ impl Executor {
                 details: format!("Failed to execute command: {}", step.action.command),
             }
         }
+    }
+
+    fn has_unresolved_optional_args(step: &PlanStep) -> bool {
+        let optional_content_step = matches!(step.action.command.as_str(), "apply_pose" | "set_material_texture");
+        if !optional_content_step {
+            return false;
+        }
+
+        ["pose_path", "file_path"].iter().any(|key| {
+            step.action.args
+                .get(*key)
+                .and_then(|value| value.as_str())
+                .map(|value| value.trim().is_empty() || value.contains("TODO") || value.contains("unknown"))
+                .unwrap_or(false)
+        })
     }
     
     /// Determine if a step is critical (failure should abort the plan)

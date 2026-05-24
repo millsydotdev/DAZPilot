@@ -1,7 +1,9 @@
 use dazpilot_lib::ai_system::{Entity, EntityType, Intent};
-use dazpilot_lib::reasoning::planner::{Goal, GoalPriority, Planner, PlanningContext, PlanStep};
-use dazpilot_lib::knowledge::workflow_knowledge::{ActionType, action_to_command_map};
 use dazpilot_lib::knowledge::command_knowledge::CommandKnowledgeBase;
+use dazpilot_lib::knowledge::workflow_knowledge::{action_to_command_map, ActionType};
+use dazpilot_lib::library_scanner::AssetInfo;
+use dazpilot_lib::reasoning::planner::{Goal, GoalPriority, PlanStep, Planner, PlanningContext};
+use std::collections::HashMap;
 
 fn make_goal(description: &str, intent: Intent, entities: Vec<Entity>) -> Goal {
     Goal {
@@ -53,6 +55,83 @@ fn test_create_scene_workflow_full_steps() {
     assert!(commands.contains(&"render_preview"), "Should render");
     assert!(commands.contains(&"begin_undo_batch"), "Should use undo batching");
     assert!(commands.contains(&"accept_undo_batch"), "Should close undo batch");
+}
+
+#[test]
+fn test_create_scene_workflow_has_resolved_prerequisites() {
+    let planner = Planner::new();
+    let goal = make_goal("Create a full scene", Intent::CreateScene, vec![]);
+    let plan = planner.plan_for_goal(&goal, &empty_context()).unwrap();
+    let ids: std::collections::HashSet<&str> = plan.steps.iter().map(|s| s.id.as_str()).collect();
+
+    for step in &plan.steps {
+        for prereq in &step.prerequisites {
+            assert!(
+                ids.contains(prereq.as_str()),
+                "Step '{}' has unresolved prerequisite '{}'",
+                step.description,
+                prereq
+            );
+        }
+    }
+}
+
+fn asset(path: &str, name: &str, category: &str, tags: Vec<&str>) -> AssetInfo {
+    AssetInfo {
+        path: path.into(),
+        name: name.into(),
+        file_type: "duf".into(),
+        size: 1024,
+        category: category.into(),
+        subcategory: None,
+        metadata: HashMap::new(),
+        thumbnail_path: None,
+        compatibility_base: vec![],
+        dforce_enabled: false,
+        asset_type_detail: None,
+        vendor: None,
+        tags: tags.into_iter().map(String::from).collect(),
+        visual_properties: None,
+        visual_description: None,
+    }
+}
+
+#[test]
+fn test_create_scene_workflow_has_no_placeholder_asset_paths() {
+    let planner = Planner::new();
+    let goal = make_goal("Create a full scene", Intent::CreateScene, vec![]);
+    let plan = planner.plan_for_goal(&goal, &empty_context()).unwrap();
+
+    for step in &plan.steps {
+        if let Some(path) = step.action.args.get("path").and_then(|v| v.as_str()) {
+            assert!(!path.is_empty(), "Step '{}' has empty path", step.description);
+            assert!(!path.contains("TODO"), "Step '{}' has placeholder path: {}", step.description, path);
+            assert!(!path.contains("unknown"), "Step '{}' has unknown path: {}", step.description, path);
+        }
+    }
+}
+
+#[test]
+fn test_create_scene_workflow_uses_available_assets() {
+    let planner = Planner::new();
+    let goal = make_goal("Create a full scene with clothing", Intent::CreateScene, vec![]);
+    let mut context = empty_context();
+    context.available_assets.push(asset(
+        "/library/clothing/sleek_jacket.duf",
+        "Sleek Jacket",
+        "clothing",
+        vec!["clothing", "outfit"],
+    ));
+
+    let plan = planner.plan_for_goal(&goal, &context).unwrap();
+    assert!(
+        plan.steps.iter().any(|step| {
+            step.action.command == "load_asset"
+                && step.action.args.get("path").and_then(|v| v.as_str())
+                    == Some("/library/clothing/sleek_jacket.duf")
+        }),
+        "Scene workflow should load matching assets from planning context"
+    );
 }
 
 #[test]

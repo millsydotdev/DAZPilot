@@ -1394,6 +1394,189 @@ fn try_agent_planning(message: &str, scene_context: &ai_system::SceneContext) ->
     })
 }
 
+fn should_use_multi_step_scene_composition(message: &str) -> bool {
+    let lower = message.to_lowercase();
+    let composition_intent = lower.contains("scene")
+        || lower.contains("from scratch")
+        || lower.contains("full")
+        || lower.contains("complete")
+        || lower.contains("compose")
+        || lower.contains("build");
+    let creation_intent = lower.contains("create")
+        || lower.contains("make")
+        || lower.contains("build")
+        || lower.contains("compose")
+        || lower.contains("set up");
+
+    composition_intent && creation_intent
+}
+
+fn planning_context_from_scene(message: &str, scene_context: &ai_system::SceneContext) -> reasoning::planner::PlanningContext {
+    reasoning::planner::PlanningContext {
+        scene_state: None,
+        recent_actions: scene_context.selected_nodes.clone(),
+        user_preferences: None,
+        available_assets: collect_planning_assets(message),
+        constraints: Vec::new(),
+    }
+}
+
+fn collect_planning_assets(message: &str) -> Vec<library_scanner::AssetInfo> {
+    let mut assets = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+
+    for asset in query_planning_assets(message) {
+        if seen.insert(asset.path.clone()) {
+            assets.push(asset);
+        }
+        if assets.len() >= 250 {
+            break;
+        }
+    }
+
+    assets
+}
+
+fn query_planning_assets(message: &str) -> Vec<library_scanner::AssetInfo> {
+    let lower = message.to_lowercase();
+    let mut categories = vec!["figures", "environments", "lights", "cameras"];
+
+    if lower.contains("cloth") || lower.contains("wear") || lower.contains("outfit") || lower.contains("dress") {
+        categories.push("clothing");
+    }
+    if lower.contains("hair") {
+        categories.push("hair");
+    }
+    if lower.contains("pose") || lower.contains("standing") || lower.contains("sitting") || lower.contains("action") {
+        categories.push("poses");
+    }
+    if lower.contains("material") || lower.contains("texture") || lower.contains("skin") || lower.contains("shader") {
+        categories.push("materials");
+    }
+
+    let mut results = Vec::new();
+    if let Ok(matches) = search_assets_in_db(None, Some(asset_query_from_message(message))) {
+        results.extend(matches.into_iter().take(75));
+    }
+
+    for category in categories {
+        if let Ok(matches) = search_assets_in_db(Some(category.to_string()), None) {
+            results.extend(matches.into_iter().take(30));
+        }
+    }
+
+    if results.is_empty() {
+        if let Ok(matches) = search_assets_in_db(None, None) {
+            results.extend(matches.into_iter().take(100));
+        }
+    }
+
+    results
+}
+
+fn asset_query_from_message(message: &str) -> String {
+    const STOP_WORDS: &[&str] = &[
+        "a", "an", "and", "with", "the", "for", "from", "scene", "create", "make", "build",
+        "compose", "set", "up", "full", "complete", "please", "using", "use", "daz", "daz3d",
+    ];
+
+    message
+        .split_whitespace()
+        .map(|word| word.trim_matches(|c: char| !c.is_alphanumeric()))
+        .filter(|word| word.len() > 2)
+        .filter(|word| !STOP_WORDS.contains(&word.to_lowercase().as_str()))
+        .take(8)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn goal_from_message(message: &str) -> reasoning::planner::Goal {
+    let parsed = ai_system::parse_natural_language(message);
+    let intent = if should_use_multi_step_scene_composition(message) {
+        ai_system::Intent::CreateScene
+    } else {
+        parsed.intent
+    };
+
+    reasoning::planner::Goal {
+        id: format!("chat_goal_{}", chrono::Utc::now().timestamp_millis()),
+        description: message.to_string(),
+        intent,
+        entities: parsed.entities,
+        priority: reasoning::planner::GoalPriority::High,
+        constraints: Vec::new(),
+    }
+}
+
+fn describe_plan_execution(result: &reasoning::executor::ExecutionResult) -> String {
+    match result {
+        reasoning::executor::ExecutionResult::Success { steps_executed, total_time, .. } => {
+            format!("Executed multi-step scene plan: {} steps in {:.1}s.", steps_executed, total_time.as_secs_f32())
+        }
+        reasoning::executor::ExecutionResult::PartialSuccess { successful_steps, total_steps, total_time, .. } => {
+            format!(
+                "Partially executed multi-step scene plan: {}/{} steps succeeded in {:.1}s.",
+                successful_steps,
+                total_steps,
+                total_time.as_secs_f32()
+            )
+        }
+        reasoning::executor::ExecutionResult::Failed { reason, details, step_executed } => {
+            format!(
+                "Multi-step scene plan failed after {} steps: {}. {}",
+                step_executed,
+                reason,
+                details
+            )
+        }
+    }
+}
+
+async fn try_execute_multi_step_scene_plan(message: &str, scene_context: &ai_system::SceneContext) -> Option<(String, Option<ai_action::StructuredAiAction>)> {
+    if !should_use_multi_step_scene_composition(message) {
+        return None;
+    }
+
+    let planner = reasoning::planner::Planner::new();
+    let context = planning_context_from_scene(message, scene_context);
+    let goal = goal_from_message(message);
+    let plan = planner.plan_for_goal(&goal, &context)?;
+
+    let first_action = plan.steps.first().map(|step| step.action.clone());
+    let high_risk_steps: Vec<String> = plan.steps
+        .iter()
+        .filter(|step| step.action.requires_confirmation)
+        .map(|step| step.description.clone())
+        .collect();
+
+    if !high_risk_steps.is_empty() {
+        return Some((
+            format!(
+                "Planned a {}-step scene composition, but it needs confirmation for: {}.",
+                plan.steps.len(),
+                high_risk_steps.join(", ")
+            ),
+            first_action,
+        ));
+    }
+
+    let step_names = plan.steps
+        .iter()
+        .map(|step| step.action.command.as_str())
+        .collect::<Vec<_>>()
+        .join(", ");
+    let executor = reasoning::executor::Executor::new();
+    let result = executor.execute_plan(&plan, &context).await;
+    let summary = format!(
+        "{} Plan: {}. Commands: {}.",
+        describe_plan_execution(&result),
+        plan.description,
+        step_names
+    );
+
+    Some((summary, first_action))
+}
+
 #[tauri::command]
 async fn process_chat_message(
     app_handle: tauri::AppHandle,
@@ -1411,7 +1594,11 @@ async fn process_chat_message(
         scene_context.selected_nodes.len()
     );
 
-    let action = if std::env::var("DAZPILOT_DEV_MOCK_AI").ok().as_deref() == Some("1") {
+    let multi_step_result = try_execute_multi_step_scene_plan(&message, &scene_context).await;
+
+    let action = if let Some((_, ref first_action)) = multi_step_result {
+        first_action.clone()
+    } else if std::env::var("DAZPILOT_DEV_MOCK_AI").ok().as_deref() == Some("1") {
         heuristic_action
     } else {
         let needs_llm = heuristic_action
@@ -1545,7 +1732,9 @@ async fn process_chat_message(
         String::new()
     };
 
-    let execution_summary = if let Some(ref planned) = action {
+    let execution_summary = if let Some((ref summary, _)) = multi_step_result {
+        summary.clone()
+    } else if let Some(ref planned) = action {
         if planned.requires_confirmation {
             format!(
                 "Planned action '{}' needs confirmation before execution.",
