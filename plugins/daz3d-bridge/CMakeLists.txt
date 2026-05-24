@@ -66,6 +66,7 @@ set(QT_QTSQL_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtSql")
 set(QT_QTXML_INCLUDE_DIR "${DAZ_SDK_ROOT}/include/QtXml")
 # The Qt4 libs and moc are bundled inside the Daz SDK
 set(QT_MOC_EXECUTABLE "${DAZ_SDK_BIN}/moc${CMAKE_EXECUTABLE_SUFFIX}")
+set(CMAKE_MOC_COMPILER "${QT_MOC_EXECUTABLE}")
 
 # ── Qt4 targets from Daz SDK ──────────────────────────────────────────────
 # FindQt4.cmake was removed in CMake 3.28+, so we create targets manually
@@ -169,6 +170,7 @@ if(WIN32)
 endif()
 
 target_link_libraries(DazPilotBridge PRIVATE ${DAZ_LIBS})
+target_include_directories(DazPilotBridge PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 if(MSVC)
     target_compile_options(DazPilotBridge PRIVATE "/utf-8")
 endif()

@@ -27,8 +27,8 @@ DazPilotExportOptions DazPilotExportOptions::fromJson(const QString& jsonStr) {
         opts.bakeSpecularToMetallic = j.value("bake_specular_to_metallic", false);
         opts.bakeRefractionWeight = j.value("bake_refraction_weight", false);
 
-        opts.assetType = j.value("asset_type", "SkeletalMesh");
-        opts.exportFilename = j.value("export_filename", "");
+        opts.assetType = QString::fromStdString(j.value("asset_type", "SkeletalMesh"));
+        opts.exportFilename = QString::fromStdString(j.value("export_filename", ""));
     } catch (...) {
         // Invalid JSON, return defaults
     }
