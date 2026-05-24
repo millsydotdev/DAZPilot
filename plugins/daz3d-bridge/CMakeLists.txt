@@ -43,13 +43,9 @@ include_directories(
 set(DZBRIDGE_ROOT "${CMAKE_SOURCE_DIR}/../../../temp_dazbridge" CACHE PATH "Path to DzBridge root")
 include_directories("${DZBRIDGE_ROOT}/include")
 
-# Pre-generated moc files (from Qt 4.8.1 bundled in Daz SDK)
-# These are committed to avoid running moc.exe at build time (it's a
-# 32-bit binary incompatible with GitHub Actions Windows runners).
-set(MOC_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/DazPilotBridgePlugin.moc
-    ${CMAKE_CURRENT_SOURCE_DIR}/moc_DazPilotPhyModifier.cpp
-)
+# Pre-generated moc files (from Qt 4.8.1 bundled in Daz SDK).
+# These are #included by the .cpp source files and must NOT be listed
+# as target sources — doing so would cause duplicate symbol errors.
 
 # ── Qt4 targets from Daz SDK ──────────────────────────────────────────────
 # FindQt4.cmake was removed in CMake 3.28+, so we create targets manually
@@ -98,11 +94,12 @@ endif()
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS -DDAZPILOTBRIDGE_EXPORTS)
 
-# Qt4 symbols are already provided by dzcore.lib (Daz Studio statically links Qt4).
-# Explicitly linking Qt4Core4.lib etc. is not needed and causes LNK1107 on CI
-# because they are old-format import libraries (for QtCore4.dll) incompatible
-# with VS 2022's linker.
-set(DAZ_LIBS)
+set(DAZ_LIBS
+    ${DZSDK_QT_CORE_TARGET}
+    ${DZSDK_QT_GUI_TARGET}
+    ${DZSDK_QT_SCRIPT_TARGET}
+    ${DZSDK_QT_NETWORK_TARGET}
+)
 if(WIN32)
     list(APPEND DAZ_LIBS "${DAZ_SDK_LIB}/dzcore.lib" Ws2_32.lib)
 else()
@@ -143,7 +140,6 @@ add_library(DazPilotBridge SHARED
     DazPilotBridgePlugin.h
     DazPilotPhyModifier.h
     Log.h
-    ${MOC_FILES}
 )
 if(WIN32)
     target_sources(DazPilotBridge PRIVATE DazPilotBridge.def)
