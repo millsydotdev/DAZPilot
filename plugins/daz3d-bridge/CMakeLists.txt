@@ -98,12 +98,11 @@ endif()
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS -DDAZPILOTBRIDGE_EXPORTS)
 
-set(DAZ_LIBS
-    ${DZSDK_QT_CORE_TARGET}
-    ${DZSDK_QT_GUI_TARGET}
-    ${DZSDK_QT_SCRIPT_TARGET}
-    ${DZSDK_QT_NETWORK_TARGET}
-)
+# Qt4 symbols are already provided by dzcore.lib (Daz Studio statically links Qt4).
+# Explicitly linking Qt4Core4.lib etc. is not needed and causes LNK1107 on CI
+# because they are old-format import libraries (for QtCore4.dll) incompatible
+# with VS 2022's linker.
+set(DAZ_LIBS)
 if(WIN32)
     list(APPEND DAZ_LIBS "${DAZ_SDK_LIB}/dzcore.lib" Ws2_32.lib)
 else()
