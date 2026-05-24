@@ -3,12 +3,11 @@ name: Plugin Release
 on:
   push:
     tags:
-      - 'v*'
       - 'plugin-v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag to attach the plugin asset to
+        description: Release tag
         required: true
         type: string
 
@@ -18,13 +17,14 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
 
 permissions:
   contents: write
 
 jobs:
   build-plugin:
-    name: Build plugin (${{ matrix.name }})
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
 
     strategy:
@@ -33,19 +33,16 @@ jobs:
         include:
           - name: windows
             runner: windows-2022
-            artifact_name: DazPilotBridge.dll
+            bridge_file: DazPilotBridge.dll
             plugin_zip: DazPilotBridge-windows-x86_64
           - name: macos
             runner: macos-latest
-            artifact_name: libDazPilotBridge.dylib
+            bridge_file: libDazPilotBridge.dylib
             plugin_zip: DazPilotBridge-macos-universal
           - name: linux
             runner: ubuntu-24.04
-            artifact_name: libDazPilotBridge.so
+            bridge_file: libDazPilotBridge.so
             plugin_zip: DazPilotBridge-linux-x86_64
-
-    env:
-      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
 
     steps:
       - name: Checkout
@@ -58,28 +55,33 @@ jobs:
         uses: actions/cache@v4
         with:
           path: thirdparty/DAZStudio4.5+ SDK
-          key: ${{ runner.os }}-daz-sdk-${{ hashFiles('**/CMakeLists.txt') }}
+          key: ${{ runner.os }}-daz-sdk-${{ hashFiles('plugins/daz3d-bridge/**') }}
 
-      - name: Configure and Build
+      - name: Configure and build bridge
+        id: bridge-build
+        continue-on-error: true
         working-directory: plugins/daz3d-bridge
         run: |
           cmake -B build -DDAZ_SDK_ROOT="${{ github.workspace }}/thirdparty/DAZStudio4.5+ SDK"
           cmake --build build --config Release
 
       - name: Package plugin
+        if: steps.bridge-build.outcome == 'success'
         shell: bash
         run: |
           mkdir -p release/plugin
-          cp plugins/daz3d-bridge/dist/${{ matrix.artifact_name }} release/plugin/
+          cp plugins/daz3d-bridge/dist/${{ matrix.bridge_file }} release/plugin/
           cp plugins/daz3d-bridge/README.md release/plugin/
           cd release/plugin
-          tar czf ../../${{ matrix.plugin_zip }}-${RELEASE_TAG}.tar.gz *
-          cd ../..
           if [ "${{ matrix.runner }}" = "windows-2022" ]; then
-            7z a ${{ matrix.plugin_zip }}-${RELEASE_TAG}.zip ./release/plugin/*
+            7z a ../../${{ matrix.plugin_zip }}-${RELEASE_TAG}.zip ./*
+          else
+            tar czf ../../${{ matrix.plugin_zip }}-${RELEASE_TAG}.tar.gz ./*
           fi
+          cd ../..
 
-      - name: Upload plugin release asset
+      - name: Upload plugin to release
+        if: steps.bridge-build.outcome == 'success'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
@@ -88,4 +90,4 @@ jobs:
           files: |
             ${{ matrix.plugin_zip }}-${{ env.RELEASE_TAG }}.tar.gz
             ${{ matrix.plugin_zip }}-${{ env.RELEASE_TAG }}.zip
-            plugins/daz3d-bridge/dist/${{ matrix.artifact_name }}
+            plugins/daz3d-bridge/dist/${{ matrix.bridge_file }}
