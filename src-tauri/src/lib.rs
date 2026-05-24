@@ -89,7 +89,6 @@ pub fn run() {
             // 1. Create splash window
             let splash = tauri::WebviewWindowBuilder::new(app, "splash", tauri::WebviewUrl::App("splash.html".into()))
                 .title("Splash")
-                .transparent(true)
                 .decorations(false)
                 .always_on_top(true)
                 .center()
