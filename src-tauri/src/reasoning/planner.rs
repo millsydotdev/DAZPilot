@@ -309,7 +309,7 @@ impl Planner {
         }
         
         // Step 2: Apply lighting setup from scene knowledge
-        for (_i, lighting_rec) in scene_understanding.lighting_setup.iter().enumerate() {
+        for lighting_rec in scene_understanding.lighting_setup.iter() {
             plan_steps.push(PlanStep {
                 id: format!("add_light_{}", step_counter),
                 description: format!("Add {} light for {} purpose", lighting_rec.light_type, lighting_rec.purpose),
@@ -1116,6 +1116,14 @@ impl Planner {
     }
 }
 
+
+
+impl Default for Planner {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 fn resolve_asset_path(query: &str, category: Option<&str>, context: &PlanningContext) -> Option<String> {
     let query_lower = query.to_lowercase();
     let category_lower = category.map(|c| c.to_lowercase());
@@ -1216,3 +1224,5 @@ pub enum SkillLevel {
     Advanced,
     Expert,
 }
+
+

@@ -17,7 +17,7 @@ impl Explainer {
     pub fn explain_plan_selection(&self, plan: &Plan, alternatives: &[Plan], _context: &PlanningContext) -> String {
         let mut explanation = String::new();
         
-        explanation.push_str(&format!("I chose this plan because:\n"));
+        explanation.push_str("I chose this plan because:\n");
         explanation.push_str(&format!("• Overall confidence: {:.0}%\n", plan.confidence * 100.0));
         explanation.push_str(&format!("• Estimated time: {} seconds\n", plan.estimated_total_time_seconds));
         explanation.push_str(&format!("• Risk level: {:?}\n", plan.risk_level));
@@ -25,7 +25,7 @@ impl Explainer {
         if let Some(ref fallback) = plan.fallback_plan {
             explanation.push_str(&format!("• Has fallback plan: Yes ({} steps)\n", fallback.steps.len()));
         } else {
-            explanation.push_str(&format!("• Has fallback plan: No\n"));
+        explanation.push_str("• Has fallback plan: No\n");
         }
         
         explanation.push_str("\nPlan details:\n");
@@ -69,7 +69,7 @@ impl Explainer {
         if !step.prerequisites.is_empty() {
             explanation.push_str(&format!("Prerequisites: {}\n", step.prerequisites.join(", ")));
         } else {
-            explanation.push_str(&format!("Prerequisites: None (can start immediately)\n"));
+        explanation.push_str("Prerequisites: None (can start immediately)\n");
         }
         
         // Explain alternatives if any
@@ -88,12 +88,12 @@ impl Explainer {
         explanation.push_str(&format!("Error: {}\n", error));
         
         // Provide context
-        explanation.push_str(&format!("Context when failure occurred:\n"));
+        explanation.push_str("Context when failure occurred:\n");
         explanation.push_str(&format!("• Attempted command: {}\n", failed_step.action.command));
         explanation.push_str(&format!("• Command args: {}\n", failed_step.action.args));
         
 // Provide suggestions based on failure type
-        explanation.push_str(&format!("Suggestions:\n"));
+        explanation.push_str("Suggestions:\n");
         let suggestions = self.generate_failure_suggestions(failed_step, error, context);
         for suggestion in suggestions {
             explanation.push_str(&format!("• {}\n", suggestion));
@@ -237,7 +237,7 @@ impl Explainer {
     pub fn explain_plan_outcome(&self, plan: &Plan) -> String {
         let mut explanation = String::new();
         
-        explanation.push_str(&format!("If successful, this plan will:\n"));
+        explanation.push_str("If successful, this plan will:\n");
         
         // Group steps by type to give a higher-level explanation
         let mut figures_added = 0;
@@ -296,3 +296,10 @@ impl Explainer {
         explanation
     }
 }
+
+impl Default for Explainer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

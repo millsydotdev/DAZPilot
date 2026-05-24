@@ -661,3 +661,10 @@ impl SceneKnowledgeBase {
         None
     }
 }
+
+impl Default for SceneKnowledgeBase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

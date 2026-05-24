@@ -299,3 +299,10 @@ impl FailureKnowledgeBase {
         }
     }
 }
+
+impl Default for FailureKnowledgeBase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

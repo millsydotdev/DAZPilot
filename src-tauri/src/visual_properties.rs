@@ -68,35 +68,37 @@ pub fn score_scene_coherence(
 /// Walk all assets that have a thumbnail but no description yet, and generate
 /// one via Ollama vision. Returns count of new descriptions generated.
 pub async fn describe_all_assets() -> usize {
-    let guard = match crate::database::get_db() {
-        Ok(g) => g,
-        Err(_) => return 0,
-    };
-    let db = match guard.as_ref() {
-        Some(d) => d,
-        None => return 0,
-    };
-    let conn = match rusqlite::Connection::open(db.path()) {
-        Ok(c) => c,
-        Err(_) => return 0,
-    };
+    let rows: Vec<(String, String)> = {
+        let guard = match crate::database::get_db() {
+            Ok(g) => g,
+            Err(_) => return 0,
+        };
+        let db = match guard.as_ref() {
+            Some(d) => d,
+            None => return 0,
+        };
+        let conn = match rusqlite::Connection::open(db.path()) {
+            Ok(c) => c,
+            Err(_) => return 0,
+        };
 
-    let mut stmt = match conn.prepare(
-        "SELECT asset_path, thumbnail_path FROM user_assets WHERE user_id='default' AND thumbnail_path IS NOT NULL AND (visual_description IS NULL OR visual_description = '') LIMIT 100"
-    ) {
-        Ok(s) => s,
-        Err(_) => return 0,
-    };
+        let mut stmt = match conn.prepare(
+            "SELECT asset_path, thumbnail_path FROM user_assets WHERE user_id='default' AND thumbnail_path IS NOT NULL AND (visual_description IS NULL OR visual_description = '') LIMIT 100"
+        ) {
+            Ok(s) => s,
+            Err(_) => return 0,
+        };
 
-    let rows: Vec<(String, String)> = stmt
-        .query_map(rusqlite::params![], |row| {
-            let path: String = row.get(0)?;
-            let thumb: String = row.get(1)?;
-            Ok((path, thumb))
-        })
-        .ok()
-        .map(|r| r.filter_map(|r| r.ok()).collect())
-        .unwrap_or_default();
+        stmt
+            .query_map(rusqlite::params![], |row| {
+                let path: String = row.get(0)?;
+                let thumb: String = row.get(1)?;
+                Ok((path, thumb))
+            })
+            .ok()
+            .map(|r| r.filter_map(|r| r.ok()).collect())
+            .unwrap_or_default()
+    };
 
     if rows.is_empty() {
         return 0;
@@ -129,10 +131,24 @@ pub async fn describe_all_assets() -> usize {
             None => continue,
         };
 
-        let _ = conn.execute(
-            "UPDATE user_assets SET visual_description=?1 WHERE asset_path=?2",
-            rusqlite::params![description, asset_path],
-        );
+        let _ = {
+            let guard = match crate::database::get_db() {
+                Ok(g) => g,
+                Err(_) => return count,
+            };
+            let db = match guard.as_ref() {
+                Some(d) => d,
+                None => return count,
+            };
+            let conn = match rusqlite::Connection::open(db.path()) {
+                Ok(c) => c,
+                Err(_) => return 0,
+            };
+            conn.execute(
+                "UPDATE user_assets SET visual_description=?1 WHERE asset_path=?2",
+                rusqlite::params![description, asset_path],
+            )
+        };
         count += 1;
     }
     count

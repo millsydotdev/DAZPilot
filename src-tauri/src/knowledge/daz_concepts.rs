@@ -377,7 +377,7 @@ impl DazKnowledgeBase {
         self.materials.insert("UberSurface".to_string(), Material {
             name: "UberSurface".to_string(),
             shader_type: "uber".to_string(),
-            compatible_with: vec![
+            compatible_with: [
                 "Genesis 8 Female".to_string(),
                 "Genesis 9 Female".to_string(),
                 "Genesis 8 Male".to_string(),
@@ -400,7 +400,7 @@ impl DazKnowledgeBase {
         self.materials.insert("Skin Shader".to_string(), Material {
             name: "Skin Shader".to_string(),
             shader_type: "skin".to_string(),
-            compatible_with: vec![
+            compatible_with: [
                 "Genesis 8 Female".to_string(),
                 "Genesis 9 Female".to_string(),
                 "Genesis 8 Male".to_string(),
@@ -538,3 +538,10 @@ impl DazKnowledgeBase {
             .collect()
     }
 }
+
+impl Default for DazKnowledgeBase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

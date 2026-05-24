@@ -198,7 +198,7 @@ impl Executor {
     /// Determine if a step is critical (failure should abort the plan)
     fn is_critical_step(&self, step: &PlanStep, all_steps: &[PlanStep]) -> bool {
         // Steps that create essential resources are usually critical
-        let critical_commands = vec![
+        let critical_commands = [
             "add_figure",    // Without a figure, most other steps don't make sense
             "load_asset",    // If we're trying to load a specific requested asset
             "add_node",      // If we're creating essential lights/cameras
@@ -287,3 +287,10 @@ pub enum Output {
     Failure(String),
     Skipped(String),
 }
+
+impl Default for Executor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

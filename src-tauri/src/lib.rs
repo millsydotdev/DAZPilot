@@ -27,7 +27,6 @@ pub mod reasoning;
 pub mod context;
 
 use serde::{Deserialize, Serialize};
-use serde_json;
 use ollama_service::{check_ollama_status, get_ollama_models, pull_ollama_model, ollama_chat};
 use asset_fixer::{
     ConflictScanResult, AssetFixResult, ShellInfo

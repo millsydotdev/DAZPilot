@@ -101,56 +101,85 @@ fn read_embeddings_from_db() -> Vec<(String, Vec<f32>)> {
 }
 
 pub async fn embed_all_assets() -> usize {
-    let guard = match crate::database::get_db() {
-        Ok(g) => g,
-        Err(_) => return 0,
-    };
-    let db = match guard.as_ref() {
-        Some(d) => d,
-        None => return 0,
-    };
-    let conn = match rusqlite::Connection::open(db.path()) {
-        Ok(c) => c,
-        Err(_) => return 0,
-    };
-    ensure_embeddings_table(&conn);
+    let rows: Vec<(String, String, String, Option<String>)> = {
+        let guard = match crate::database::get_db() {
+            Ok(g) => g,
+            Err(_) => return 0,
+        };
+        let db = match guard.as_ref() {
+            Some(d) => d,
+            None => return 0,
+        };
+        let conn = match rusqlite::Connection::open(db.path()) {
+            Ok(c) => c,
+            Err(_) => return 0,
+        };
+        ensure_embeddings_table(&conn);
 
-    let sql = "SELECT asset_path, asset_name, category, tags, visual_description FROM user_assets WHERE user_id='default'";
-    let mut stmt = match conn.prepare(sql) {
-        Ok(s) => s,
-        Err(_) => return 0,
+        let sql = "SELECT asset_path, asset_name, category, tags, visual_description FROM user_assets WHERE user_id='default'";
+        let mut stmt = match conn.prepare(sql) {
+            Ok(s) => s,
+            Err(_) => return 0,
+        };
+        stmt
+            .query_map(rusqlite::params![], |row| {
+                let path: String = row.get(0)?;
+                let name: String = row.get(1)?;
+                let tags: String = row.get::<_, Option<String>>(3).unwrap_or_default().unwrap_or_default();
+                let desc: Option<String> = row.get(4).ok().flatten();
+                Ok((path, name, tags, desc))
+            })
+            .ok()
+            .map(|r| r.filter_map(|r| r.ok()).collect())
+            .unwrap_or_default()
     };
-    let rows: Vec<(String, String, String, Option<String>)> = stmt
-        .query_map(rusqlite::params![], |row| {
-            let path: String = row.get(0)?;
-            let name: String = row.get(1)?;
-            let tags: String = row.get::<_, Option<String>>(3).unwrap_or_default().unwrap_or_default();
-            let desc: Option<String> = row.get(4).ok().flatten();
-            Ok((path, name, tags, desc))
-        })
-        .ok()
-        .map(|r| r.filter_map(|r| r.ok()).collect())
-        .unwrap_or_default();
 
     let mut count = 0;
     for (path, name, tags, desc) in &rows {
-        let already: bool = conn.query_row(
-            "SELECT 1 FROM asset_embeddings WHERE asset_path=?1",
-            rusqlite::params![path],
-            |_| Ok(()),
-        ).is_ok();
+        let already: bool = {
+            let guard = match crate::database::get_db() {
+                Ok(g) => g,
+                Err(_) => return count,
+            };
+            let db = match guard.as_ref() {
+                Some(d) => d,
+                None => return count,
+            };
+            let conn = match rusqlite::Connection::open(db.path()) {
+                Ok(c) => c,
+                Err(_) => return 0,
+            };
+            conn.query_row(
+                "SELECT 1 FROM asset_embeddings WHERE asset_path=?1",
+                rusqlite::params![path],
+                |_| Ok(()),
+            ).is_ok()
+        };
         if already {
             continue;
         }
-        // Embed the vision description if available (richest signal), otherwise fall back to name+tags
         let text = desc.as_ref().map(|d| d.as_str()).unwrap_or(name);
         let text = format!("{} {} {}", text, name, tags);
         if let Some(embedding) = generate_embedding(&text).await {
             let blob: Vec<u8> = embedding.iter().flat_map(|f| f.to_le_bytes()).collect();
-            let _ = conn.execute(
-                "INSERT OR REPLACE INTO asset_embeddings (asset_path, embedding) VALUES (?1, ?2)",
-                rusqlite::params![path, blob],
-            );
+            let _ = {
+                let guard = match crate::database::get_db() {
+                    Ok(g) => g,
+                    Err(_) => return count,
+                };
+                let db = match guard.as_ref() {
+                    Some(d) => d,
+                    None => return count,
+                };
+                let conn = match rusqlite::Connection::open(db.path()) {
+                    Ok(c) => c,
+                    Err(_) => return 0,
+                };
+                conn.execute(
+                    "INSERT OR REPLACE INTO asset_embeddings (asset_path, embedding) VALUES (?1, ?2)",
+                    rusqlite::params![path, blob],
+                )
+            };
             count += 1;
         }
     }
@@ -221,3 +250,4 @@ mod tests {
         assert_eq!(cosine_similarity(&[1.0, 0.0], &[1.0]), 0.0);
     }
 }
+

@@ -337,3 +337,10 @@ impl AssetKnowledgeBase {
         self.get_semantic_asset(asset_info).popularity
     }
 }
+
+impl Default for AssetKnowledgeBase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

@@ -745,3 +745,10 @@ fn build_command_catalog() -> Vec<CommandKnowledge> {
         },
     ]
 }
+
+impl Default for CommandKnowledgeBase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

@@ -68,7 +68,7 @@ impl MultiStrategyMatcher {
     }
 
     pub fn expand_with_synonyms(&self, query: &str) -> Vec<String> {
-        let words: Vec<String> = query.split_whitespace().map(|w| Self::normalize_word(w)).filter(|w| !w.is_empty()).collect();
+        let words: Vec<String> = query.split_whitespace().map(Self::normalize_word).filter(|w| !w.is_empty()).collect();
         if words.is_empty() {
             return vec![];
         }
@@ -106,10 +106,8 @@ impl MultiStrategyMatcher {
         for qw in query_words {
             if name_lower.contains(qw) {
                 matched += 1;
-            } else {
-                if name_lower.contains(&qw[..qw.len().min(3)]) {
-                    partial += 1;
-                }
+            } else if name_lower.contains(&qw[..qw.len().min(3)]) {
+                partial += 1;
             }
         }
         let total = query_words.len() as f32;
@@ -418,3 +416,6 @@ mod tests {
         assert_eq!(MultiStrategyMatcher::normalize_word("  foo-bar  "), "foobar");
     }
 }
+
+
+

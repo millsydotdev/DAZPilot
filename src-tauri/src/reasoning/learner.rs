@@ -139,7 +139,7 @@ impl Learner {
             self.failure_knowledge.record_failure(
                 failure_context,
                 &format!("Partial success plan ({}/{}) steps", successful_steps, total_steps),
-                &"Plan had low success rate in this context".to_string(),
+                "Plan had low success rate in this context",
                 None
             );
         }
@@ -157,7 +157,7 @@ impl Learner {
             let failure_context = self.create_failure_context(plan, context);
             self.failure_knowledge.record_failure(
                 failure_context,
-                &"Plan validation",
+                "Plan validation",
                 &format!("Validation error: {}", error),
                 None
             );
@@ -309,3 +309,10 @@ impl Learner {
         Vec::new()
     }
 }
+
+impl Default for Learner {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

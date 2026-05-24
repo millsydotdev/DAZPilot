@@ -798,7 +798,6 @@ impl WorkflowKnowledgeBase {
         
         // Convert template steps to actual steps with parameter substitution
         let mut steps = Vec::new();
-        let mut _step_id_counter = 0;
         
         let template_ids: Vec<String> = template.steps
             .iter()
@@ -849,7 +848,6 @@ impl WorkflowKnowledgeBase {
                 difficulty: template_step.difficulty,
             });
             
-            _step_id_counter += 1;
         }
         
         Some(Workflow {
@@ -898,3 +896,10 @@ fn slugify_workflow_step(description: &str) -> String {
         .collect::<Vec<_>>()
         .join("_")
 }
+
+impl Default for WorkflowKnowledgeBase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

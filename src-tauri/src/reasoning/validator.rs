@@ -165,7 +165,7 @@ impl Validator {
             if step.action.command == "add_node" {
                 if let Some(node_type) = step.action.args.get("type").and_then(|p| p.as_str()) {
                     // Validate that this is a known node type
-                    let valid_types = vec![
+                    let valid_types = [
                         "point_light", "spot_light", "distant_light", "area_light",
                         "camera", "null"
                     ];
@@ -187,7 +187,7 @@ impl Validator {
         let mut warnings = Vec::new();
         
         // High-risk operations that might need permission
-        let high_risk_commands = vec![
+        let high_risk_commands = [
             "export_scene",
             "delete_node", 
             "run_script"
@@ -214,3 +214,10 @@ pub struct ValidationResult {
     pub warnings: Vec<String>,
     pub suggestions: Vec<String>,
 }
+
+impl Default for Validator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
