@@ -9,6 +9,7 @@ const TAB_TITLES: Record<AppTab, string> = {
   viewport: 'Viewport',
   scene: 'Scene Control',
   scratchpad: 'Scratchpad',
+  presets: 'Scene Presets',
   settings: 'Settings',
 };
 

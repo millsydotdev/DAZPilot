@@ -1,19 +1,19 @@
 import { useId } from 'react';
 import { cn } from '../../utils/cn';
 
-interface DazPilotLogoProps {
+interface DAZPilotLogoProps {
   className?: string;
   size?: number;
   showWordmark?: boolean;
   compact?: boolean;
 }
 
-export function DazPilotLogo({
+export function DAZPilotLogo({
   className = '',
   size = 48,
   showWordmark = false,
   compact = false,
-}: DazPilotLogoProps) {
+}: DAZPilotLogoProps) {
   const uid = useId().replace(/:/g, '');
   const crystalId = `dp-crystal-${uid}`;
   const glowId = `dp-glow-${uid}`;
@@ -92,9 +92,9 @@ export function DazPilotLogo({
   );
 }
 
-export function DazPilotLogoCompact({
+export function DAZPilotLogoCompact({
   className = '',
   size = 32,
-}: Pick<DazPilotLogoProps, 'className' | 'size'>) {
-  return <DazPilotLogo className={className} size={size} compact />;
+}: Pick<DAZPilotLogoProps, 'className' | 'size'>) {
+  return <DAZPilotLogo className={className} size={size} compact />;
 }

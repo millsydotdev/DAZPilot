@@ -1,42 +1,65 @@
 use crate::agents::{AgentRequest, AgentResponse, AgentAction};
 use crate::ai_system::vector_store;
+use crate::asset_matcher::MultiStrategyMatcher;
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
     
-    // 1. Clean query
     let search_query = input
         .replace("load", "")
         .replace("the", "")
         .replace("find", "")
         .replace("apply", "")
         .replace("search", "")
+        .replace("add", "")
         .trim()
         .to_string();
 
-    // 2. Proactively try semantic matching for 'vibe' queries
-    let semantic_results = vector_store::get_semantic_matches(&search_query);
-    
-    let mut actions = vec![];
-    let result_msg = if semantic_results.is_empty() {
-        "No semantic matches found. Defaulting to keyword search...".to_string()
-    } else {
-        format!("Found {} semantic match(es).", semantic_results.len())
-    };
+    if search_query.is_empty() {
+        return AgentResponse {
+            success: true,
+            result: Some("Empty query after cleaning.".to_string()),
+            error: None,
+            actions: vec![],
+        };
+    }
 
+    let mut actions = vec![];
+
+    // Strategy 1: Semantic (embedding) match — async, best for vibe queries
+    let semantic_results = vector_store::get_semantic_matches(&search_query);
     if !semantic_results.is_empty() {
-        for (path, score) in semantic_results {
+        for (path, score) in &semantic_results {
             actions.push(AgentAction {
                 action_type: "suggest_load".to_string(),
                 command: "load_asset".to_string(),
-                args: vec![path, format!("Confidence: {:.2}", score)],
+                args: vec![path.clone(), format!("semantic_score:{:.2}", score)],
             });
         }
-    } else {
-        // Fallback to existing FTS5 logic...
-        // [Existing logic here]
     }
-    
+
+    // Strategy 2: Multi-strategy matcher (FTS, fuzzy, synonym, keyword)
+    if actions.is_empty() {
+        let matcher = MultiStrategyMatcher::new();
+        let matches = matcher.search_all_assets(&search_query);
+        for m in &matches {
+            actions.push(AgentAction {
+                action_type: "suggest_load".to_string(),
+                command: "load_asset".to_string(),
+                args: vec![m.path.clone(), format!("{}_score:{:.2}", m.strategy, m.score)],
+            });
+        }
+    }
+
+    let result_msg = if actions.is_empty() {
+        format!("No assets found for '{}' via any strategy.", search_query)
+    } else {
+        format!("Found {} asset(s) for '{}' (strategies: {})",
+            actions.len(),
+            search_query,
+            if !semantic_results.is_empty() { "semantic" } else { "fts/fuzzy/synonym/keyword" })
+    };
+
     AgentResponse {
         success: true,
         result: Some(result_msg),

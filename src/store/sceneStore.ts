@@ -33,6 +33,7 @@ export interface SceneCamera {
   position: { x: number; y: number; z: number };
   target: { x: number; y: number; z: number };
   focalLength: number;
+  enabled: boolean;
 }
 
 export interface NodeProperty {
@@ -85,6 +86,10 @@ export interface SceneActions {
   addLight: (light: Omit<SceneLight, 'id'>) => void;
   removeLight: (id: string) => void;
   updateLight: (id: string, updates: Partial<SceneLight>) => void;
+  addCamera: (camera: Omit<SceneCamera, 'id'>) => void;
+  removeCamera: (id: string) => void;
+  selectCamera: (id: string) => void;
+  toggleCameraEnabled: (id: string) => void;
   fetchNodeProperties: (nodeId: string) => Promise<void>;
   updateNodeProperty: (nodeId: string, propName: string, value: number) => Promise<void>;
   fetchMaterialProperties: (nodeId: string) => Promise<void>;
@@ -376,6 +381,63 @@ export const useSceneStore = create<SceneState & SceneActions>((set, get) => ({
     }));
   },
 
+  addCamera: (camera) =>
+    set((state) => ({
+      cameras: [...state.cameras, { ...camera, id: `camera-${Date.now()}` }],
+    })),
+
+  removeCamera: async (id) => {
+    if (await bridgeConnected()) {
+      try {
+        await bridgeDeleteNode(id);
+      } catch (e) {
+        console.error('Bridge delete_node failed:', e);
+      }
+    }
+    set((state) => ({
+      cameras: state.cameras.filter((c) => c.id !== id),
+      // If we're removing the active camera, clear it
+      activeCamera: state.activeCamera === id ? null : state.activeCamera,
+    }));
+  },
+
+  selectCamera: async (id) => {
+    if (await bridgeConnected()) {
+      try {
+        await bridgeSelectNode(id);
+      } catch (e) {
+        console.error('Bridge select_node failed:', e);
+      }
+    }
+    set(() => ({
+      activeCamera: id,
+      selectedItem: id,
+    }));
+  },
+
+  toggleCameraEnabled: async (id) => {
+    const camera = get().cameras.find((c) => c.id === id);
+    const nextEnabled = camera ? !camera.enabled : true;
+    if (await bridgeConnected()) {
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        await invoke('execute_command', {
+          command: 'set_property',
+          args: {
+            node_id: id,
+            property: 'Visible',
+            value: nextEnabled ? '1' : '0',
+          },
+        });
+      } catch (e) {
+        console.error('Bridge set_property Visible failed:', e);
+      }
+    }
+    set((state) => ({
+      cameras: state.cameras.map((c) => (c.id === id ? { ...c, enabled: nextEnabled } : c)),
+    }));
+  },
+
   fetchNodeProperties: async (nodeId) => {
     if (await bridgeConnected()) {
       try {
@@ -501,6 +563,7 @@ export const useSceneStore = create<SceneState & SceneActions>((set, get) => ({
       const figures: SceneFigure[] = [];
       const props: SceneProp[] = [];
       const lights: SceneLight[] = [];
+      const cameras: SceneCamera[] = [];
 
       for (const node of nodes) {
         const nodeType = node.node_type || (node as { type?: string }).type || 'Node';
@@ -526,7 +589,19 @@ export const useSceneStore = create<SceneState & SceneActions>((set, get) => ({
             intensity: 1,
             color: '#ffffff',
           });
-        } else if (nodeType !== 'Camera') {
+        } else if (nodeType === 'Camera') {
+          // For cameras, we need to get more detailed information
+          // For now, we'll create a basic camera object
+          // In a real implementation, we'd fetch the camera properties
+          cameras.push({
+            id: node.id,
+            name: node.name,
+            position: { x: 0, y: 0, z: 0 },
+            target: { x: 0, y: 0, z: -1 },
+            focalLength: 50,
+            enabled: true,
+          });
+        } else {
           props.push({
             id: node.id,
             name: node.name,
@@ -538,7 +613,7 @@ export const useSceneStore = create<SceneState & SceneActions>((set, get) => ({
         }
       }
 
-      set({ figures, props, lights, bridgeSynced: connected });
+      set({ figures, props, lights, cameras, bridgeSynced: connected });
     } catch (e) {
       console.error('Failed to load scene:', e);
       set({ bridgeSynced: false });

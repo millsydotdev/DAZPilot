@@ -39,6 +39,9 @@ include_directories(
     "${CMAKE_SOURCE_DIR}/../../thirdparty/simdjson/singleheader"
     "${CMAKE_SOURCE_DIR}/../../thirdparty/utfcpp/source"
 )
+# DzBridge Library
+set(DZBRIDGE_ROOT "${CMAKE_SOURCE_DIR}/../../../temp_dazbridge" CACHE PATH "Path to DzBridge root")
+include_directories("${DZBRIDGE_ROOT}/include")
 
 # Setup Qt from the DAZ SDK for AUTOMOC
 set(DAZ_SDK_QTCORE_LIBRARY "${DAZ_SDK_LIB}/${CMAKE_STATIC_LIBRARY_PREFIX}QtCore4${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -147,6 +150,7 @@ option(DAZPILOT_DEPLOY_TO_DAZ "Copy DazPilotBridge to the Daz Studio plugins dir
 add_library(DazPilotBridge SHARED
     DazPilotBridge.cpp
     DazPilotBridgePlugin.cpp
+    DazPilotExportOptions.cpp
     DazPilotPhyModifier.cpp
     Log.cpp
     DazPilotBridge.h

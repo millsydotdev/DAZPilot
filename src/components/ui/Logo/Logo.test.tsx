@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Logo, LogoCompact } from './Logo';
 
-vi.mock('../../brand/DazPilotLogo', () => ({
-  DazPilotLogo: ({ size }: { size: number }) => <span data-testid="logo">{size}px</span>,
-  DazPilotLogoCompact: ({ size }: { size: number }) => (
+vi.mock('../../brand/DAZPilotLogo', () => ({
+  DAZPilotLogo: ({ size }: { size: number }) => <span data-testid="logo">{size}px</span>,
+  DAZPilotLogoCompact: ({ size }: { size: number }) => (
     <span data-testid="logo-compact">{size}px</span>
   ),
 }));

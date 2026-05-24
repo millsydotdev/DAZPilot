@@ -44,6 +44,8 @@ See [CURRENT_STATE.md](CURRENT_STATE.md) for the implementation snapshot.
 - [ ] **Animation timeline** — Enhanced keyframe editing and timeline scrubbing
 - [ ] **Render queue** — Queue and manage multiple render jobs
 - [ ] **Asset conflict resolver UI** — Visual interface for resolving asset conflicts
+- [ ] **Preset management system** — Save and reuse common scene configurations (lighting, camera, figure arrangements)
+- [ ] **Asset recommendation engine** — Suggest complementary assets based on scene context and user intent
 
 ### Long Term
 

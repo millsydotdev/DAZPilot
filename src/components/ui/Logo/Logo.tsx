@@ -1,4 +1,4 @@
-import { DazPilotLogo, DazPilotLogoCompact } from '../../brand/DazPilotLogo';
+import { DAZPilotLogo, DAZPilotLogoCompact } from '../../brand/DAZPilotLogo';
 
 interface LogoProps {
   className?: string;
@@ -6,9 +6,9 @@ interface LogoProps {
 }
 
 export function Logo({ className = '', size = 32 }: LogoProps) {
-  return <DazPilotLogo className={className} size={size} />;
+  return <DAZPilotLogo className={className} size={size} />;
 }
 
 export function LogoCompact({ className = '', size = 24 }: LogoProps) {
-  return <DazPilotLogoCompact className={className} size={size} />;
+  return <DAZPilotLogoCompact className={className} size={size} />;
 }

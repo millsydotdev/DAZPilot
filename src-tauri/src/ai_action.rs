@@ -217,27 +217,29 @@ pub fn extract_asset_search_query(input: &str) -> Option<String> {
 }
 
 pub fn search_best_matching_asset(query: &str) -> Option<String> {
-    let guard = match crate::database::get_db() {
-        Ok(g) => g,
-        Err(_) => return None,
-    };
-    let db = guard.as_ref()?;
-    let conn = rusqlite::Connection::open(db.path()).ok()?;
-    
-    let fts = crate::format_fts_query(query);
-    if fts.is_empty() {
-        return None;
-    }
-    
-    let sql = "SELECT user_assets.asset_path FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 1";
-    let mut stmt = conn.prepare(sql).ok()?;
-    let mut rows = stmt.query(rusqlite::params![fts]).ok()?;
-    
-    if let Some(row) = rows.next().ok()? {
-        row.get::<_, String>(0).ok()
+    // Multi-strategy: FTS first, then fuzzy, synonym, keyword, semantic
+    let matcher = crate::asset_matcher::MultiStrategyMatcher::new();
+    let result = matcher.search_best(query);
+    if let Some(ref matched) = result {
+        log::info!("Asset match via {}: {} (score={}, path={})", matched.strategy, matched.name, matched.score, matched.path);
     } else {
-        None
+        // Fallback to original single-query FTS
+        let guard = match crate::database::get_db() {
+            Ok(g) => g,
+            Err(_) => return None,
+        };
+        let db = guard.as_ref()?;
+        let conn = rusqlite::Connection::open(db.path()).ok()?;
+        let fts = crate::format_fts_query(query);
+        if fts.is_empty() {
+            return None;
+        }
+        let sql = "SELECT user_assets.asset_path FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 1";
+        let mut stmt = conn.prepare(sql).ok()?;
+        let mut rows = stmt.query(rusqlite::params![fts]).ok()?;
+        return rows.next().ok()?.and_then(|row| row.get::<_, String>(0).ok());
     }
+    result.map(|a| a.path)
 }
 
 // ─── Core Plan Logic ───────────────────────────────────────────────────────
@@ -253,7 +255,9 @@ pub fn plan_validated_action(input: &str) -> Option<StructuredAiAction> {
         .or_else(|| plan_set_light_property(&lower, input))
         .or_else(|| plan_render_settings(&lower))
         .or_else(|| plan_add_figure(&lower))
+        .or_else(|| plan_scene_creation(&lower))
         .or_else(|| plan_create_light(&lower))
+        .or_else(|| plan_apply_expression(&lower, input))
         .or_else(|| plan_load_asset(&lower, input))
         .or_else(|| plan_export_scene(&lower, input))
         .or_else(|| plan_legacy_command(&lower, input))
@@ -433,7 +437,7 @@ fn plan_set_light_property(lower: &str, input: &str) -> Option<StructuredAiActio
 }
 
 fn plan_render_settings(lower: &str) -> Option<StructuredAiAction> {
-    if !(lower.contains("render") && (lower.contains("resolution") || lower.contains("size") || lower.contains("1920") || lower.contains("4k"))) {
+    if !(lower.contains("render") && (lower.contains("resolution") || lower.contains("size") || lower.contains("1920") || lower.contains("4k") || lower.contains("output") || lower.contains("image") || lower.contains("picture"))) {
         return None;
     }
     let numbers: Vec<i32> = lower
@@ -458,9 +462,13 @@ fn plan_render_settings(lower: &str) -> Option<StructuredAiAction> {
 }
 
 fn plan_add_figure(lower: &str) -> Option<StructuredAiAction> {
-    if !((lower.contains("add") || lower.contains("create") || lower.contains("load"))
-        && (lower.contains("figure") || lower.contains("genesis") || lower.contains("character")))
+    if !((lower.contains("add") || lower.contains("create") || lower.contains("load") || lower.contains("build") || lower.contains("make"))
+        && (lower.contains("figure") || lower.contains("genesis") || lower.contains("character") || lower.contains("model") || lower.contains("person") || lower.contains("human")))
     {
+        return None;
+    }
+    // Reject if the input is about expressions rather than figure creation
+    if lower.contains("smile") || lower.contains("frown") || lower.contains("expression") {
         return None;
     }
     let figure_type = if lower.contains("genesis 9") || lower.contains("g9") || lower.contains("genesis9") {
@@ -497,6 +505,47 @@ fn plan_create_light(lower: &str) -> Option<StructuredAiAction> {
         args: serde_json::json!({ "type": light_type, "name": format!("AI_{}", light_type) }),
         confidence: 0.9,
         sdk_refs: vec!["DzLight".to_string()],
+        requires_confirmation: false,
+    })
+}
+
+fn plan_apply_expression(lower: &str, _input: &str) -> Option<StructuredAiAction> {
+    if !(lower.contains("expression") || lower.contains("smile") || lower.contains("frown") || lower.contains("happy") || lower.contains("sad") || lower.contains("angry") || lower.contains("surprise") || lower.contains("blink")) {
+        return None;
+    }
+    let expression_id = if lower.contains("smile") || lower.contains("happy") { "smile" }
+        else if lower.contains("frown") || lower.contains("sad") || lower.contains("unhappy") { "frown" }
+        else if lower.contains("angry") || lower.contains("mad") { "angry" }
+        else if lower.contains("surprise") || lower.contains("shock") { "surprise" }
+        else if lower.contains("blink") || lower.contains("wink") || lower.contains("close eyes") { "eyes_closed" }
+        else { "" };
+    let value = if lower.contains("full") || lower.contains("maximum") || lower.contains("extreme") { 1.0 }
+        else if lower.contains("subtle") || lower.contains("slight") || lower.contains("gentle") { 0.3 }
+        else { 0.7 };
+    Some(StructuredAiAction {
+        command: "apply_expression".to_string(),
+        args: serde_json::json!({
+            "expression_id": expression_id,
+            "value": value,
+            "node_id": ""
+        }),
+        confidence: 0.8,
+        sdk_refs: vec!["DzFigure".to_string()],
+        requires_confirmation: false,
+    })
+}
+
+fn plan_scene_creation(lower: &str) -> Option<StructuredAiAction> {
+    if !((lower.contains("create") || lower.contains("make") || lower.contains("build") || lower.contains("new"))
+        && lower.contains("scene"))
+    {
+        return None;
+    }
+    Some(StructuredAiAction {
+        command: "add_figure".to_string(),
+        args: serde_json::json!({ "figure_type": "genesis9" }),
+        confidence: 0.7,
+        sdk_refs: vec!["DzFigure".to_string(), "DzScene".to_string()],
         requires_confirmation: false,
     })
 }
@@ -1471,5 +1520,50 @@ mod tests {
             let mut guard = crate::database::DATABASE.lock().unwrap();
             *guard = None;
         }
+    }
+
+    #[test]
+    fn test_plan_apply_expression_smile() {
+        let action = plan_validated_action("make the figure smile").unwrap();
+        assert_eq!(action.command, "apply_expression");
+        assert_eq!(action.args["expression_id"], "smile");
+        assert!((action.args["value"].as_f64().unwrap() - 0.7).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_plan_apply_expression_angry_subtle() {
+        let action = plan_validated_action("subtle angry expression").unwrap();
+        assert_eq!(action.command, "apply_expression");
+        assert_eq!(action.args["expression_id"], "angry");
+        assert!((action.args["value"].as_f64().unwrap() - 0.3).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_plan_scene_creation_creates_figure() {
+        let action = plan_validated_action("create a scene with good lighting").unwrap();
+        assert_eq!(action.command, "add_figure");
+        assert_eq!(action.args["figure_type"], "genesis9");
+    }
+
+    #[test]
+    fn test_plan_add_figure_new_keywords() {
+        let action = plan_validated_action("build a woman character").unwrap();
+        assert_eq!(action.command, "add_figure");
+        assert_eq!(action.args["figure_type"], "genesis8");
+
+        let action2 = plan_validated_action("make a human model").unwrap();
+        assert_eq!(action2.command, "add_figure");
+        assert_eq!(action2.args["figure_type"], "genesis8");
+    }
+
+    #[test]
+    fn test_plan_add_figure_no_match_render() {
+        // Should NOT match add_figure — "make an image" is about rendering
+        let action = plan_validated_action("render this scene");
+        assert!(action.as_ref().map(|a| a.command.as_str()) != Some("add_figure"));
+
+        // "image" keyword should not trigger add_figure
+        let action2 = plan_validated_action("make an image");
+        assert_ne!(action2.as_ref().map(|a| a.command.as_str()), Some("add_figure"));
     }
 }

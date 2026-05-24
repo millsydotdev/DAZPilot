@@ -20,11 +20,14 @@ pub mod ai_providers;
 pub mod asset_fixer;
 pub mod ai_tool_planner;
 pub mod figure_resolver;
+pub mod asset_matcher;
+pub mod visual_properties;
 pub mod knowledge;
 pub mod reasoning;
 pub mod context;
 
 use serde::{Deserialize, Serialize};
+use serde_json;
 use ollama_service::{check_ollama_status, get_ollama_models, pull_ollama_model, ollama_chat};
 use asset_fixer::{
     ConflictScanResult, AssetFixResult, ShellInfo
@@ -32,6 +35,8 @@ use asset_fixer::{
 
 use tauri::Manager;
 use tauri::Emitter;
+use tauri_plugin_updater::UpdaterExt;
+use tokio::time::sleep;
 use log::info;
 use std::sync::Mutex;
 
@@ -84,6 +89,82 @@ pub fn run() {
         .setup(|app| {
             info!("DazPilot App starting...");
 
+            // 1. Create splash window
+            let splash = tauri::WebviewWindowBuilder::new(app, "splash", tauri::WebviewUrl::App("splash.html".into()))
+                .title("Splash")
+                .transparent(true)
+                .decorations(false)
+                .always_on_top(true)
+                .center()
+                .inner_size(400.0, 300.0)
+                .build()?;
+
+            // 2. Get main window (already defined in tauri.conf.json) and hide it initially
+            if let Some(main_window) = app.get_webview_window("main") {
+                main_window.hide().ok(); // Start hidden
+                info!("Main window retrieved and hidden");
+            }
+
+            // 3. Show splash window immediately
+            let _ = splash.show();
+            info!("Splash window shown");
+
+            // Clone app handle for use in async task
+            let app_handle = app.handle().clone();
+
+            // 4. Spawn async task for update check
+            tauri::async_runtime::spawn(async move {
+                // Wait 2 seconds to ensure splash is visible
+                let _ = sleep(std::time::Duration::from_secs(2)).await;
+                
+                // Check for updates using the Tauri updater plugin
+                match app_handle.updater() {
+                    Ok(updater) => {
+                        // Check if update is available
+                        match updater.check().await {
+                            Ok(update_info) => {
+                                if let Some(update) = update_info {
+                                    // Update available - notify splash and trigger update
+                                    let _ = app_handle.emit_to("splash", "update-available", serde_json::json!({}));
+                                    info!("Update available (current: {}, available: {}), starting download and install", 
+                                          update.current_version, update.version);
+                                    // Download and install the update
+                                    if let Err(e) = update.download_and_install(
+                                            |_chunk_length, _content_length| {
+                                                // Progress callback - we can log if needed, but for now do nothing
+                                            },
+                                            || {
+                                                // Download finished callback - we can log if needed
+                                            }
+                                        ).await {
+                                        log::error!("Failed to download and install update: {}", e);
+                                    }
+                                    // App will restart after update, no further action needed in this session
+                                } else {
+                                    // No update - hide splash, show main window
+                                    info!("No update available, showing main window");
+                                    let _ = app_handle.get_webview_window("splash").map(|w| w.hide());
+                                    let _ = app_handle.get_webview_window("main").map(|w| w.show());
+                                }
+                            }
+                            Err(e) => {
+                                // Error checking update - log and show main window anyway
+                                log::error!("Failed to check for update: {}", e);
+                                let _ = app_handle.get_webview_window("splash").map(|w| w.hide());
+                                let _ = app_handle.get_webview_window("main").map(|w| w.show());
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        // Error getting updater - log and show main window anyway
+                        log::error!("Failed to get updater: {}", e);
+                        let _ = app_handle.get_webview_window("splash").map(|w| w.hide());
+                        let _ = app_handle.get_webview_window("main").map(|w| w.show());
+                    }
+                }
+            });
+
+            // Continue with normal app initialization (database, AI, etc.)
             // Initialize database
             if let Ok(app_data) = app.path().app_data_dir() {
                 std::fs::create_dir_all(&app_data).ok();
@@ -752,36 +833,36 @@ fn search_assets_in_db(
             let fts = format_fts_query(q);
             if fts.is_empty() {
                 (
-                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets WHERE user_id='default' AND category=? ORDER BY asset_name LIMIT 500".into(),
+                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor, visual_properties, visual_description FROM user_assets WHERE user_id='default' AND category=? ORDER BY asset_name LIMIT 500".into(),
                     vec![cat.to_string()],
                 )
             } else {
                 (
-                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets.category=? AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 500".into(),
+                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor, visual_properties, visual_description FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets.category=? AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 500".into(),
                     vec![cat.to_string(), fts],
                 )
             }
         }
         (Some(cat), None) if cat != "all" => (
-            "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets WHERE user_id='default' AND category=? ORDER BY asset_name LIMIT 500".into(),
+            "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor, visual_properties, visual_description FROM user_assets WHERE user_id='default' AND category=? ORDER BY asset_name LIMIT 500".into(),
             vec![cat.to_string()],
         ),
         (_, Some(q)) => {
             let fts = format_fts_query(q);
             if fts.is_empty() {
                 (
-                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets WHERE user_id='default' ORDER BY asset_name LIMIT 500".into(),
+                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor, visual_properties, visual_description FROM user_assets WHERE user_id='default' ORDER BY asset_name LIMIT 500".into(),
                     vec![],
                 )
             } else {
                 (
-                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 500".into(),
+                    "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor, visual_properties, visual_description FROM user_assets JOIN user_assets_fts ON user_assets.id = user_assets_fts.rowid WHERE user_assets.user_id='default' AND user_assets_fts MATCH ? ORDER BY bm25(user_assets_fts) LIMIT 500".into(),
                     vec![fts],
                 )
             }
         }
         _ => (
-            "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor FROM user_assets WHERE user_id='default' ORDER BY asset_name LIMIT 500".into(),
+            "SELECT asset_path, asset_name, file_type, file_size, category, subcategory, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, vendor, visual_properties, visual_description FROM user_assets WHERE user_id='default' ORDER BY asset_name LIMIT 500".into(),
             vec![],
         ),
     };
@@ -797,6 +878,8 @@ fn search_assets_in_db(
             let tags: Vec<String> = tags_str
                 .and_then(|s| serde_json::from_str(&s).ok())
                 .unwrap_or_default();
+            let visual_props: Option<String> = row.get(12).ok().flatten();
+            let visual_desc: Option<String> = row.get(13).ok().flatten();
             Ok(library_scanner::AssetInfo {
                 path: row.get(0)?,
                 name: row.get(1)?,
@@ -811,6 +894,8 @@ fn search_assets_in_db(
                 asset_type_detail: row.get(9).ok().flatten(),
                 tags,
                 vendor: row.get(11).ok().flatten(),
+                visual_properties: visual_props,
+                visual_description: visual_desc,
             })
         })
         .map_err(|e| e.to_string())?

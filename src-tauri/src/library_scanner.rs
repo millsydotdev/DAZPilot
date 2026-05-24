@@ -53,6 +53,10 @@ pub struct AssetInfo {
     pub asset_type_detail: Option<String>,
     pub vendor: Option<String>,
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub visual_properties: Option<String>,
+    #[serde(default)]
+    pub visual_description: Option<String>,
 }
 
 const SUPPORTED_EXTENSIONS: &[&str] = &[
@@ -252,6 +256,8 @@ pub fn scan_directory(path: &str) -> ScanResult {
             asset_type_detail,
             vendor,
             tags,
+            visual_properties: None,
+            visual_description: None,
         };
 
         add_to_category(&mut categorized, &category, asset);
@@ -507,8 +513,10 @@ fn persist_assets(categorized: &CategorizedAssets) {
         for asset in assets {
             let compatibility_json = serde_json::to_string(&asset.compatibility_base).unwrap_or_default();
             let tags_json = serde_json::to_string(&asset.tags).unwrap_or_default();
+            let visual_props = crate::visual_properties::extract_visual_properties(&asset.name, &asset.tags, &asset.category);
+            let visual_props_json = serde_json::to_string(&visual_props).unwrap_or_default();
             let _ = tx.execute(
-                "INSERT OR REPLACE INTO user_assets (user_id, asset_path, asset_name, original_name, category, subcategory, vendor, file_type, file_size, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags) VALUES ('default', ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+                "INSERT OR REPLACE INTO user_assets (user_id, asset_path, asset_name, original_name, category, subcategory, vendor, file_type, file_size, thumbnail_path, compatibility, dforce_enabled, asset_type_detail, tags, visual_properties) VALUES ('default', ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
                 rusqlite::params![
                     asset.path,
                     asset.name,
@@ -523,6 +531,7 @@ fn persist_assets(categorized: &CategorizedAssets) {
                     asset.dforce_enabled as i32,
                     asset.asset_type_detail.as_deref().or_else(|| asset.metadata.get("asset_type_detail").map(|x| x.as_str())),
                     tags_json,
+                    visual_props_json,
                 ],
             );
         }
@@ -596,6 +605,8 @@ mod tests {
             asset_type_detail: None,
             vendor: None,
             tags: vec![],
+            visual_properties: None,
+            visual_description: None,
         };
         assert_eq!(info.path, "test.duf");
         assert!(!info.dforce_enabled);

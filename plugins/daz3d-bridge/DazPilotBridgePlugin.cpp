@@ -11,6 +11,7 @@
 #include "DazPilotPhyModifier.h"
 #include "Log.h"
 #include "JsonUtil.h"
+#include "DazPilotExportOptions.h"
 #include <QtCore/QBuffer>
 #include <QtCore/QByteArray>
 #include <cstdlib>
@@ -167,42 +168,9 @@ protected:
                 if (exporterIndex >= 0) {
                     DzExporter* exporter = exportMgr->getExporter(exporterIndex);
                     if (exporter) {
+                        DazPilotExportOptions opts = DazPilotExportOptions::fromJson(ese->settingsJson);
                         DzFileIOSettings ioSettings;
-                        ioSettings.setBoolValue("RunSilent", true);
-                        
-                        // Default to obj export options that are widely compatible
-                        ioSettings.setFloatValue("Scale", 1.0f); // 100%
-                        ioSettings.setBoolValue("LatAxis", true); // Y Up
-                        
-                        // Parse settingsJson for selected_only
-                        bool selectedOnly = false;
-                        if (ese->settingsJson.contains("\"selected_only\":true") || ese->settingsJson.contains("\"selected_only\": true")) {
-                            selectedOnly = true;
-                        }
-                        ioSettings.setBoolValue("SelectedOnly", selectedOnly);
-                        
-                        // Write materials (OBJ / FBX)
-                        bool includeMaterials = true;
-                        if (ese->settingsJson.contains("\"include_materials\":false") || ese->settingsJson.contains("\"include_materials\": false")) {
-                            includeMaterials = false;
-                        }
-                        ioSettings.setBoolValue("WriteMaterial", includeMaterials);
-                        ioSettings.setBoolValue("WriteTextures", includeMaterials);
-                        ioSettings.setBoolValue("EmbedTextures", includeMaterials);
-                        
-                        // Write animations (FBX)
-                        bool includeAnimations = true;
-                        if (ese->settingsJson.contains("\"include_animations\":false") || ese->settingsJson.contains("\"include_animations\": false")) {
-                            includeAnimations = false;
-                        }
-                        ioSettings.setBoolValue("WriteAnimations", includeAnimations);
-                        
-                        // Bake textures
-                        bool bakeTextures = false;
-                        if (ese->settingsJson.contains("\"bake_textures\":true") || ese->settingsJson.contains("\"bake_textures\": true")) {
-                            bakeTextures = true;
-                        }
-                        ioSettings.setBoolValue("BakeTextures", bakeTextures);
+                        opts.applyToSettings(&ioSettings);
 
                         DzError err = exporter->writeFile(ese->path, &ioSettings);
                         if (err == DZ_NO_ERROR) {
@@ -933,7 +901,7 @@ static std::string CommandsData() {
         "{\"name\":\"render_preview\",\"description\":\"Trigger preview render\",\"category\":\"Render\",\"parameters\":[]},"
         "{\"name\":\"capture_viewport\",\"description\":\"Capture viewport\",\"category\":\"Viewport\",\"parameters\":[\"path\"]},"
         "{\"name\":\"import_model\",\"description\":\"Import model if Daz import support is available\",\"category\":\"Assets\",\"parameters\":[\"path\",\"settings\"]},"
-        "{\"name\":\"export_scene\",\"description\":\"Export scene if Daz export support is available\",\"category\":\"Assets\",\"parameters\":[\"node_id\",\"path\",\"settings\"]},"
+        "{\"name\":\"export_scene\",\"description\":\"Export scene via Daz export pipeline. Settings (JSON): selected_only, include_materials, include_animations, bake_textures, generate_normal_maps, export_all_textures, combine_diffuse_and_alpha_maps, resize_textures, target_texture_width, target_texture_height, bake_makeup_overlay, bake_translucency, bake_specular_to_metallic, bake_refraction_weight\",\"category\":\"Assets\",\"parameters\":[\"node_id\",\"path\",\"settings\"]},"
         "{\"name\":\"begin_undo_batch\",\"description\":\"Start a new undo batch\",\"category\":\"Scene\",\"parameters\":[]},"
         "{\"name\":\"accept_undo_batch\",\"description\":\"Accept the current undo batch\",\"category\":\"Scene\",\"parameters\":[\"caption\"]},"
         "{\"name\":\"cancel_undo_batch\",\"description\":\"Cancel the current undo batch\",\"category\":\"Scene\",\"parameters\":[]},"

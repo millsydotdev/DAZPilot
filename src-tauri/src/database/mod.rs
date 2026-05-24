@@ -136,6 +136,25 @@ impl SqliteDatabase {
             }
         }
 
+        let migration_sql = r#"
+            ALTER TABLE user_assets ADD COLUMN visual_properties TEXT;
+        "#;
+        if let Err(e) = conn.execute_batch(migration_sql) {
+            let err_str = e.to_string();
+            if !err_str.contains("duplicate column") {
+                log::warn!("Migration (visual_properties) non-fatal: {}", err_str);
+            }
+        }
+        let migration_sql = r#"
+            ALTER TABLE user_assets ADD COLUMN visual_description TEXT;
+        "#;
+        if let Err(e) = conn.execute_batch(migration_sql) {
+            let err_str = e.to_string();
+            if !err_str.contains("duplicate column") {
+                log::warn!("Migration (visual_description) non-fatal: {}", err_str);
+            }
+        }
+
         // Continue with the rest of the schema
         conn.execute_batch(r#"
 
@@ -149,33 +168,35 @@ impl SqliteDatabase {
                 asset_path,
                 tags,
                 asset_type_detail,
+                visual_properties,
+                visual_description,
                 content='user_assets',
                 content_rowid='id'
             );
 
             -- Trigger to automatically index new assets on insert
             CREATE TRIGGER IF NOT EXISTS user_assets_ai AFTER INSERT ON user_assets BEGIN
-                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
-                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path, new.tags, new.asset_type_detail);
+                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail, visual_properties, visual_description)
+                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path, new.tags, new.asset_type_detail, new.visual_properties, new.visual_description);
             END;
 
             -- Trigger to automatically clean FTS index on deletion
             CREATE TRIGGER IF NOT EXISTS user_assets_ad AFTER DELETE ON user_assets BEGIN
-                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
-                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path, old.tags, old.asset_type_detail);
+                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail, visual_properties, visual_description)
+                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path, old.tags, old.asset_type_detail, old.visual_properties, old.visual_description);
             END;
 
             -- Trigger to automatically update FTS index on field updates
             CREATE TRIGGER IF NOT EXISTS user_assets_au AFTER UPDATE ON user_assets BEGIN
-                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
-                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path, old.tags, old.asset_type_detail);
-                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
-                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path, new.tags, new.asset_type_detail);
+                INSERT INTO user_assets_fts(user_assets_fts, rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail, visual_properties, visual_description)
+                VALUES('delete', old.id, old.asset_name, old.original_name, old.category, old.subcategory, old.vendor, old.asset_path, old.tags, old.asset_type_detail, old.visual_properties, old.visual_description);
+                INSERT INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail, visual_properties, visual_description)
+                VALUES (new.id, new.asset_name, new.original_name, new.category, new.subcategory, new.vendor, new.asset_path, new.tags, new.asset_type_detail, new.visual_properties, new.visual_description);
             END;
 
             -- One-time sync migration to populate index for pre-existing assets
-            INSERT OR REPLACE INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail)
-            SELECT id, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail FROM user_assets;
+            INSERT OR REPLACE INTO user_assets_fts(rowid, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail, visual_properties, visual_description)
+            SELECT id, asset_name, original_name, category, subcategory, vendor, asset_path, tags, asset_type_detail, visual_properties, visual_description FROM user_assets;
 
             CREATE TABLE IF NOT EXISTS sdk_classes (
                 name TEXT PRIMARY KEY,

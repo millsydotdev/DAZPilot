@@ -14,7 +14,7 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react';
-import { DazPilotLogo } from './brand/DazPilotLogo';
+import { DAZPilotLogo } from './brand/DAZPilotLogo';
 import { cn } from '../utils/cn';
 import type { AppTab, LauncherCompleteOptions } from '../types/app';
 
@@ -176,7 +176,7 @@ export function Launcher({
       <div className="pointer-events-none absolute top-1/2 left-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 blur-[100px]" />
 
       <div className="relative z-10 flex animate-fade-in flex-col items-center px-6">
-        <DazPilotLogo size={72} showWordmark />
+        <DAZPilotLogo size={72} showWordmark />
         <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.25em] text-zinc-500">
           AI Scene Control System
         </p>
@@ -269,7 +269,7 @@ export function Launcher({
 
       <div className="absolute bottom-8 flex flex-col items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-widest text-zinc-600">
         <p className="text-[9px] text-zinc-700">
-          DazPilot is an independent third-party project and is not endorsed by Daz 3D.
+          DAZPilot is an independent third-party project and is not endorsed by DAZ 3D.
         </p>
         <span>Version {version || '—'}</span>
       </div>

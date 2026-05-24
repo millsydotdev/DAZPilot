@@ -413,6 +413,8 @@ mod tests {
             asset_type_detail: None,
             vendor: None,
             tags: vec![],
+            visual_properties: None,
+            visual_description: None,
         };
         // Empty compatibility_base means no mismatch detected
         assert!(!check_compatibility_mismatch(&asset, "Genesis 9"));
@@ -434,6 +436,8 @@ mod tests {
             asset_type_detail: None,
             vendor: None,
             tags: vec![],
+            visual_properties: None,
+            visual_description: None,
         };
         // Genesis 8 clothing on Genesis 9 should be a mismatch
         assert!(check_compatibility_mismatch(&asset, "Genesis 9"));
@@ -455,6 +459,8 @@ mod tests {
             asset_type_detail: None,
             vendor: None,
             tags: vec![],
+            visual_properties: None,
+            visual_description: None,
         };
         // Genesis 9 is in compatibility_base, so no mismatch
         assert!(!check_compatibility_mismatch(&asset, "Genesis 9"));

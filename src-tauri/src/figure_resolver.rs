@@ -112,6 +112,8 @@ fn map_asset_row(row: &rusqlite::Row) -> rusqlite::Result<AssetInfo> {
         asset_type_detail: row.get(9).ok().flatten(),
         tags,
         vendor: row.get(11).ok().flatten(),
+        visual_properties: None,
+        visual_description: None,
     })
 }
 

@@ -95,3 +95,10 @@ export {
   type WebcamState,
   type WebcamActions,
 } from './webcamStore';
+
+export {
+  usePresetStore,
+  type PresetState,
+  type PresetActions,
+  type ScenePreset,
+} from './presetStore';
