@@ -316,6 +316,9 @@ pub fn run() {
             save_scratchpad_todo,
             delete_scratchpad_todo,
             clear_completed_scratchpad_todos,
+            load_scene_presets,
+            save_scene_preset,
+            delete_scene_preset,
             get_asset_thumbnail,
             resolve_compatible_assets,
             list_known_figures,
@@ -2171,6 +2174,21 @@ fn delete_scratchpad_todo(todo_id: String) -> Result<(), String> {
 #[tauri::command]
 fn clear_completed_scratchpad_todos() -> Result<(), String> {
     database::clear_completed_todos()
+}
+
+#[tauri::command]
+fn load_scene_presets() -> Result<Vec<database::DbScenePreset>, String> {
+    database::load_scene_presets()
+}
+
+#[tauri::command]
+fn save_scene_preset(preset: database::DbScenePreset) -> Result<(), String> {
+    database::save_scene_preset(&preset)
+}
+
+#[tauri::command]
+fn delete_scene_preset(preset_id: String) -> Result<(), String> {
+    database::delete_scene_preset(&preset_id)
 }
 
 // ─── Subsystem 2: Thumbnail Serve Protocol ────────────────────────────────────

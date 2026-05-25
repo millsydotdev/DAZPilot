@@ -14,6 +14,7 @@ export default function PresetPanel() {
     saveCurrentSceneAsPreset,
     loadPreset,
     deletePreset,
+    loadPersistedPresets,
     getPresetsByCategory,
     setIsSaving,
     setIsLoading,
@@ -29,9 +30,8 @@ export default function PresetPanel() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   useEffect(() => {
-    // Load presets from storage on mount
-    // TODO: Implement actual preset loading from storage
-  }, []);
+    void loadPersistedPresets();
+  }, [loadPersistedPresets]);
 
   const handleSavePreset = async () => {
     if (!newPresetName.trim()) {

@@ -382,6 +382,18 @@ impl SqliteDatabase {
                 created_at INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS scene_presets (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
+                name TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                category TEXT NOT NULL,
+                thumbnail TEXT,
+                scene_data TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
             "#
         )?;
 
@@ -571,6 +583,86 @@ pub fn clear_completed_todos() -> Result<(), String> {
     conn.execute(
         "DELETE FROM scratchpad_todos WHERE completed=1 AND user_id='default'",
         [],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+// -- Scene preset persistence helpers -----------------------------------------
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DbScenePreset {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub category: String,
+    pub thumbnail: Option<String>,
+    pub scene_data: serde_json::Value,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+pub fn load_scene_presets() -> Result<Vec<DbScenePreset>, String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, name, description, category, thumbnail, scene_data, created_at, updated_at
+             FROM scene_presets WHERE user_id='default' ORDER BY updated_at DESC",
+        )
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| {
+            let scene_json: String = row.get(5)?;
+            let scene_data = serde_json::from_str(&scene_json).unwrap_or(serde_json::Value::Null);
+            Ok(DbScenePreset {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                description: row.get(2)?,
+                category: row.get(3)?,
+                thumbnail: row.get(4)?,
+                scene_data,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())
+}
+
+pub fn save_scene_preset(preset: &DbScenePreset) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let scene_json = serde_json::to_string(&preset.scene_data).map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT OR REPLACE INTO scene_presets
+         (id, user_id, name, description, category, thumbnail, scene_data, created_at, updated_at)
+         VALUES (?1, 'default', ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        rusqlite::params![
+            preset.id,
+            preset.name,
+            preset.description,
+            preset.category,
+            preset.thumbnail,
+            scene_json,
+            preset.created_at,
+            preset.updated_at
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn delete_scene_preset(preset_id: &str) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    conn.execute(
+        "DELETE FROM scene_presets WHERE id=?1 AND user_id='default'",
+        rusqlite::params![preset_id],
     )
     .map_err(|e| e.to_string())?;
     Ok(())

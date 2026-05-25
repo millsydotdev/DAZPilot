@@ -28,7 +28,7 @@ Write-Host "`n[3/3] Manual live Daz Studio checklist (requires local install):" 
   "  - In DazPilot: connect bridge; run chat: 'list nodes' / 'get scene info'",
   "  - Load a .duf asset from indexed library via chat",
   "  - Apply a pose preset; capture viewport; verify Scene panel sync",
-  "  - Optional: import model, export scene (may report unsupported)"
+  "  - Import a model; export a scene and verify plugin export plus fallback output"
 ) | ForEach-Object { Write-Host $_ }
 
 Write-Host "`n=== Automated acceptance passed ===" -ForegroundColor Green

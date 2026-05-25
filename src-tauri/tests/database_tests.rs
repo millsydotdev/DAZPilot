@@ -1,4 +1,5 @@
 use dazpilot_lib::database;
+use serial_test::serial;
 
 #[test]
 fn test_database_fts_integration() {
@@ -51,4 +52,39 @@ fn test_prefix_query_formatter() {
         formatted, "\"Genesis*\" AND \"8*\" AND \"Female*\"",
         "FTS query formatter should append wildcard to word boundaries."
     );
+}
+
+#[test]
+#[serial]
+fn test_scene_preset_persistence_round_trip() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    database::init_database(temp_dir.path()).unwrap();
+
+    let preset = database::DbScenePreset {
+        id: "portrait".to_string(),
+        name: "Portrait Setup".to_string(),
+        description: "Camera and light".to_string(),
+        category: "scene".to_string(),
+        thumbnail: None,
+        scene_data: serde_json::json!({
+            "figures": [],
+            "props": [],
+            "lights": [],
+            "cameras": [{ "id": "camera-1", "name": "Portrait Camera" }],
+            "activeCamera": "camera-1",
+            "selectedItem": "camera-1"
+        }),
+        created_at: 100,
+        updated_at: 200,
+    };
+
+    database::save_scene_preset(&preset).unwrap();
+    let loaded = database::load_scene_presets().unwrap();
+
+    assert_eq!(loaded.len(), 1);
+    assert_eq!(loaded[0].name, "Portrait Setup");
+    assert_eq!(loaded[0].scene_data["activeCamera"], "camera-1");
+
+    database::delete_scene_preset(&preset.id).unwrap();
+    assert!(database::load_scene_presets().unwrap().is_empty());
 }

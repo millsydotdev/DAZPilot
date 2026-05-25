@@ -63,7 +63,7 @@ Notes:
 - Test asset loading and pose application across `.duf`, `.dsf`, and pose presets.
 - Test model import coverage with OBJ, FBX, and any other supported Daz import formats.
 - Verify viewport capture output paths and UI-thread behavior inside Daz Studio.
-- Replace the explicit unsupported response for plugin-side scene export with a real Daz SDK exporter when that feature is prioritized.
+- Validate plugin-side scene export and the DazScript fallback against a live Daz Studio installation.
 
 ## Important Files
 

@@ -70,9 +70,8 @@ Failure:
 | `apply_pose` | Uses `DzContentMgr::openFile` |
 | `capture_viewport` | Uses active `Dz3DViewport::captureImage` |
 | `import_model` | Uses `DzContentMgr::importFile` |
+| `export_scene` | Uses the Daz export pipeline with configurable export settings |
 
-## Unsupported Commands
+## Live Validation
 
-These commands are registered but return explicit errors until the real Daz SDK operation is implemented:
-
-- `export_scene`
+Scene export is implemented in the plugin and has a DazScript fallback in the app. Validate the exporter and fallback with installed Daz content before release.

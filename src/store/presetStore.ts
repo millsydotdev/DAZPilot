@@ -31,6 +31,7 @@ export interface PresetState {
   selectedPreset: ScenePreset | null;
   isSaving: boolean;
   isLoading: boolean;
+  loaded: boolean;
   error: string | null;
 }
 
@@ -48,6 +49,7 @@ export interface PresetActions {
   setError: (error: string | null) => void;
 
   // Operations
+  loadPersistedPresets: () => Promise<void>;
   saveCurrentSceneAsPreset: (name: string, description: string, category: string) => Promise<void>;
   loadPreset: (id: string) => Promise<void>;
   deletePreset: (id: string) => Promise<void>;
@@ -62,8 +64,46 @@ const initialState: PresetState = {
   selectedPreset: null,
   isSaving: false,
   isLoading: false,
+  loaded: false,
   error: null,
 };
+
+interface DbScenePreset {
+  id: string;
+  name: string;
+  description: string;
+  category: ScenePreset['category'];
+  thumbnail?: string;
+  scene_data: ScenePreset['sceneData'];
+  created_at: number;
+  updated_at: number;
+}
+
+function toDbPreset(preset: ScenePreset): DbScenePreset {
+  return {
+    id: preset.id,
+    name: preset.name,
+    description: preset.description,
+    category: preset.category,
+    thumbnail: preset.thumbnail,
+    scene_data: preset.sceneData,
+    created_at: preset.createdAt,
+    updated_at: preset.updatedAt,
+  };
+}
+
+function fromDbPreset(preset: DbScenePreset): ScenePreset {
+  return {
+    id: preset.id,
+    name: preset.name,
+    description: preset.description,
+    category: preset.category,
+    thumbnail: preset.thumbnail,
+    sceneData: preset.scene_data,
+    createdAt: preset.created_at,
+    updatedAt: preset.updated_at,
+  };
+}
 
 export const usePresetStore = create<PresetState & PresetActions>((set, get) => ({
   ...initialState,
@@ -89,6 +129,21 @@ export const usePresetStore = create<PresetState & PresetActions>((set, get) => 
   setIsSaving: (isSaving) => set({ isSaving }),
   setIsLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
+
+  loadPersistedPresets: async () => {
+    if (get().loaded) return;
+    set({ isLoading: true, error: null });
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const persisted = await invoke<DbScenePreset[]>('load_scene_presets');
+      set({ presets: persisted.map(fromDbPreset), loaded: true });
+    } catch (e) {
+      console.error('Failed to load presets:', e);
+      set({ error: String(e), loaded: true });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
   saveCurrentSceneAsPreset: async (name: string, description: string, category: string) => {
     set({ isSaving: true, error: null });
@@ -117,11 +172,9 @@ export const usePresetStore = create<PresetState & PresetActions>((set, get) => 
         },
       };
 
-      // Add to store
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('save_scene_preset', { preset: toDbPreset(newPreset) });
       get().addPreset(newPreset);
-
-      // TODO: Persist to local storage or database
-      // For now, we'll just keep it in memory
 
       // Show success toast
       const { useToastStore } = await import('./toastStore');
@@ -132,6 +185,7 @@ export const usePresetStore = create<PresetState & PresetActions>((set, get) => 
 
       const { useToastStore } = await import('./toastStore');
       useToastStore.getState().error(`Failed to save preset: ${String(e)}`);
+      throw e;
     } finally {
       set({ isSaving: false });
     }
@@ -145,46 +199,14 @@ export const usePresetStore = create<PresetState & PresetActions>((set, get) => 
         throw new Error(`Preset with ID ${id} not found`);
       }
 
-      // Apply preset to current scene
-      const sceneStore = useSceneStore.getState();
-
-      // Clear current scene
-      sceneStore.clearScene();
-
-      // Apply preset data
-      if (preset.sceneData.figures.length > 0) {
-        for (const figure of preset.sceneData.figures) {
-          sceneStore.addFigure(figure);
-        }
-      }
-
-      if (preset.sceneData.props.length > 0) {
-        for (const prop of preset.sceneData.props) {
-          sceneStore.addProp(prop);
-        }
-      }
-
-      if (preset.sceneData.lights.length > 0) {
-        for (const light of preset.sceneData.lights) {
-          sceneStore.addLight(light);
-        }
-      }
-
-      if (preset.sceneData.cameras.length > 0) {
-        for (const camera of preset.sceneData.cameras) {
-          sceneStore.addCamera(camera);
-        }
-      }
-
-      // Set active camera if specified
-      if (preset.sceneData.activeCamera) {
-        sceneStore.setActiveCamera(preset.sceneData.activeCamera);
-      }
-
-      // Set selected item if specified
-      if (preset.sceneData.selectedItem) {
-        sceneStore.selectItem(preset.sceneData.selectedItem);
-      }
+      useSceneStore.setState({
+        figures: preset.sceneData.figures,
+        props: preset.sceneData.props,
+        lights: preset.sceneData.lights,
+        cameras: preset.sceneData.cameras,
+        activeCamera: preset.sceneData.activeCamera,
+        selectedItem: preset.sceneData.selectedItem,
+      });
 
       // Update selected preset
       get().setSelectedPreset(preset);
@@ -198,6 +220,7 @@ export const usePresetStore = create<PresetState & PresetActions>((set, get) => 
 
       const { useToastStore } = await import('./toastStore');
       useToastStore.getState().error(`Failed to load preset: ${String(e)}`);
+      throw e;
     } finally {
       set({ isLoading: false });
     }
@@ -211,19 +234,9 @@ export const usePresetStore = create<PresetState & PresetActions>((set, get) => 
         throw new Error(`Preset with ID ${id} not found`);
       }
 
-      // Confirm deletion
-      const confirmed = window.confirm(
-        `Are you sure you want to delete the preset "${preset.name}"?`
-      );
-      if (!confirmed) {
-        set({ isSaving: false });
-        return;
-      }
-
-      // Remove from store
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('delete_scene_preset', { presetId: id });
       get().removePreset(id);
-
-      // TODO: Remove from persistent storage
 
       // Show success toast
       const { useToastStore } = await import('./toastStore');
@@ -234,6 +247,7 @@ export const usePresetStore = create<PresetState & PresetActions>((set, get) => 
 
       const { useToastStore } = await import('./toastStore');
       useToastStore.getState().error(`Failed to delete preset: ${String(e)}`);
+      throw e;
     } finally {
       set({ isSaving: false });
     }
