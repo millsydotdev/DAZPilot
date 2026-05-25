@@ -14,7 +14,7 @@ Use this index as the starting point for project, runtime, release, and publishi
 | Understand how the app works at runtime | [Architecture](ARCHITECTURE.md) |
 | See what is built and verified right now | [Current State](CURRENT_STATE.md) |
 | Review completed implementation phases | [Implementation](IMPLEMENTATION.md) |
-| Understand the AI agent system | [Agents](AGENTS.md) |
+| Understand the AI agent hierarchy (14 agents) | [Agents](AGENTS.md) |
 | Learn about the permission model | [Permissions](PERMISSIONS.md) |
 | Tag and publish a release | [Release Guide](RELEASE_GUIDE.md) |
 | Prepare GitHub or Daz Marketplace publishing | [Publishing](PUBLISHING.md) |
@@ -66,7 +66,7 @@ cd plugins/daz3d-bridge/build && ctest  # C++ bridge plugin tests (doctest)
 | [Architecture](ARCHITECTURE.md) | Runtime layers, bridge ownership, AI flow, knowledge sources, session summaries |
 | [Current State](CURRENT_STATE.md) | Implementation snapshot, verification status, and acceptance notes |
 | [Implementation](IMPLEMENTATION.md) | 20-phase completion status and important files |
-| [Agents](AGENTS.md) | AI agent system map, responsibilities, message shapes, and error handling |
+| [Agents](AGENTS.md) | 14-agent hierarchy, registry, orchestration, sub-agents, Tauri commands, and UI components |
 | [Permissions](PERMISSIONS.md) | Database-driven permission model, roles, audit logging, and default policies |
 | [Release Guide](RELEASE_GUIDE.md) | Tagging, GitHub Actions workflows, signing, and bridge DLL releases |
 | [Publishing](PUBLISHING.md) | GitHub publication and Daz 3D Marketplace submission guide |
@@ -88,6 +88,8 @@ DazPilot/
 │   └── types/                    # TypeScript type definitions
 ├── src-tauri/                    # Rust + Tauri 2 backend
 │   ├── src/                      # Backend source (AI, bridge, agents, database)
+│   │   ├── agents/               # 14-agent hierarchy (registry, orchestrator, sub-agents)
+│   │   │   └── sub_agents/       # 7 sub-agent modules (pose, timeline, lighting, etc.)
 │   ├── resources/                # Bundled binaries (DLL, llama-server, models)
 │   └── capabilities/             # Tauri security capabilities
 ├── plugins/

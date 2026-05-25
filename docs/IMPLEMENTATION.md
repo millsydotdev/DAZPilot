@@ -30,6 +30,7 @@ All planned implementation phases are complete. Remaining work is acceptance and
 | 18 | Ollama: chat integration | Complete |
 | 19 | Daz3D: communication | Complete |
 | 20 | Advanced: import, export, and animation | Complete |
+| 21 | Agent hierarchy system | Complete |
 
 ## Completed Scope
 
@@ -42,6 +43,7 @@ All planned implementation phases are complete. Remaining work is acceptance and
 - Local GGUF is the default AI path; Ollama remains available through `DAZPILOT_AI_BACKEND=ollama`.
 - The Daz bridge is client-only from Tauri and communicates with the Daz Studio plugin over newline-delimited JSON on `127.0.0.1:8765`.
 - Import/export, animation, physics, scene composition, and command planning paths are wired through explicit backend commands.
+- **Agent hierarchy system**: 14 agents in a 3-level tree with dynamic registry, delegation orchestration (parent→child with cycle detection), capability-based routing, 7 specialized sub-agents, 8 Tauri management commands, and 3 React UI components (AgentTreeView, AgentDetailPanel, AgentTester).
 
 ## Verification
 
@@ -82,3 +84,11 @@ Notes:
 | `src-tauri/src/mcp_client.rs` | Bridge client and command schema |
 | `src-tauri/src/library_scanner.rs` | Asset scanner |
 | `plugins/daz3d-bridge/DazPilotBridgePlugin.cpp` | Daz plugin bridge |
+| `src-tauri/src/agents/mod.rs` | Agent type definitions, registry init, handler registration |
+| `src-tauri/src/agents/registry.rs` | AgentRegistry tree, lookup, global singleton |
+| `src-tauri/src/agents/orchestrator.rs` | Parent→child delegation with cycle detection |
+| `src-tauri/src/agents/task_planner.rs` | Orchestrator agent using registry delegation |
+| `src-tauri/src/agents/sub_agents/mod.rs` | Sub-agent module (pose, timeline, lighting, etc.) |
+| `src/components/agents/AgentTreeView.tsx` | Agent hierarchy tree UI |
+| `src/components/agents/AgentDetailPanel.tsx` | Agent detail display UI |
+| `src/components/agents/AgentTester.tsx` | Agent testing interface UI |

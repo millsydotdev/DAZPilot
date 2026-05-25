@@ -1,0 +1,225 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color, #333);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-color, #1a1a2e);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  background: var(--surface-secondary, #16213e);
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.target {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  font-family: monospace;
+  color: var(--accent-color, #4a7dff);
+}
+
+.body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inputRow {
+  display: flex;
+  gap: 8px;
+}
+
+.textarea {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: monospace;
+  background: var(--input-bg, #0f0f23);
+  color: var(--text-primary, #e0e0e0);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.textarea:focus {
+  border-color: var(--accent-color, #4a7dff);
+}
+
+.textarea::placeholder {
+  color: var(--text-secondary, #555);
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--error-color, #ff4444);
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 6px;
+}
+
+.responsePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.success {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.failure {
+  background: rgba(255, 68, 68, 0.15);
+  color: #ff4444;
+}
+
+.resultBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.blockLabel {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #888);
+}
+
+.pre {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: monospace;
+  background: var(--input-bg, #0f0f23);
+  border-radius: 6px;
+  color: var(--text-primary, #e0e0e0);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.preError {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: monospace;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 6px;
+  color: var(--error-color, #ff4444);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.actionList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actionItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--input-bg, #0f0f23);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.actionCmd {
+  font-family: monospace;
+  color: var(--accent-color, #4a7dff);
+  font-weight: 600;
+}
+
+.actionType {
+  font-size: 10px;
+  color: var(--text-secondary, #888);
+  background: var(--badge-bg, #333);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.actionArgs {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-secondary, #aaa);
+  font-family: monospace;
+}
+
+.subResult {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--input-bg, #0f0f23);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.subAgentType {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.subSuccess {
+  font-size: 10px;
+  font-weight: 700;
+  color: #4caf50;
+}
+
+.subFailure {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ff4444;
+}
+
+.subText {
+  color: var(--text-secondary, #aaa);
+  margin-left: auto;
+}

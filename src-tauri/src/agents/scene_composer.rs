@@ -47,6 +47,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
             result: None,
             error: Some("Unable to compose scene from intent.".to_string()),
             actions: vec![],
+            sub_results: vec![],
         };
     }
 
@@ -55,5 +56,6 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
         result: Some(format!("Composed scene with {} steps", steps.len())),
         error: None,
         actions: steps.into_iter().map(|s| s.action).collect(),
+        sub_results: vec![],
     }
 }

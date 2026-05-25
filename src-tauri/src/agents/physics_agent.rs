@@ -40,6 +40,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
             result: None,
             error: Some("No physics/simulation intents identified.".to_string()),
             actions: vec![],
+            sub_results: vec![],
         };
     }
 
@@ -48,5 +49,6 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
         result: Some(messages.join(" ")),
         error: None,
         actions,
+        sub_results: vec![],
     }
 }

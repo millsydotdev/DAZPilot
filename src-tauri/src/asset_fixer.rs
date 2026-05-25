@@ -42,6 +42,12 @@ pub struct ConflictScanResult {
     pub warnings: Vec<String>,
 }
 
+impl ConflictScanResult {
+    pub fn has_conflicts(&self) -> bool {
+        !self.conflicts.is_empty()
+    }
+}
+
 /// Result of fixing assets
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AssetFixResult {
@@ -295,13 +301,12 @@ pub fn fix_shell_material_zones(shell_path: &str, prefix: &str) -> AssetFixResul
     }
 }
 
-/// Auto-fix all conflicts in a directory
-pub fn auto_fix_conflicts(root_path: &str, output_dir: &str) -> AssetFixResult {
+/// Fix duplicate morph IDs by prefixing them per file
+pub fn fix_morph_ids(root_path: &str, output_dir: &str) -> AssetFixResult {
     let scan = scan_asset_conflicts(root_path);
     let mut fixed_files = Vec::new();
     let mut errors = Vec::new();
 
-    // Create output directory
     if let Err(e) = fs::create_dir_all(output_dir) {
         return AssetFixResult {
             success: false,
@@ -310,10 +315,186 @@ pub fn auto_fix_conflicts(root_path: &str, output_dir: &str) -> AssetFixResult {
         };
     }
 
-    // Process conflicts
+    let mut file_prefix_map: HashMap<String, usize> = HashMap::new();
+
+    for conflict in scan.conflicts {
+        if let ConflictType::MorphId = conflict.conflict_type {
+            for file in &conflict.files {
+                let count = file_prefix_map.entry(file.clone()).or_insert(0);
+                *count += 1;
+                let prefix = format!("FX_{}_", count);
+
+                let content = match fs::read_to_string(file) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        errors.push(format!("Failed to read {}: {}", file, e));
+                        continue;
+                    },
+                };
+
+                let mut data: serde_json::Value = match serde_json::from_str(&content) {
+                    Ok(d) => d,
+                    Err(e) => {
+                        errors.push(format!("Failed to parse {}: {}", file, e));
+                        continue;
+                    },
+                };
+
+                let morph_sources = ["morph_library", "modifier_library"];
+                for source in morph_sources.iter() {
+                    if let Some(morph_lib) = data.get_mut(source).and_then(|m| m.as_array_mut()) {
+                        for morph in morph_lib.iter_mut() {
+                            if let Some(id_val) = morph.get_mut("id") {
+                                if let Some(id) = id_val.as_str() {
+                                    if id == conflict.name {
+                                        *id_val =
+                                            serde_json::Value::String(format!("{}{}", prefix, id));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if let Some(obj) = data.get_mut("asset_info").and_then(|a| a.as_object_mut()) {
+                    obj.insert("morph_ids_fixed".to_string(), serde_json::Value::Bool(true));
+                }
+
+                let output_path = format!("{}.fixed", file);
+                match fs::write(&output_path, serde_json::to_string_pretty(&data).unwrap()) {
+                    Ok(_) => {
+                        if !fixed_files.contains(&output_path) {
+                            fixed_files.push(output_path);
+                        }
+                    },
+                    Err(e) => errors.push(format!("Failed to write {}: {}", output_path, e)),
+                }
+            }
+        }
+    }
+
+    AssetFixResult {
+        success: errors.is_empty(),
+        fixed_files,
+        errors,
+    }
+}
+
+/// Fix duplicate UV set names by prefixing them within each file
+pub fn fix_uv_sets(root_path: &str, output_dir: &str) -> AssetFixResult {
+    let scan = scan_asset_conflicts(root_path);
+    let mut fixed_files = Vec::new();
+    let mut errors = Vec::new();
+
+    if let Err(e) = fs::create_dir_all(output_dir) {
+        return AssetFixResult {
+            success: false,
+            fixed_files: vec![],
+            errors: vec![format!("Failed to create output dir: {}", e)],
+        };
+    }
+
+    for conflict in scan.conflicts {
+        if let ConflictType::UVSet = conflict.conflict_type {
+            for file in &conflict.files {
+                let prefix = detect_prefix_from_conflict(&conflict.name);
+
+                let content = match fs::read_to_string(file) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        errors.push(format!("Failed to read {}: {}", file, e));
+                        continue;
+                    },
+                };
+
+                let mut data: serde_json::Value = match serde_json::from_str(&content) {
+                    Ok(d) => d,
+                    Err(e) => {
+                        errors.push(format!("Failed to parse {}: {}", file, e));
+                        continue;
+                    },
+                };
+
+                if let Some(uv_lib) = data.get_mut("uv_library").and_then(|u| u.as_array_mut()) {
+                    for uv in uv_lib.iter_mut() {
+                        if let Some(name_val) = uv.get_mut("name") {
+                            if let Some(name) = name_val.as_str() {
+                                if name == conflict.name {
+                                    *name_val =
+                                        serde_json::Value::String(format!("{}{}", prefix, name));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if let Some(obj) = data.get_mut("asset_info").and_then(|a| a.as_object_mut()) {
+                    obj.insert("uv_sets_fixed".to_string(), serde_json::Value::Bool(true));
+                }
+
+                let output_path = format!("{}.fixed", file);
+                match fs::write(&output_path, serde_json::to_string_pretty(&data).unwrap()) {
+                    Ok(_) => {
+                        if !fixed_files.contains(&output_path) {
+                            fixed_files.push(output_path);
+                        }
+                    },
+                    Err(e) => errors.push(format!("Failed to write {}: {}", output_path, e)),
+                }
+            }
+        }
+    }
+
+    AssetFixResult {
+        success: errors.is_empty(),
+        fixed_files,
+        errors,
+    }
+}
+
+/// Auto-fix all conflicts (MaterialZone, MorphId, UVSet) in a directory
+pub fn auto_fix_conflicts(root_path: &str, output_dir: &str) -> AssetFixResult {
+    let mut all_fixed = Vec::new();
+    let mut all_errors = Vec::new();
+
+    let material = auto_fix_material_zones(root_path, output_dir);
+    all_fixed.extend(material.fixed_files);
+    all_errors.extend(material.errors);
+
+    let morph = fix_morph_ids(root_path, output_dir);
+    all_fixed.extend(morph.fixed_files);
+    all_errors.extend(morph.errors);
+
+    let uv = fix_uv_sets(root_path, output_dir);
+    all_fixed.extend(uv.fixed_files);
+    all_errors.extend(uv.errors);
+
+    all_fixed.sort();
+    all_fixed.dedup();
+
+    AssetFixResult {
+        success: all_errors.is_empty(),
+        fixed_files: all_fixed,
+        errors: all_errors,
+    }
+}
+
+/// Fix material zone conflicts only
+fn auto_fix_material_zones(root_path: &str, output_dir: &str) -> AssetFixResult {
+    let scan = scan_asset_conflicts(root_path);
+    let mut fixed_files = Vec::new();
+    let mut errors = Vec::new();
+
+    if let Err(e) = fs::create_dir_all(output_dir) {
+        return AssetFixResult {
+            success: false,
+            fixed_files: vec![],
+            errors: vec![format!("Failed to create output dir: {}", e)],
+        };
+    }
+
     for conflict in scan.conflicts {
         if let ConflictType::MaterialZone = conflict.conflict_type {
-            // Extract prefix from conflict name or use default
             let prefix = detect_prefix_from_conflict(&conflict.name);
             for file in &conflict.files {
                 let result = fix_shell_material_zones(file, &prefix);
@@ -331,7 +512,7 @@ pub fn auto_fix_conflicts(root_path: &str, output_dir: &str) -> AssetFixResult {
 }
 
 /// Detect appropriate prefix based on conflict name
-fn detect_prefix_from_conflict(name: &str) -> String {
+pub fn detect_prefix_from_conflict(name: &str) -> String {
     let lower = name.to_lowercase();
     if lower.contains("majora") {
         "GM_".to_string()
@@ -409,6 +590,139 @@ pub fn analyze_shell(path: &str) -> Option<ShellInfo> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_has_conflicts() {
+        let result = ConflictScanResult {
+            total_scanned: 0,
+            conflicts: vec![],
+            warnings: vec![],
+        };
+        assert!(!result.has_conflicts());
+
+        let result = ConflictScanResult {
+            total_scanned: 1,
+            conflicts: vec![AssetConflict {
+                conflict_type: ConflictType::MaterialZone,
+                name: "test".to_string(),
+                files: vec!["test.dsf".to_string()],
+                severity: "high".to_string(),
+            }],
+            warnings: vec![],
+        };
+        assert!(result.has_conflicts());
+    }
+
+    #[test]
+    fn test_fix_morph_ids_creates_fixed_file() {
+        use std::io::Write;
+        let dir = tempfile::tempdir().unwrap();
+        // Morph conflicts are detected cross-file: same morph ID in different files
+        let content_a = serde_json::json!({
+            "morph_library": [{"id": "Shared_Morph"}],
+            "asset_info": {"name": "test_a"}
+        });
+        let content_b = serde_json::json!({
+            "morph_library": [{"id": "Shared_Morph"}],
+            "asset_info": {"name": "test_b"}
+        });
+        let path_a = dir.path().join("test_a.dsf");
+        let path_b = dir.path().join("test_b.dsf");
+        let mut fa = std::fs::File::create(&path_a).unwrap();
+        fa.write_all(content_a.to_string().as_bytes()).unwrap();
+        drop(fa);
+        let mut fb = std::fs::File::create(&path_b).unwrap();
+        fb.write_all(content_b.to_string().as_bytes()).unwrap();
+        drop(fb);
+
+        let result = fix_morph_ids(&dir.path().to_string_lossy(), &dir.path().to_string_lossy());
+        assert!(result.success);
+        assert!(!result.fixed_files.is_empty());
+
+        let fixed_a = format!("{}.fixed", path_a.to_string_lossy());
+        let fixed_b = format!("{}.fixed", path_b.to_string_lossy());
+        assert!(std::path::Path::new(&fixed_a).exists() || std::path::Path::new(&fixed_b).exists());
+    }
+
+    #[test]
+    fn test_fix_uv_sets_creates_fixed_file() {
+        use std::io::Write;
+        let dir = tempfile::tempdir().unwrap();
+        let file_path = dir.path().join("test_uv.dsf");
+        let mut file = std::fs::File::create(&file_path).unwrap();
+        let content = serde_json::json!({
+            "uv_library": [
+                {"name": "UVSet1"},
+                {"name": "UVSet1"}
+            ],
+            "asset_info": {"name": "test"}
+        });
+        file.write_all(content.to_string().as_bytes()).unwrap();
+        drop(file);
+
+        let result = fix_uv_sets(&dir.path().to_string_lossy(), &dir.path().to_string_lossy());
+        assert!(result.success);
+        assert!(!result.fixed_files.is_empty());
+
+        let fixed_path = format!("{}.fixed", file_path.to_string_lossy());
+        assert!(std::path::Path::new(&fixed_path).exists());
+    }
+
+    #[test]
+    fn test_auto_fix_handles_all_conflict_types() {
+        use std::io::Write;
+        let dir = tempfile::tempdir().unwrap();
+
+        // File with material zone conflict
+        let mat_path = dir.path().join("test_mat.dsf");
+        let mut mat_file = std::fs::File::create(&mat_path).unwrap();
+        let mat_content = serde_json::json!({
+            "material_library": [
+                {"id": "Torso"},
+                {"id": "Torso"}
+            ],
+            "asset_info": {"name": "test"}
+        });
+        mat_file
+            .write_all(mat_content.to_string().as_bytes())
+            .unwrap();
+        drop(mat_file);
+
+        // File with morph ID conflict
+        let morph_path = dir.path().join("test_morph.dsf");
+        let mut morph_file = std::fs::File::create(&morph_path).unwrap();
+        let morph_content = serde_json::json!({
+            "morph_library": [
+                {"id": "Smile"},
+                {"id": "Smile"}
+            ],
+            "asset_info": {"name": "test"}
+        });
+        morph_file
+            .write_all(morph_content.to_string().as_bytes())
+            .unwrap();
+        drop(morph_file);
+
+        // File with UV set conflict
+        let uv_path = dir.path().join("test_uv.dsf");
+        let mut uv_file = std::fs::File::create(&uv_path).unwrap();
+        let uv_content = serde_json::json!({
+            "uv_library": [
+                {"name": "BaseUV"},
+                {"name": "BaseUV"}
+            ],
+            "asset_info": {"name": "test"}
+        });
+        uv_file
+            .write_all(uv_content.to_string().as_bytes())
+            .unwrap();
+        drop(uv_file);
+
+        let result =
+            auto_fix_conflicts(&dir.path().to_string_lossy(), &dir.path().to_string_lossy());
+        assert!(result.success);
+        assert!(!result.fixed_files.is_empty());
+    }
 
     #[test]
     fn test_prefix_detection() {

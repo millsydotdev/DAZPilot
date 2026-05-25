@@ -255,15 +255,26 @@ pub fn detect_asset_conflicts_from_scene() -> AssetConflictReport {
             Err(_) => vec![],
         };
 
-    // Generic pattern: detect duplicate asset types in scene
+    // Use dedicated get_geoshells bridge command for accurate detection
+    let geoshells: Vec<String> =
+        match mcp_client::send_mcp_request("get_geoshells", serde_json::json!({})) {
+            Ok(resp) => resp
+                .data
+                .and_then(|d| serde_json::from_value::<Vec<String>>(d).ok())
+                .unwrap_or_default(),
+            Err(_) => vec![],
+        };
+
     let mut asset_type_counts: std::collections::HashMap<String, usize> =
         std::collections::HashMap::new();
     for asset in &loaded_assets {
         let lower = asset.to_lowercase();
-        // Group by generic category (figure, clothing, hair, shell, material)
         let category = if lower.contains("figure") || lower.contains("genesis") {
             "figure".to_string()
-        } else if lower.contains("shell") || lower.contains("geoshell") {
+        } else if geoshells.iter().any(|g| g.to_lowercase() == lower)
+            || lower.contains("shell")
+            || lower.contains("geoshell")
+        {
             "shell".to_string()
         } else if lower.contains("clothes")
             || lower.contains("clothing")
@@ -280,8 +291,15 @@ pub fn detect_asset_conflicts_from_scene() -> AssetConflictReport {
         *asset_type_counts.entry(category).or_insert(0) += 1;
     }
 
-    // Generic conflict: multiple shells suggest potential material zone conflicts
-    if let Some(&shell_count) = asset_type_counts.get("shell") {
+    // Multiple geoshells via bridge command
+    if geoshells.len() > 1 {
+        conflicts.push(AssetConflictInfo {
+            conflict_type: "Multiple_Shells_Detected".to_string(),
+            assets: geoshells,
+            severity: "medium".to_string(),
+            fix_suggestion: "Multiple geoshells in scene. Use scan_conflicts to check for material zone conflicts, fix_shell_zones to apply prefix workaround.".to_string(),
+        });
+    } else if let Some(&shell_count) = asset_type_counts.get("shell") {
         if shell_count > 1 {
             conflicts.push(AssetConflictInfo {
                 conflict_type: "Multiple_Shells_Detected".to_string(),
@@ -297,13 +315,25 @@ pub fn detect_asset_conflicts_from_scene() -> AssetConflictReport {
         let scan_result = asset_fixer::scan_asset_conflicts(&content_path);
 
         for conflict in scan_result.conflicts {
+            let fix_suggestion = match conflict.conflict_type {
+                asset_fixer::ConflictType::MaterialZone => {
+                    "Use auto_fix_all_conflicts to prefix duplicate material zones.".to_string()
+                },
+                asset_fixer::ConflictType::MorphId => {
+                    "Use fix_morph_ids to prefix duplicate morph IDs across files.".to_string()
+                },
+                asset_fixer::ConflictType::UVSet => {
+                    "Use fix_uv_sets to prefix duplicate UV set names.".to_string()
+                },
+                asset_fixer::ConflictType::AssetReference => {
+                    "Review asset references for dangling or broken paths.".to_string()
+                },
+            };
             conflicts.push(AssetConflictInfo {
                 conflict_type: conflict.conflict_type.name(),
                 assets: conflict.files,
                 severity: conflict.severity,
-                fix_suggestion:
-                    "Use fix_shell_zones or auto_fix_all_conflicts to resolve this conflict."
-                        .to_string(),
+                fix_suggestion,
             });
         }
 

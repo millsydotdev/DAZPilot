@@ -1,0 +1,129 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color, #333);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-color, #1a1a2e);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  background: var(--surface-secondary, #16213e);
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.count {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary, #888);
+}
+
+.treeContainer {
+  padding: 4px 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.treeNode {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-primary, #e0e0e0);
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.treeNode:hover {
+  background: var(--hover-color, rgba(255, 255, 255, 0.05));
+}
+
+.treeNode.selected {
+  background: var(--accent-color, #4a7dff);
+  color: #fff;
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.leafSpacer {
+  width: 14px;
+}
+
+.nodeIcon {
+  flex-shrink: 0;
+  opacity: 0.7;
+  margin-right: 4px;
+}
+
+.nodeName {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.childCount {
+  margin-left: auto;
+  font-size: 10px;
+  background: var(--badge-bg, #333);
+  color: var(--text-secondary, #aaa);
+  padding: 0 6px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  gap: 8px;
+  color: var(--text-secondary, #888);
+}
+
+.loadingText {
+  font-size: 12px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorIcon {
+  color: var(--error-color, #ff4444);
+}
+
+.errorText {
+  font-size: 12px;
+  color: var(--error-color, #ff4444);
+}
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+}

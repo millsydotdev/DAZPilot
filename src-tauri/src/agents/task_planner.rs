@@ -1,76 +1,79 @@
-use crate::agents::{self, AgentAction, AgentRequest, AgentResponse};
+use crate::agents::orchestrator;
+use crate::agents::registry;
+use crate::agents::{AgentAction, AgentRequest, AgentResponse};
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
 
-    // 1. Check for conflicts first as a proactive step
-    let conflict_resp = agents::conflict_resolution::execute(request.clone());
+    let mut all_actions: Vec<AgentAction> = Vec::new();
+    let mut all_messages: Vec<String> = Vec::new();
+    let mut had_match = false;
 
-    let mut actions = vec![];
-    let mut results = vec![];
+    let children = registry::with_registry(|reg| {
+        reg.get_children("task_planner")
+            .into_iter()
+            .map(|n| n.agent_type.clone())
+            .collect::<Vec<_>>()
+    });
 
-    if let Some(res) = conflict_resp.result {
-        if !res.contains("No conflicts") {
-            results.push(format!("Pre-task conflict check: {}", res));
-            actions.extend(conflict_resp.actions);
+    for child_type in &children {
+        let child_req = AgentRequest {
+            delegation_chain: {
+                let mut chain = request.delegation_chain.clone();
+                chain.push("task_planner".to_string());
+                chain
+            },
+            ..request.clone()
+        };
+
+        let resp = match orchestrator::delegate_to_child("task_planner", child_type, child_req) {
+            Ok(r) => r,
+            Err(_) => continue,
+        };
+
+        if resp.success && !resp.actions.is_empty() {
+            had_match = true;
+            if let Some(msg) = resp.result {
+                all_messages.push(format!("[{}] {}", child_type, msg));
+            }
+            for action in resp.actions {
+                if !all_actions.iter().any(|a| a.command == action.command) {
+                    all_actions.push(action);
+                }
+            }
         }
     }
 
-    // 2. Delegate to specialized agents based on intent
-    if input.contains("simulate") || input.contains("dforce") || input.contains("physics") {
-        let resp = agents::physics_agent::execute(request.clone());
-        if resp.success {
-            results.push(resp.result.unwrap_or_default());
-            actions.extend(resp.actions);
-        }
-    }
-
-    if input.contains("load")
-        || input.contains("apply")
-        || input.contains("find")
-        || input.contains("search")
-    {
-        let resp = agents::asset_selection::execute(request.clone());
-        if resp.success {
-            results.push(resp.result.unwrap_or_default());
-            actions.extend(resp.actions);
-        }
-    }
-
-    if input.contains("render") || input.contains("light") || input.contains("lighting") {
-        let resp = agents::render_agent::execute(request.clone());
-        if resp.success {
-            results.push(resp.result.unwrap_or_default());
-            actions.extend(resp.actions);
-        }
-    }
-
-    if input.contains("pose") || input.contains("animation") || input.contains("timeline") {
-        let resp = agents::animation_agent::execute(request.clone());
-        if resp.success {
-            results.push(resp.result.unwrap_or_default());
-            actions.extend(resp.actions);
-        }
-    }
-
-    // 3. Fallback to general parsing if no specialized agent took over or for other intents
     let general_actions = parse_and_create_actions(&input);
     for action in general_actions {
-        // Avoid duplicates if a specialized agent already handled it
-        if !actions.iter().any(|a| a.command == action.command) {
-            actions.push(action);
+        if !all_actions.iter().any(|a| a.command == action.command) {
+            all_actions.push(action);
         }
     }
 
-    if results.is_empty() && !actions.is_empty() {
-        results.push(format!("Decomposed into {} action(s)", actions.len()));
+    if !had_match && all_actions.is_empty() {
+        return AgentResponse {
+            success: false,
+            result: None,
+            error: Some(format!(
+                "No agent could handle '{}'. Try rephrasing your request.",
+                request.input
+            )),
+            actions: vec![],
+            sub_results: vec![],
+        };
+    }
+
+    if all_messages.is_empty() && !all_actions.is_empty() {
+        all_messages.push(format!("Decomposed into {} action(s)", all_actions.len()));
     }
 
     AgentResponse {
         success: true,
-        result: Some(results.join("\n")),
+        result: Some(all_messages.join("\n")),
         error: None,
-        actions,
+        actions: all_actions,
+        sub_results: vec![],
     }
 }
 

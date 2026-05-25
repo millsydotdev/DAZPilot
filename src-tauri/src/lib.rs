@@ -41,6 +41,7 @@ static DB_INITIALIZED: Mutex<bool> = Mutex::new(false);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    agents::register_default_agents();
     tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::default()
             .level(log::LevelFilter::Info)
@@ -220,6 +221,13 @@ pub fn run() {
             select_plugins_directory,
             download_and_install_plugin,
             execute_agent,
+            list_agents,
+            get_agent_info,
+            execute_sub_agent,
+            register_sub_agent,
+            unregister_agent,
+            get_agent_tree,
+            test_agent,
             get_content_paths,
             add_custom_content_path,
             remove_custom_content_path,
@@ -305,6 +313,8 @@ pub fn run() {
             scan_conflicts,
             fix_shell_zones,
             auto_fix_all_conflicts,
+            fix_morph_ids_cmd,
+            fix_uv_sets_cmd,
             analyze_shell_file,
             ai_ask_question,
             get_asset_conflicts,
@@ -688,8 +698,94 @@ fn execute_agent(agent_type: String, input: String) -> Result<agents::AgentRespo
         agent_type,
         input,
         context: None,
+        delegation_chain: vec![],
+        max_delegation_depth: 5,
     };
     Ok(agents::execute_agent(request))
+}
+
+#[tauri::command]
+fn list_agents() -> Result<Vec<agents::registry::AgentInfo>, String> {
+    Ok(agents::registry::with_registry(|reg| reg.list_agents()))
+}
+
+#[tauri::command]
+fn get_agent_info(agent_type: String) -> Result<Option<agents::registry::AgentInfo>, String> {
+    Ok(agents::registry::with_registry(|reg| {
+        reg.get(&agent_type).map(agents::registry::AgentInfo::from)
+    }))
+}
+
+#[tauri::command]
+fn execute_sub_agent(
+    parent_type: String,
+    child_type: String,
+    input: String,
+) -> Result<agents::AgentResponse, String> {
+    let request = agents::AgentRequest {
+        agent_type: child_type.clone(),
+        input,
+        context: None,
+        delegation_chain: vec![parent_type.clone()],
+        max_delegation_depth: 5,
+    };
+    agents::orchestrator::delegate_to_child(&parent_type, &child_type, request)
+}
+
+#[tauri::command]
+fn register_sub_agent(
+    agent_type: String,
+    description: String,
+    parent: String,
+    capabilities: Vec<String>,
+) -> Result<String, String> {
+    agents::registry::with_registry_mut(|reg| {
+        let handler: agents::registry::AgentHandler = |req| agents::AgentResponse {
+            success: true,
+            result: Some(format!("[{}] Received: {}", req.agent_type, req.input)),
+            error: None,
+            actions: vec![],
+            sub_results: vec![],
+        };
+        reg.register(agents::registry::AgentNode {
+            agent_type: agent_type.clone(),
+            description,
+            parent: Some(parent),
+            children: Vec::new(),
+            capabilities,
+            handler,
+        })
+        .map(|_| format!("Sub-agent '{}' registered successfully", agent_type))
+    })
+}
+
+#[tauri::command]
+fn unregister_agent(agent_type: String) -> Result<String, String> {
+    agents::registry::with_registry_mut(|reg| {
+        reg.unregister(&agent_type)
+            .map(|_| format!("Agent '{}' unregistered", agent_type))
+    })
+}
+
+#[tauri::command]
+fn get_agent_tree() -> Result<Vec<agents::registry::AgentTreeNode>, String> {
+    Ok(agents::registry::with_registry(|reg| reg.get_agent_tree()))
+}
+
+#[tauri::command]
+fn test_agent(agent_type: String, input: String) -> Result<agents::AgentResponse, String> {
+    let request = agents::AgentRequest {
+        agent_type: agent_type.clone(),
+        input,
+        context: None,
+        delegation_chain: vec![],
+        max_delegation_depth: 5,
+    };
+    agents::registry::with_registry(|reg| {
+        reg.get(&agent_type)
+            .map(|node| (node.handler)(request))
+            .ok_or_else(|| format!("Agent '{}' not found", agent_type))
+    })
 }
 
 #[tauri::command]
@@ -1004,9 +1100,27 @@ fn search_assets(
 
 #[tauri::command]
 fn load_asset_in_daz(path: String) -> Result<String, String> {
+    // Auto-run pre-load conflict check
+    let conflict_check = crate::agents::conflict_resolution::check_before_load(&path);
+    let warning = if conflict_check.has_conflicts() {
+        let count = conflict_check.conflicts.len();
+        format!(
+            "Warning: {} potential conflict(s) detected for this asset. Run scan_conflicts for details.",
+            count
+        )
+    } else {
+        String::new()
+    };
+
     mcp_client::send_mcp_request("load_asset", serde_json::json!({ "path": path })).map(|r| {
-        r.result
-            .unwrap_or_else(|| "Asset load requested".to_string())
+        let base = r
+            .result
+            .unwrap_or_else(|| "Asset load requested".to_string());
+        if warning.is_empty() {
+            base
+        } else {
+            format!("{}\n\n{}", base, warning)
+        }
     })
 }
 
@@ -1468,6 +1582,8 @@ fn try_agent_planning(
             current_figure: scene_context.active_figure.clone(),
             selected_nodes: scene_context.selected_nodes.clone(),
         }),
+        delegation_chain: vec![],
+        max_delegation_depth: 5,
     };
 
     let response = agents::execute_agent(agent_request);
@@ -2117,6 +2233,16 @@ fn fix_shell_zones(shell_path: String, prefix: String) -> AssetFixResult {
 #[tauri::command]
 fn auto_fix_all_conflicts(root_path: String, output_dir: String) -> AssetFixResult {
     asset_fixer::auto_fix_conflicts(&root_path, &output_dir)
+}
+
+#[tauri::command]
+fn fix_morph_ids_cmd(root_path: String, output_dir: String) -> AssetFixResult {
+    asset_fixer::fix_morph_ids(&root_path, &output_dir)
+}
+
+#[tauri::command]
+fn fix_uv_sets_cmd(root_path: String, output_dir: String) -> AssetFixResult {
+    asset_fixer::fix_uv_sets(&root_path, &output_dir)
 }
 
 #[tauri::command]

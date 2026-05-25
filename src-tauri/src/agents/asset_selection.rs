@@ -21,6 +21,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
             result: Some("Empty query after cleaning.".to_string()),
             error: None,
             actions: vec![],
+            sub_results: vec![],
         };
     }
 
@@ -74,5 +75,6 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
         result: Some(result_msg),
         error: None,
         actions,
+        sub_results: vec![],
     }
 }

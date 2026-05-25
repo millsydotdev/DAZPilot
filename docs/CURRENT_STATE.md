@@ -22,6 +22,14 @@ All planned implementation phases are complete. Remaining work is acceptance val
 | Asset knowledge | Daz JSON metadata is read when available and persisted |
 | Import honesty | Fake success responses were removed; real Daz SDK import is used |
 | Scene export | Implemented via C++ bridge `DzExportMgr/DzExporter::writeFile` with material/animation/texture settings + DazScript fallback |
+| Agent hierarchy | 14 agents in 3-level tree with registry, orchestration, and delegation |
+| Sub-agent system | 7 sub-agents under 4 parent agents (animation, render, asset_selection, scene_composer) |
+| Agent management | 8 Tauri commands for agent querying, testing, registration, and unregistration |
+| Agent UI | 3 React components: AgentTreeView, AgentDetailPanel, AgentTester |
+| Conflict resolution pipeline | Integrated auto-fix for shell zone, morph ID, and UV set conflicts via `asset_fixer`, `conflict_resolution` agent, `vision_service`, and pre-load checks |
+| Pre-load conflict detection | `load_asset_in_daz` auto-runs `check_before_load` and warns about potential conflicts |
+| `get_geoshells` integration | Bridge command used for accurate geoshell detection instead of substring matching |
+| Agent intent parsing | `conflict_resolution` agent respects input intent (scan/fix/status) and uses heuristic prefix detection |
 
 `check_connection_status()` now reports `connected` or `disconnected`; the old production `mock` status is gone.
 
@@ -32,7 +40,7 @@ npm run check
 cargo test
 ```
 
-Both pass in the current workspace. `npm run check` completes with lint warnings for existing `no-explicit-any` usage, but no lint errors.
+Both pass in the current workspace. `npm run check` completes with lint warnings for existing `no-explicit-any` usage, but no lint errors. 119 Rust tests pass (up from 115).
 
 ## Acceptance
 
@@ -56,3 +64,14 @@ Remaining product gaps:
 | `src-tauri/src/sdk_indexer.rs` | Recursive SDK header indexer |
 | `src-tauri/src/library_scanner.rs` | Asset metadata scanner |
 | `src-tauri/src/advanced.rs` | Import/export routes (bridge export + DazScript fallback) |
+| `src-tauri/src/agents/mod.rs` | Agent types, registry initialization, handler registration |
+| `src-tauri/src/agents/registry.rs` | AgentRegistry tree, lookup, capability matching, global singleton |
+| `src-tauri/src/agents/orchestrator.rs` | Delegation (parent→child), cycle detection, result aggregation |
+| `src-tauri/src/agents/task_planner.rs` | Orchestrator agent — delegates to children based on capability matching |
+| `src-tauri/src/agents/sub_agents/` | 7 sub-agent modules (pose, timeline, lighting, camera, morph, material, export) |
+| `src-tauri/src/asset_fixer.rs` | File-level conflict scanner and auto-fix for MaterialZone, MorphId, UVSet |
+| `src-tauri/src/agents/conflict_resolution.rs` | Intent-aware conflict resolution agent with heuristic prefix detection and get_geoshells integration |
+| `src-tauri/src/vision_service.rs` | Scene-level conflict detection using bridge commands |
+| `src/components/agents/AgentTreeView.tsx` | Frontend agent hierarchy visualization |
+| `src/components/agents/AgentDetailPanel.tsx` | Frontend agent detail display |
+| `src/components/agents/AgentTester.tsx` | Frontend agent testing interface |

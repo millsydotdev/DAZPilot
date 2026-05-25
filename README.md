@@ -66,6 +66,7 @@ flowchart LR
 - Structured action planning with validation before execution
 - Script approval system for safe AI-driven operations
 - Session summaries tracking all modifying actions
+- **14-agent hierarchy** with task_planner orchestrator and 7 specialized sub-agents
 
 ### Daz Studio Bridge
 
@@ -103,8 +104,9 @@ flowchart LR
 
 | Layer | Responsibility |
 | --- | --- |
-| **React UI** | App shell, panels, chat, settings, asset browsing, viewport state |
-| **Rust backend** | Validation, bridge client, AI orchestration, indexing, persistence |
+| **React UI** | App shell, panels, chat, settings, asset browsing, viewport state, agent management UI |
+| **Rust backend** | Validation, bridge client, AI orchestration, indexing, persistence, agent hierarchy |
+| **Agent system** | 14 agents in tree (task_planner + 6 parent agents + 7 sub-agents), registry, orchestration |
 | **Daz bridge plugin** | TCP server and Daz SDK dispatch (C++, owns `:8765`) |
 | **Daz Studio SDK** | Scene, nodes, camera, content, viewport, import operations |
 | **SQLite** | SDK metadata, asset metadata, session support data |

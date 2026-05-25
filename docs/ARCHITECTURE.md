@@ -8,7 +8,14 @@ Updated: May 2026
 flowchart LR
   User["User"] --> UI["React / Tauri UI"]
   UI --> Rust["Rust backend commands"]
-  Rust --> Validator["Command schema validation"]
+  Rust --> Agents["Agent hierarchy (14 agents)"]
+  Agents --> Registry["AgentRegistry (tree)"]
+  Registry --> TP["task_planner (orchestrator)"]
+  TP --> Delegation["delegate_to_child()"]
+  Delegation --> Specialized["6 parent agents"]
+  Specialized --> SubAgents["7 sub-agents"]
+  SubAgents --> Actions["AgentAction[]"]
+  Actions --> Validator["Command schema validation"]
   Validator --> Bridge["TCP client"]
   Bridge --> Plugin["Daz plugin TCP server :8765"]
   Plugin --> Executor["Main-thread execution proxy"]
@@ -23,7 +30,9 @@ flowchart LR
 | Layer | Owns | Notes |
 | --- | --- | --- |
 | React UI | App shell, panels, chat, settings, asset browsing, viewport state | Talks to Tauri commands |
-| Rust backend | Validation, bridge client, AI orchestration, indexing, persistence | Does not own the Daz TCP server |
+| Rust backend | Validation, bridge client, AI orchestration, indexing, persistence, agent hierarchy | Does not own the Daz TCP server |
+| Agent Registry | Agent tree structure, registration, lookup, capability matching | Singleton initialized at app startup |
+| Orchestrator | Parent→child delegation, cycle detection, depth limits, result aggregation | Used by task_planner and any agent |
 | Daz bridge plugin | TCP server and Daz SDK dispatch | Listens on `127.0.0.1:8765` |
 | Daz Studio SDK | Scene, nodes, camera, content, viewport, import operations | Must be touched from the Daz main thread for unsafe operations |
 | SQLite | SDK metadata, asset metadata, session support data | Populated by recursive scanners |
@@ -99,6 +108,40 @@ The Rust backend keeps a transactional session summary queue so the UI and AI ca
 | `DAZPILOT_DEV_MOCK_AI=1` | Enables the explicit AI mock for development |
 | `DAZPILOT_AI_BACKEND=ollama` | Uses Ollama instead of bundled local GGUF |
 | `DAZ_SDK_PATH=...` | Overrides the SDK include path |
+
+## Conflict Resolution Pipeline
+
+Asset conflicts are detected and resolved through a **multi-stage automated pipeline** with no user interaction required:
+
+```mermaid
+flowchart LR
+  Load["load_asset_in_daz"] --> PreCheck["check_before_load()"]
+  PreCheck --> Warn["Warning appended if conflicts found"]
+  PreCheck --> Bridge["bridge load_asset"]
+  Agent["conflict_resolution agent"] --> Intent["Parse user intent (scan/fix/status)"]
+  Intent --> Detect["vision_service::detect_asset_conflicts_from_scene()"]
+  Detect --> File["asset_fixer::scan_asset_conflicts()"]
+  Detect --> Geoshells["bridge get_geoshells"]
+  File --> Fix["auto_fix_conflicts()"]
+  Fix --> MaterialFix["fix_shell_material_zones()"]
+  Fix --> MorphFix["fix_morph_ids()"]
+  Fix --> UVFix["fix_uv_sets()"]
+```
+
+### Stages
+
+1. **Pre-load** — `load_asset_in_daz` auto-runs `check_before_load()` which scans the asset's parent directory for conflicts and appends a warning to the load result.
+2. **Scene detection** — `vision_service::detect_asset_conflicts_from_scene()` queries the bridge `get_geoshells` command and runs `asset_fixer::scan_asset_conflicts()` on content paths.
+3. **Agent orchestration** — The `conflict_resolution` agent parses user input for intent (scan/fix/status), runs the appropriate pipeline stage, and generates actions.
+4. **Auto-fix** — Three fix functions handle all detected conflict types: `fix_shell_material_zones()`, `fix_morph_ids()`, `fix_uv_sets()`. Each writes a `.fixed` file alongside the original with prefixed identifiers.
+
+### Source Files
+
+| File | Role |
+| --- | --- |
+| `src-tauri/src/asset_fixer.rs` | File-level scanner + auto-fix functions for MaterialZone, MorphId, UVSet |
+| `src-tauri/src/agents/conflict_resolution.rs` | Intent-aware agent with heuristic prefix detection, `get_geoshells` integration, `check_before_load()` |
+| `src-tauri/src/vision_service.rs` | Scene-level conflict detection using bridge commands |
 
 ## Unsupported Operations
 

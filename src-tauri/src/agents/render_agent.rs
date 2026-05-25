@@ -1,5 +1,3 @@
-//! Render & Lighting Agent: configures lights, camera, and render settings.
-
 use crate::agents::{AgentAction, AgentRequest, AgentResponse};
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
@@ -88,6 +86,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
             result: None,
             error: Some("No render or lighting intents identified.".to_string()),
             actions: vec![],
+            sub_results: vec![],
         };
     }
 
@@ -96,5 +95,6 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
         result: Some(messages.join(" ")),
         error: None,
         actions,
+        sub_results: vec![],
     }
 }

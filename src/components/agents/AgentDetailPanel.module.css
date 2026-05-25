@@ -1,0 +1,150 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color, #333);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-color, #1a1a2e);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  background: var(--surface-secondary, #16213e);
+  border-bottom: 1px solid var(--border-color, #333);
+  font-family: monospace;
+}
+
+.parent {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary, #888);
+  font-family: sans-serif;
+}
+
+.body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #888);
+}
+
+.value {
+  font-size: 13px;
+  color: var(--text-primary, #e0e0e0);
+  line-height: 1.4;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--accent-color, #4a7dff);
+  color: #fff;
+  font-weight: 500;
+}
+
+.muted {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  font-style: italic;
+}
+
+.hierarchyGrid {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 4px 8px;
+  font-size: 12px;
+}
+
+.hierarchyLabel {
+  color: var(--text-secondary, #888);
+  font-weight: 500;
+}
+
+.hierarchyValue {
+  color: var(--text-primary, #e0e0e0);
+  font-family: monospace;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4caf50;
+}
+
+.centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  color: var(--text-secondary, #888);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorIcon {
+  color: var(--error-color, #ff4444);
+}
+
+.errorText {
+  font-size: 12px;
+  color: var(--error-color, #ff4444);
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+}
