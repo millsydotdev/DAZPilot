@@ -8,10 +8,10 @@ npm run acceptance
 
 This runs:
 
-1. `npm run check` (typecheck, lint, frontend tests)
+1. `npm run check` (Rust clippy, typecheck, lint, format check, Rust fmt, frontend tests)
 2. `cargo test acceptance_` with `DAZPILOT_DEV_MOCK_BRIDGE=1`
 
-Mock bridge validates schema parity for workflow commands: `get_scene_assets`, `add_figure`, `set_morph`, `set_light`, `set_render_settings`.
+Rust tests validate full command-name parity between `DazPilotBridgePlugin.cpp` and `mcp_client.rs`; mock bridge tests exercise representative workflow commands including `get_scene_assets`, `add_figure`, `set_morph`, `set_light`, and `set_render_settings`.
 
 ## Manual (live Daz Studio)
 
@@ -21,7 +21,7 @@ Requires Daz Studio with `DazPilotBridge.dll` installed and listening on `127.0.
 
 | # | Step | Expected |
 | --- | --- | --- |
-| 0.1 | Build bridge: `cd plugins/daz3d-bridge && cmake --build .` | `DazPilotBridge.dll` in `dist/` |
+| 0.1 | Build bridge: `npm run plugin:rebuild` | `DazPilotBridge.dll` in `dist/Release/` |
 | 0.2 | Install plugin (auto or copy to Daz plugins folder) | DLL in Daz plugins dir |
 | 0.3 | Start Daz Studio | Bridge log: listening on 8765 |
 | 0.4 | Start DazPilot → connect bridge | Launcher shows Daz Studio connected |
@@ -148,7 +148,7 @@ Requires Daz Studio with `DazPilotBridge.dll` installed and listening on `127.0.
 When cutting a release, go through every row and record:
 
 ```
-v0.2.0 acceptance results:
+v0.5.1 acceptance results:
   Passed: 1.1–1.8, 2.1–2.9, 3.1–3.3, 4.1–4.3, ...
   Failed: 5.2 (FBX exporter not found in Daz SDK)
   Notes: Export with selected_only=true needs SDK testing

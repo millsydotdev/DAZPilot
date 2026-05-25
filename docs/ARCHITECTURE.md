@@ -63,7 +63,7 @@ Chat is action-aware rather than text-only:
 4. Execute safe actions through the Daz bridge.
 5. Summarize the outcome with the local GGUF model.
 
-Ollama remains available only when explicitly selected with `DazPilot_AI_BACKEND=ollama`.
+Ollama remains available only when explicitly selected with `DAZPILOT_AI_BACKEND=ollama`.
 
 ## Knowledge Sources
 
@@ -95,11 +95,11 @@ The Rust backend keeps a transactional session summary queue so the UI and AI ca
 
 | Flag | Effect |
 | --- | --- |
-| `DazPilot_DEV_MOCK_BRIDGE=1` | Enables the explicit bridge mock for development |
-| `DazPilot_DEV_MOCK_AI=1` | Enables the explicit AI mock for development |
-| `DazPilot_AI_BACKEND=ollama` | Uses Ollama instead of bundled local GGUF |
+| `DAZPILOT_DEV_MOCK_BRIDGE=1` | Enables the explicit bridge mock for development |
+| `DAZPILOT_DEV_MOCK_AI=1` | Enables the explicit AI mock for development |
+| `DAZPILOT_AI_BACKEND=ollama` | Uses Ollama instead of bundled local GGUF |
 | `DAZ_SDK_PATH=...` | Overrides the SDK include path |
 
 ## Unsupported Operations
 
-The bridge rejects unsupported Daz operations instead of pretending they succeeded. Current unsupported plugin operation: scene export.
+The bridge rejects unsupported Daz operations instead of pretending they succeeded.

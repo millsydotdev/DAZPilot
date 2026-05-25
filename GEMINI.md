@@ -28,7 +28,7 @@ git).
 
 ### Useful Commands
 
-- `npm run check`: Run typecheck, lint, format check, and tests.
+- `npm run check`: Run Rust clippy, typecheck, lint, format check, Rust fmt, and tests.
 - `npm run dev`: Start the Vite development server.
 - `npm run tauri dev`: Start the Tauri application in development mode.
 - `npm run plugin:rebuild`: Rebuild the C++ bridge plugin.
@@ -36,9 +36,9 @@ git).
 
 ### Environment Variables
 
-- `DazPilot_DEV_MOCK_BRIDGE=1`: Use mock bridge.
-- `DazPilot_DEV_MOCK_AI=1`: Use mock AI.
-- `DazPilot_AI_BACKEND=ollama`: Use Ollama instead of bundled GGUF.
+- `DAZPILOT_DEV_MOCK_BRIDGE=1`: Use mock bridge.
+- `DAZPILOT_DEV_MOCK_AI=1`: Use mock AI.
+- `DAZPILOT_AI_BACKEND=ollama`: Use Ollama instead of bundled GGUF.
 
 ## Coding Style & Conventions
 

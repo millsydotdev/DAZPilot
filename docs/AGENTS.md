@@ -6,13 +6,13 @@
 
 ## Achieved
 
-- **64 bridge commands** (all implemented in C++ plugin + Rust schemas, parity enforced by test)
+- **63 bridge commands** (all implemented in C++ plugin + Rust schemas, parity enforced by test)
 - **Bridge DLL compiled** (511KB, deployed to `src-tauri/resources/`)
 - **Reasoning engine**: Planner, Validator, Learner, Executor, Explainer — maps natural language goals → workflow plans → bridge command sequences
 - **Knowledge system**: 6 knowledge bases — Daz concepts, scene composition, asset semantics, workflow templates, failure patterns, command reference (all 63 commands documented)
 - **Workflow templates**: 9 types — CreateScene (14 steps), CreateCharacter, CreateOutfit, SetupLighting (3-point), PoseCharacter, AnimateCharacter, RenderStill, RenderAnimation, FixCommonIssue
 - **Agent system**: 10 specialized agent roles (Task Planner, Asset Selection, Animation, Physics, etc.)
-- **All tests pass**: 497 JS + 91 Rust (+4 new, +4 old moved), zero compilation errors, zero warnings
+- **All tests pass**: 497 JS + 106 Rust, zero compilation errors, zero warnings
 - **Heuristic planner**: 12 keyword-based functions (seek frame, timeline, dforce, keyframe, morph, light, render, add figure, create scene, create light, apply expression, load asset, export) for instant action resolution without LLM
 - **LLM prompt enhancement**: Inline usage notes for 14 key bridge commands + scenario-specific guidance (scene, render, lighting, pose, morph) in `build_tool_planning_prompt`
 - **AI backends**: Local GGUF, Ollama, OpenAI/Anthropic/Gemini

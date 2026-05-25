@@ -39,7 +39,7 @@ All planned implementation phases are complete. Remaining work is acceptance and
 - Chat, settings, scratchpad, asset browser, viewport, and scene panels are wired to stores and backend commands.
 - Backend commands are organized by connection, scene, library, AI, playback, viewport, plugin, and advanced workflows.
 - Service modules cover AI, bridge communication, SDK indexing, library scanning, animation, physics, scripting, spatial reasoning, and viewport sync.
-- Local GGUF is the default AI path; Ollama remains available through `DazPilot_AI_BACKEND=ollama`.
+- Local GGUF is the default AI path; Ollama remains available through `DAZPILOT_AI_BACKEND=ollama`.
 - The Daz bridge is client-only from Tauri and communicates with the Daz Studio plugin over newline-delimited JSON on `127.0.0.1:8765`.
 - Import/export, animation, physics, scene composition, and command planning paths are wired through explicit backend commands.
 
@@ -81,4 +81,4 @@ Notes:
 | `src-tauri/src/lib.rs` | Tauri command registration |
 | `src-tauri/src/mcp_client.rs` | Bridge client and command schema |
 | `src-tauri/src/library_scanner.rs` | Asset scanner |
-| `plugins/daz3d-bridge/DazPilotBridge.cpp` | Daz plugin bridge |
+| `plugins/daz3d-bridge/DazPilotBridgePlugin.cpp` | Daz plugin bridge |

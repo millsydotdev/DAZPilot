@@ -13,10 +13,10 @@ All planned implementation phases are complete. Remaining work is acceptance val
 | Bridge ownership | The Daz plugin listens on `127.0.0.1:8765`; Tauri is client-only |
 | Bridge protocol | Newline-delimited JSON with registered command validation |
 | Production mocks | Removed from the default runtime path |
-| Dev bridge mock | Explicit through `DazPilot_DEV_MOCK_BRIDGE=1` |
+| Dev bridge mock | Explicit through `DAZPILOT_DEV_MOCK_BRIDGE=1` |
 | Default AI | Bundled local GGUF through `llama-server.exe` |
-| Optional AI | Ollama through `DazPilot_AI_BACKEND=ollama` |
-| Dev AI mock | Explicit through `DazPilot_DEV_MOCK_AI=1` |
+| Optional AI | Ollama through `DAZPILOT_AI_BACKEND=ollama` |
+| Dev AI mock | Explicit through `DAZPILOT_DEV_MOCK_AI=1` |
 | SDK knowledge | `sdk_indexer` is the active source of truth |
 | SDK persistence | Recursive, line-aware indexing persisted to SQLite |
 | Asset knowledge | Daz JSON metadata is read when available and persisted |
@@ -44,14 +44,14 @@ Remaining product gaps:
 
 - Live end-to-end validation on Windows (build bridge DLL, connect to real Daz Studio, test all 30+ commands).
 - Cross-platform port (macOS bridge .dylib, Linux strategy).
-- Schema parity test between C++ bridge commands and Rust mcp_client.rs.
+- Live verification that schema-covered commands behave correctly in a real Daz Studio session.
 
 ## Important Files
 
 | File | Why it matters |
 | --- | --- |
 | `src-tauri/src/mcp_client.rs` | Client-only bridge, command schema, dev mock gate |
-| `plugins/daz3d-bridge/DazPilotBridge.cpp` | Plugin TCP server and Daz SDK command dispatch |
+| `plugins/daz3d-bridge/DazPilotBridgePlugin.cpp` | Plugin TCP server and Daz SDK command dispatch |
 | `src-tauri/src/ai_action.rs` | Structured action planning, validation, and execution |
 | `src-tauri/src/sdk_indexer.rs` | Recursive SDK header indexer |
 | `src-tauri/src/library_scanner.rs` | Asset metadata scanner |

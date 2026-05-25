@@ -62,7 +62,7 @@ This repository currently uses `master` as the primary branch.
 
 ```powershell
 git add package.json src-tauri/tauri.conf.json
-git commit -m "chore: bump version to v0.1.0"
+git commit -m "chore: bump version to v0.5.1"
 git tag v0.1.0
 git push origin master
 git push origin v0.1.0

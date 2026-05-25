@@ -30,7 +30,7 @@ Use this index as the starting point for project, runtime, release, and publishi
 ```powershell
 npm install               # Install frontend dependencies
 npm run dev               # Start Vite dev server
-npm run check             # Typecheck + lint + format check + test
+npm run check             # Rust clippy + typecheck + lint + format check + Rust fmt + test
 npm run tauri build       # Build production Tauri app
 npm run plugin:rebuild    # Build the C++ bridge plugin
 npm run acceptance        # Run bridge acceptance tests (mock mode)
@@ -43,9 +43,9 @@ cd plugins/daz3d-bridge/build && ctest  # C++ bridge plugin tests (doctest)
 
 | Variable | Effect |
 | --- | --- |
-| `DazPilot_DEV_MOCK_BRIDGE=1` | Enable the bridge mock for development |
-| `DazPilot_DEV_MOCK_AI=1` | Enable the AI mock for development |
-| `DazPilot_AI_BACKEND=ollama` | Use Ollama instead of bundled local GGUF |
+| `DAZPILOT_DEV_MOCK_BRIDGE=1` | Enable the bridge mock for development |
+| `DAZPILOT_DEV_MOCK_AI=1` | Enable the AI mock for development |
+| `DAZPILOT_AI_BACKEND=ollama` | Use Ollama instead of bundled local GGUF |
 | `DAZ_SDK_PATH=...` | Override the SDK include path |
 
 ### Quick Runtime Facts
@@ -54,7 +54,7 @@ cd plugins/daz3d-bridge/build && ctest  # C++ bridge plugin tests (doctest)
 - The Tauri app connects as a TCP client and sends newline-delimited JSON.
 - The default AI path is local GGUF through `llama-server.exe`.
 - Development mocks are opt-in with environment flags.
-- Scene export returns an explicit unsupported response until a real SDK exporter is implemented.
+- Scene export is implemented via C++ bridge DzExportMgr with DazScript fallback.
 
 ---
 
@@ -81,7 +81,7 @@ cd plugins/daz3d-bridge/build && ctest  # C++ bridge plugin tests (doctest)
 ```text
 DazPilot/
 ├── src/                          # React + TypeScript frontend
-│   ├── components/               # UI components (25 atomic + feature panels)
+│   ├── components/               # UI components (24 atomic + feature panels)
 │   ├── store/                    # Zustand state management (17 stores)
 │   ├── hooks/                    # Custom React hooks
 │   ├── utils/                    # Utilities

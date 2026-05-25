@@ -32,7 +32,7 @@ See [CURRENT_STATE.md](CURRENT_STATE.md) for the implementation snapshot.
 
 - [ ] **Live acceptance validation** — Verify all bridge commands against a real Daz Studio session
 - [ ] **Scene export live test** — Verify C++ DzExportMgr exporter + DazScript fallback work end-to-end
-- [ ] **Schema parity test** — Auto-check C++ bridge commands match Rust mcp_client.rs schema
+- [x] **Schema parity test** — Rust test auto-checks C++ bridge commands match `mcp_client.rs`
 - [ ] **Viewport capture polish** — Ensure capture paths and UI-thread behavior work reliably
 - [ ] **Asset loading coverage** — Validate `.duf`, `.dsf`, pose presets, and content library items
 
@@ -44,7 +44,7 @@ See [CURRENT_STATE.md](CURRENT_STATE.md) for the implementation snapshot.
 - [ ] **Animation timeline** — Enhanced keyframe editing and timeline scrubbing
 - [ ] **Render queue** — Queue and manage multiple render jobs
 - [ ] **Asset conflict resolver UI** — Visual interface for resolving asset conflicts
-- [ ] **Preset management system** — Save and reuse common scene configurations (lighting, camera, figure arrangements)
+- [x] **Preset management system** — Persist and restore scene configurations (lighting, camera, figure arrangements)
 - [ ] **Asset recommendation engine** — Suggest complementary assets based on scene context and user intent
 
 ### Long Term
@@ -77,9 +77,9 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for setup instructions and code style 
 
 | Version | Focus |
 | --- | --- |
-| 0.1.0 | Initial release — core features, Windows bridge, local AI |
-| 0.2.0 | Live acceptance validation, schema parity, polish |
-| 0.3.0 | macOS bridge (.dylib) + Linux strategy |
+| 0.5.x (current) | Acceptance validation, schema parity, release hardening |
+| 0.6.0 | Live acceptance validation complete, macOS bridge (.dylib) |
+| 0.7.0 | Linux bridge strategy |
 | 1.0.0 | Full platform support (Win/Mac/Linux), stable API |
 
 Version numbers and timelines are aspirational and subject to change.

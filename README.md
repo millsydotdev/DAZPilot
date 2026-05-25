@@ -10,7 +10,7 @@
 [![App Release](https://github.com/millsydotdev/DazPilot/actions/workflows/app-release.yml/badge.svg)](https://github.com/millsydotdev/DazPilot/actions/workflows/app-release.yml)
 [![Plugin Release](https://github.com/millsydotdev/DazPilot/actions/workflows/plugin-release.yml/badge.svg)](https://github.com/millsydotdev/DazPilot/actions/workflows/plugin-release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.0-green.svg)](https://github.com/millsydotdev/DazPilot/releases)
+[![Version](https://img.shields.io/badge/Version-0.5.1-green.svg)](https://github.com/millsydotdev/DazPilot/releases)
 [![Tauri 2](https://img.shields.io/badge/Tauri-2-ffc131?logo=tauri)](https://v2.tauri.app/)
 [![React 18](https://img.shields.io/badge/React-18-61dafb?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6?logo=typescript)](https://www.typescriptlang.org/)
@@ -85,7 +85,7 @@ flowchart LR
 
 - React + TypeScript frontend with Tailwind CSS
 - Chat panel, scene panel, asset browser, viewport canvas, scratchpad
-- 25 atomic UI components with a consistent design system
+- 24 atomic UI components with a consistent design system
 - First-launch wizard for initial setup
 - Face tracking Live Link via MediaPipe
 
@@ -94,7 +94,7 @@ flowchart LR
 | Backend | Activation | Notes |
 | --- | --- | --- |
 | Local GGUF (default) | Built-in | Bundled `llama-server.exe`, runs entirely on-device |
-| Ollama | `DazPilot_AI_BACKEND=ollama` | Optional, for users with Ollama installed |
+| Ollama | `DAZPILOT_AI_BACKEND=ollama` | Optional, for users with Ollama installed |
 | Multi-provider | Configuration | OpenAI, Anthropic, Gemini support |
 
 ---
@@ -194,7 +194,7 @@ npm run tauri build
 ```powershell
 npm test              # Frontend tests
 cargo test            # Rust backend tests
-npm run check         # Full pipeline: typecheck + lint + format + test
+npm run check         # Full pipeline: Rust clippy + typecheck + lint + format check + Rust fmt + test
 npm run acceptance    # Bridge acceptance tests (mock mode)
 ```
 
@@ -224,19 +224,30 @@ Requests and responses are newline-delimited JSON.
 
 ### Registered Commands
 
-| Command | Description |
+Bridge commands are organized by category. All **63 commands** are listed below:
+
+| Category | Commands |
 | --- | --- |
-| `get_scene_info` | Scene summary information |
-| `list_nodes` | List all scene nodes |
-| `get_selected_nodes` | Read selected scene nodes |
-| `select_node` | Select a scene node |
-| `get_cameras` | List cameras |
-| `load_asset` | Load a Daz content file |
-| `apply_pose` | Apply a pose preset |
-| `render_preview` | Run preview render |
-| `capture_viewport` | Capture viewport screenshot |
-| `import_model` | Import a 3D model file |
-| `export_scene` | Returns explicit unsupported response |
+| **System** | `get_commands` |
+| **Scene** | `get_scene_info`, `list_nodes`, `add_node`, `delete_node`, `get_geoshells`, `get_scene_assets`, `save_scene`, `load_scene`, `clear_scene` |
+| **Selection** | `get_selected_nodes`, `select_node` |
+| **Camera** | `get_cameras`, `set_camera` |
+| **Assets** | `load_asset`, `add_figure`, `search_content` |
+| **Pose & Morph** | `apply_pose`, `get_figure_morphs`, `set_morph`, `apply_morph`, `get_active_expressions`, `apply_expression`, `get_fitted_items`, `get_material_zones` |
+| **Properties** | `set_property`, `get_node_properties`, `get_node_transform`, `set_node_transform` |
+| **Materials** | `set_material_property`, `get_material_properties`, `set_material_texture`, `get_material_channels` |
+| **Lighting** | `set_light` |
+| **Rendering** | `render_preview`, `set_render_settings`, `set_render_options`, `capture_viewport` |
+| **Import/Export** | `import_model`, `export_scene` |
+| **Animation** | `set_keyframe`, `set_timeline_range`, `seek_to_frame`, `play_timeline`, `pause_timeline`, `stop_timeline`, `get_timeline_state`, `list_keyframes`, `delete_keyframes` |
+| **Physics** | `run_dforce_simulation` |
+| **Modifiers** | `apply_phy_modifier`, `remove_phy_modifier`, `set_phy_modifier_params`, `list_modifiers` |
+| **Viewport** | `viewport_click`, `get_bounding_boxes`, `set_viewport_mode` |
+| **Undo** | `begin_undo_batch`, `accept_undo_batch`, `cancel_undo_batch` |
+| **Scripting** | `run_script` |
+| **Bones** | `list_bones`, `set_bone_transform` |
+
+For the full command schema (parameters, risk level), see the `COMMAND_SCHEMAS` constant in `src-tauri/src/mcp_client.rs`.
 
 For the full protocol spec, see [plugins/daz3d-bridge/README.md](plugins/daz3d-bridge/README.md).
 
@@ -246,9 +257,9 @@ For the full protocol spec, see [plugins/daz3d-bridge/README.md](plugins/daz3d-b
 
 | Variable | Effect |
 | --- | --- |
-| `DazPilot_DEV_MOCK_BRIDGE=1` | Enable the bridge mock for development |
-| `DazPilot_DEV_MOCK_AI=1` | Enable the AI mock for development |
-| `DazPilot_AI_BACKEND=ollama` | Use Ollama instead of bundled local GGUF |
+| `DAZPILOT_DEV_MOCK_BRIDGE=1` | Enable the bridge mock for development |
+| `DAZPILOT_DEV_MOCK_AI=1` | Enable the AI mock for development |
+| `DAZPILOT_AI_BACKEND=ollama` | Use Ollama instead of bundled local GGUF |
 | `DAZ_SDK_PATH=...` | Override the SDK include path |
 
 ---

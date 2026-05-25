@@ -166,8 +166,8 @@ This starts the Vite dev server for the React frontend. The Tauri backend is not
 For development without Daz Studio running:
 
 ```powershell
-$env:DazPilot_DEV_MOCK_BRIDGE = "1"
-$env:DazPilot_DEV_MOCK_AI = "1"
+$env:DAZPILOT_DEV_MOCK_BRIDGE = "1"
+$env:DAZPILOT_DEV_MOCK_AI = "1"
 npm run dev
 ```
 
@@ -176,7 +176,7 @@ npm run dev
 ## Build The Full Desktop App
 
 ```powershell
-npm run check         # Typecheck + lint + format + test
+npm run check         # Rust clippy + typecheck + lint + format check + Rust fmt + test
 npm run tauri build   # Production build
 ```
 
@@ -193,7 +193,7 @@ src-tauri/target/release/bundle/
 ```powershell
 npm test              # Frontend unit tests (Vitest)
 cargo test            # Rust backend tests
-npm run check         # Full pipeline: typecheck + lint + format check + test
+npm run check         # Full pipeline: Rust clippy + typecheck + lint + format check + Rust fmt + test
 npm run acceptance    # Bridge acceptance tests with mock bridge
 ```
 
@@ -203,9 +203,9 @@ npm run acceptance    # Bridge acceptance tests with mock bridge
 
 | Variable | Default | Effect |
 | --- | --- | --- |
-| `DazPilot_DEV_MOCK_BRIDGE` | unset | Set to `1` to enable the bridge mock |
-| `DazPilot_DEV_MOCK_AI` | unset | Set to `1` to enable the AI mock |
-| `DazPilot_AI_BACKEND` | local GGUF | Set to `ollama` to use Ollama instead |
+| `DAZPILOT_DEV_MOCK_BRIDGE` | unset | Set to `1` to enable the bridge mock |
+| `DAZPILOT_DEV_MOCK_AI` | unset | Set to `1` to enable the AI mock |
+| `DAZPILOT_AI_BACKEND` | local GGUF | Set to `ollama` to use Ollama instead |
 | `DAZ_SDK_PATH` | `DAZStudio4.5+ SDK/include` | Override the SDK include path |
 
 ---
@@ -228,7 +228,7 @@ npm run acceptance    # Bridge acceptance tests with mock bridge
 - Confirm Daz Studio is running with the bridge plugin installed
 - Check the Daz Studio log for plugin load errors
 - Verify port `8765` is not blocked by a firewall
-- Use `DazPilot_DEV_MOCK_BRIDGE=1` to test without Daz Studio
+- Use `DAZPILOT_DEV_MOCK_BRIDGE=1` to test without Daz Studio
 
 ### `npm run check` fails with lint warnings
 
