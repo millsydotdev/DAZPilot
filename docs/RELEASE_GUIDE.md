@@ -1,8 +1,8 @@
 # Release Guide
 
-DazPilot uses separate GitHub Actions workflows for app releases and Daz Studio bridge plugin releases.
+DazPilot uses GitHub Actions workflows for app releases.
 
-The desktop app is built on Windows, macOS, and Linux. The current native bridge plugin artifact is Windows-only because the C++ plugin uses the Windows Daz SDK layout and a Winsock TCP server. macOS/Linux app bundles can still be built, but native Daz bridge support on those platforms needs a platform-specific plugin build.
+The desktop app is built on Windows, macOS, and Linux. Bridge plugin source at `plugins/daz3d-bridge/`.
 
 ## Release Flow
 
@@ -12,11 +12,8 @@ flowchart LR
   Commit --> Tag["Create vX.Y.Z tag"]
   Tag --> Push["Push branch and tag"]
   Push --> App["App Release workflow"]
-  Push --> Plugin["Plugin Release workflow"]
   App --> Bundles["Windows/macOS/Linux app bundles"]
-  Plugin --> Bridge["DazPilotBridge plugin zip"]
   Bundles --> Draft["Draft GitHub Release"]
-  Bridge --> Draft
 ```
 
 ## Before Tagging
@@ -34,26 +31,10 @@ Run the local checks:
 npm run check
 ```
 
-If you have Rust or bridge changes, also run:
+If you have Rust changes, also run:
 
 ```powershell
 cargo test
-npm run plugin:rebuild
-```
-
-To build and copy the bridge directly into the Daz Studio plugins folder, use:
-
-```powershell
-npm run plugin:rebuild:deploy
-```
-
-That deploy step writes to `C:\Program Files\DAZ 3D\DAZStudio4\plugins` by default and may require an elevated shell. You can override the destination with CMake:
-
-```powershell
-cmake -S plugins\daz3d-bridge -B plugins\daz3d-bridge\build `
-  -DDAZPILOT_DEPLOY_TO_DAZ=ON `
-  -DDAZ_PLUGINS_DIR="D:\MyDazInstall\plugins"
-cmake --build plugins\daz3d-bridge\build --config Release
 ```
 
 ## Tag A Release
@@ -72,9 +53,8 @@ After the tag is pushed, GitHub Actions starts:
 
 | Workflow         | Purpose                                                                        |
 | ---------------- | ------------------------------------------------------------------------------ |
-| `CI`             | Pull request and branch checks for frontend, Rust core, and bridge DLL exports |
+| `CI`             | Pull request and branch checks for frontend and Rust core |
 | `App Release`    | Builds and uploads Tauri app bundles for Windows, macOS, and Linux             |
-| `Plugin Release` | Packages the prebuilt Windows `DazPilotBridge.dll` into a bridge plugin zip    |
 
 ## Required GitHub Settings
 
@@ -99,45 +79,12 @@ Unsigned Windows installers can trigger SmartScreen warnings. For production rel
 
 Then confirm the signing environment variables are enabled in `.github/workflows/app-release.yml`.
 
-## Bridge Plugin Releases
-
-The Daz Studio SDK is proprietary, so the GitHub runner cannot download it or build the bridge plugin from source. Release builds rely on locally compiled DLLs bundled into `src-tauri/resources/`.
-
-To update them:
-
-1. Make C++ changes in `plugins/daz3d-bridge/`.
-2. Build locally:
-
-```powershell
-npm run plugin:rebuild
-```
-
-3. Confirm the expected resource DLLs were updated:
-
-```text
-src-tauri/resources/DazPilotBridge.dll
-```
-
-4. Stage, commit, and push the resource DLL with the release prep.
-
-The repository ignore rules are configured to keep normal build DLLs out of git while allowing the release resources that Tauri needs.
-
-GitHub Actions never downloads, stores, extracts, or builds against the Daz Studio SDK. The SDK stays local because it is proprietary and should not be redistributed through this repository or CI. The `Plugin Release` workflow only packages the committed `src-tauri/resources/DazPilotBridge.dll`.
-
 ## What The Pipeline Does
 
 On every `v*` tag, the app release workflow:
 
-1. Verifies required DLL and runtime resources are present.
-2. Installs Node and Rust dependencies.
-3. Compiles the TypeScript/Vite frontend.
-4. Bundles resources through Tauri.
-5. Produces Windows, macOS, and Linux bundles.
-6. Uploads the bundles to a draft GitHub Release.
-
-On every `v*` or `plugin-v*` tag, the plugin release workflow:
-
-1. Verifies the bridge DLL exists.
-2. Checks that the DLL exports Daz Studio's required `getSDKVersion` and `getPluginDefinition` symbols.
-3. Packages the DLL and bridge README into `DazPilotBridge-<tag>.zip`.
-4. Uploads the plugin zip to a draft GitHub Release.
+1. Installs Node and Rust dependencies.
+2. Compiles the TypeScript/Vite frontend.
+3. Bundles resources through Tauri.
+4. Produces Windows, macOS, and Linux bundles.
+5. Uploads the bundles to a draft GitHub Release.

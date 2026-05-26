@@ -1536,6 +1536,10 @@ fn build_sdk_context_for_message(message: &str) -> String {
 pub struct ChatResponse {
     pub content: String,
     pub action: Option<ai_action::StructuredAiAction>,
+    #[serde(default)]
+    pub teach: Option<String>,
+    #[serde(default)]
+    pub manual_steps: Option<String>,
 }
 
 #[tauri::command]
@@ -1993,6 +1997,15 @@ async fn process_chat_message(
         }
     };
 
+    // Generate educational context for the action
+    let explainer = crate::reasoning::explainer::Explainer::new();
+    let teach = action
+        .as_ref()
+        .and_then(|a| explainer.explain_teaching_concept(&a.command, &a.args));
+    let manual_steps = action
+        .as_ref()
+        .and_then(|a| explainer.manual_steps_for_command(&a.command, &a.args));
+
     let sdk_context = build_sdk_context_for_message(&message);
 
     let cleaned_images: Option<Vec<String>> = images.map(|imgs| {
@@ -2068,6 +2081,8 @@ async fn process_chat_message(
                 message, execution_summary, vision_context, spatial_context, conflict_info
             ),
             action,
+            teach,
+            manual_steps: manual_steps.clone(),
         });
     }
 
@@ -2153,12 +2168,16 @@ async fn process_chat_message(
                 script_id, response_text
             ),
             action,
+            teach,
+            manual_steps: manual_steps.clone(),
         });
     }
 
     Ok(ChatResponse {
         content: response_text,
         action,
+        teach,
+        manual_steps,
     })
 }
 

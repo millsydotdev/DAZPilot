@@ -165,7 +165,6 @@ impl AgentRegistry {
     }
 
     pub fn find_by_input(&self, input: &str) -> Vec<(&AgentNode, usize)> {
-        let lower = input.to_lowercase();
         let mut matches: Vec<(&AgentNode, usize)> = self
             .nodes
             .values()
@@ -173,7 +172,7 @@ impl AgentRegistry {
                 let count = node
                     .capabilities
                     .iter()
-                    .filter(|c| lower.contains(&c.to_lowercase()))
+                    .filter(|c| input_matches_capability(input, c))
                     .count();
                 if count > 0 {
                     Some((node, count))
@@ -211,6 +210,19 @@ impl AgentRegistry {
             }
         }
     }
+}
+
+pub fn input_matches_capability(input: &str, capability: &str) -> bool {
+    let input = input.to_lowercase();
+    let capability = capability.to_lowercase();
+
+    if capability.split_whitespace().count() > 1 {
+        return input.contains(&capability);
+    }
+
+    input
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .any(|word| word == capability)
 }
 
 impl Default for AgentRegistry {

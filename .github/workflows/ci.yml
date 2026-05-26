@@ -69,35 +69,4 @@ jobs:
         working-directory: src-tauri
         run: cargo test --lib
 
-  plugin-source-check:
-    name: Plugin source check
-    runs-on: windows-2022
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Verify committed bridge DLL exports
-        shell: pwsh
-        run: |
-          $dll = "src-tauri/resources/DazPilotBridge.dll"
-          if (-not (Test-Path $dll)) {
-            throw "Missing $dll. Build and commit the bridge DLL before releasing."
-          }
-
-          $dumpbin = "${env:VCToolsInstallDir}bin\Hostx64\x64\dumpbin.exe"
-          if (-not (Test-Path $dumpbin)) {
-            $dumpbin = (Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter dumpbin.exe |
-              Where-Object FullName -like "*Hostx64*x64*" |
-              Select-Object -First 1 -ExpandProperty FullName)
-          }
-          if (-not $dumpbin) {
-            throw "dumpbin.exe not found."
-          }
-
-          $exports = & $dumpbin /EXPORTS $dll | Out-String
-          foreach ($symbol in @("getSDKVersion", "getPluginDefinition")) {
-            if ($exports -notmatch "\b$symbol\b") {
-              throw "Bridge DLL is missing required Daz export: $symbol"
-            }
-          }

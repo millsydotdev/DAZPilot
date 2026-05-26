@@ -27,15 +27,10 @@ dist-ssr
 src-tauri/target/
 src-tauri/binaries/
 
-# C++ Build
+# C++ Build (bridge plugin)
 plugins/daz3d-bridge/build/
-plugins/daz3d-bridge/build2/
-plugins/daz3d-bridge/out/
-plugins/daz3d-bridge/.vs/
-plugins/daz3d-bridge/x64/
 
-# Allow pre-compiled Tauri DLLs and server executables
-!src-tauri/resources/**/*.dll
+# Allow pre-compiled Tauri server executables
 !src-tauri/resources/**/*.exe
 
 # Exclude massive local model files

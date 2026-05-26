@@ -2,7 +2,7 @@
 
 Updated: May 2026
 
-This guide walks through setting up DazPilot from scratch: installing dependencies, building the bridge plugin, and running the desktop app.
+This guide walks through setting up DazPilot from scratch: installing dependencies and running the desktop app.
 
 ---
 
@@ -13,8 +13,6 @@ This guide walks through setting up DazPilot from scratch: installing dependenci
 | **Node.js** | 20+ | Frontend build and dev server |
 | **npm** | 10+ | Package manager (bundled with Node.js) |
 | **Rust** | 1.70+ | Tauri backend compilation |
-| **CMake** | 3.20+ | Bridge plugin build system |
-| **Visual Studio Build Tools** | 2022 | C++ compiler for the bridge plugin (Windows) |
 | **Daz Studio** | 4.5+ | Target application for the bridge plugin |
 | **Daz Studio SDK** | 4.5+ | Proprietary SDK headers (installed via DIM) |
 
@@ -44,30 +42,6 @@ rustc --version   # Should print 1.70.0 or higher
 cargo --version
 ```
 
-### Installing CMake
-
-Download from [cmake.org](https://cmake.org/download/) or install via a package manager:
-
-```powershell
-winget install Kitware.CMake
-# or
-choco install cmake
-```
-
-Verify:
-
-```powershell
-cmake --version   # Should print 3.20 or higher
-```
-
-### Installing Visual Studio Build Tools
-
-The C++ bridge plugin requires a C++ compiler. On Windows, install the Visual Studio 2022 Build Tools:
-
-1. Download from [visualstudio.microsoft.com](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
-2. In the installer, select **Desktop development with C++**
-3. Complete the installation
-
 ### Installing the Daz Studio SDK
 
 The Daz Studio C++ SDK is proprietary and not hosted on GitHub.
@@ -90,7 +64,7 @@ cd DazPilot
 
 ## Configure The SDK Path
 
-DazPilot needs the Daz SDK headers to build the bridge plugin and index SDK classes.
+DazPilot needs the Daz SDK headers to index SDK classes.
 
 **Option A:** Place the SDK folder in the thirdparty directory:
 
@@ -112,36 +86,6 @@ $env:DAZ_SDK_PATH = "C:\Users\You\Documents\DAZ 3D\DAZStudio4.5+ SDK\include"
 The default include path is `thirdparty/DAZStudio4.5+ SDK\include` relative to the repository root.
 
 ---
-
-## Build The Bridge Plugin
-
-The bridge plugin is a C++ Daz Studio plugin that runs a TCP server for communication.
-
-```powershell
-npm run plugin:rebuild
-```
-
-This runs CMake configure + build. The output DLL lands in:
-
-```text
-plugins\daz3d-bridge\dist\Release\DazPilotBridge.dll
-```
-
-### Install The Plugin
-
-Copy the DLL into your Daz Studio plugins directory:
-
-```powershell
-copy plugins\daz3d-bridge\dist\Release\DazPilotBridge.dll "C:\Program Files\DAZ 3D\DAZStudio4\plugins\"
-```
-
-Or use the deploy shortcut (may require elevated shell):
-
-```powershell
-npm run plugin:rebuild:deploy
-```
-
-Restart Daz Studio after copying the DLL.
 
 ---
 
@@ -194,7 +138,6 @@ src-tauri/target/release/bundle/
 npm test              # Frontend unit tests (Vitest)
 cargo test            # Rust backend tests
 npm run check         # Full pipeline: Rust clippy + typecheck + lint + format check + Rust fmt + test
-npm run acceptance    # Bridge acceptance tests with mock bridge
 ```
 
 ---
@@ -211,17 +154,6 @@ npm run acceptance    # Bridge acceptance tests with mock bridge
 ---
 
 ## Troubleshooting
-
-### "Daz SDK not found" during plugin build
-
-- Confirm the SDK is installed via DIM
-- Check that `DAZStudio4.5+ SDK` exists in the repo root, or `DAZ_SDK_PATH` is set
-- Verify the `include` subdirectory contains `.h` files
-
-### CMake errors on Windows
-
-- Ensure Visual Studio Build Tools are installed with the C++ workload
-- Try running from a **Developer PowerShell for VS 2022**
 
 ### Bridge connection refused
 

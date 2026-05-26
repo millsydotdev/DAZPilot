@@ -7,6 +7,7 @@ import {
   StickyNote,
   Settings,
   FileText,
+  BookOpen,
 } from 'lucide-react';
 import { useHotkeys } from './hooks/useHotkey';
 import {
@@ -24,6 +25,7 @@ import ScenePanel from './components/scene/ScenePanel';
 import ScratchpadPanel from './components/scratchpad/ScratchpadPanel';
 import SettingsPanel from './components/settings/SettingsPanel';
 import PresetPanel from './components/preset/PresetPanel';
+import TutorialPanel from './components/tutorial/TutorialPanel';
 import { FirstLaunchWizard } from './components/FirstLaunchWizard';
 import { ScriptApprovalPanel } from './components/ScriptApprovalPanel';
 import { Launcher } from './components/Launcher';
@@ -38,6 +40,7 @@ const tabs: SidebarTab[] = [
   { id: 'scene', label: 'Scene', icon: <Layers size={20} /> },
   { id: 'scratchpad', label: 'Scratchpad', icon: <StickyNote size={20} /> },
   { id: 'presets', label: 'Presets', icon: <FileText size={20} /> },
+  { id: 'tutorial', label: 'Tutorial', icon: <BookOpen size={20} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
 ];
 
@@ -149,6 +152,8 @@ function App() {
         return <ScratchpadPanel />;
       case 'presets':
         return <PresetPanel />;
+      case 'tutorial':
+        return <TutorialPanel />;
       case 'settings':
         return <SettingsPanel />;
       default:

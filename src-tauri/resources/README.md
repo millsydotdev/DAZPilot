@@ -5,20 +5,11 @@ This directory contains bundled resources for the DazPilot application.
 ## Platform Binaries
 
 ### Windows (Pre-built)
-- `DazPilotBridge.dll` - Daz Studio bridge plugin
 - `llama/llama-server.exe` - Local GGUF AI server (Windows x64)
 - `llama/llama.dll` - Required llama.cpp runtime library
 
 ### macOS/Linux (Build Required)
-The bridge plugin and llama-server must be built natively on each platform.
-
-For macOS:
-- Build `libDazPilotBridge.dylib` using the Daz SDK on macOS
-- Build `llama-server` for macOS (arm64 or x86_64)
-
-For Linux:
-- Build `libDazPilotBridge.so` using the Daz SDK on Linux
-- Build `llama-server` for Linux (x86_64)
+llama-server must be built natively on each platform.
 
 ## SDK Integration
 
@@ -50,14 +41,7 @@ The SDK headers are used by the AI indexer to build a knowledge base of Daz Stud
 - Better understanding of scene manipulation commands
 - Context-aware suggestions for Daz operations
 
-**Note**: The SDK is only needed for AI indexing. The bridge plugin DLL is pre-compiled and bundled with DazPilot.
-
-## Bridge Plugin
-
-The bridge plugin (`DazPilotBridge.dll`) is a proper Daz Studio plugin that:
-- Exports `getSDKVersion` and `getPluginDefinition` (required by Daz Studio)
-- Creates a TCP server on `127.0.0.1:8765` for communication with DazPilot
-- Handles Daz Studio's single-threaded SDK via Qt event marshaling
+**Note**: Bridge plugin source is at `plugins/daz3d-bridge/` — build it with CMake + Daz Studio SDK.
 
 ## Models Directory
 

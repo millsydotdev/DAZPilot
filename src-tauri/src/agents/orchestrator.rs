@@ -8,7 +8,7 @@ pub fn delegate_to_child(
     child_type: &str,
     mut request: AgentRequest,
 ) -> Result<AgentResponse, String> {
-    registry::with_registry(|reg| {
+    let handler = registry::with_registry(|reg| {
         let child = reg
             .get(child_type)
             .ok_or_else(|| format!("Child agent '{}' not found in registry", child_type))?;
@@ -40,8 +40,10 @@ pub fn delegate_to_child(
 
         request.delegation_chain.push(parent_type.to_string());
 
-        Ok((child.handler)(request))
-    })
+        Ok(child.handler)
+    })?;
+
+    Ok(handler(request))
 }
 
 /// Delegate to all children whose capabilities match the input.
@@ -51,15 +53,15 @@ pub fn delegate_by_capability(
     input: &str,
     request: AgentRequest,
 ) -> Vec<(String, AgentResponse)> {
-    registry::with_registry(|reg| {
+    let handlers = registry::with_registry(|reg| {
         let children = reg.get_children(parent_type);
-        let mut results = Vec::new();
+        let mut handlers = Vec::new();
 
         for child in children {
             let matched = child
                 .capabilities
                 .iter()
-                .any(|cap| input.to_lowercase().contains(&cap.to_lowercase()));
+                .any(|cap| registry::input_matches_capability(input, cap));
 
             if matched {
                 let child_req = AgentRequest {
@@ -71,13 +73,17 @@ pub fn delegate_by_capability(
                     ..request.clone()
                 };
 
-                let response = (child.handler)(child_req);
-                results.push((child.agent_type.clone(), response));
+                handlers.push((child.agent_type.clone(), child.handler, child_req));
             }
         }
 
-        results
-    })
+        handlers
+    });
+
+    handlers
+        .into_iter()
+        .map(|(agent_type, handler, child_req)| (agent_type, handler(child_req)))
+        .collect()
 }
 
 /// Delegate with a combined result from all matching children.
@@ -97,12 +103,12 @@ pub fn delegate_and_aggregate(
         if resp.success {
             all_actions.extend(resp.actions.clone());
             if let Some(ref msg) = resp.result {
-                all_messages.push(format!("[{}] {}", agent_type, msg));
+                all_messages.push(format_agent_message(agent_type, msg));
             }
         } else {
             total_success = false;
             if let Some(ref err) = resp.error {
-                all_messages.push(format!("[{}] Error: {}", agent_type, err));
+                all_messages.push(format_agent_message(agent_type, format!("Error: {}", err)));
             }
         }
     }
@@ -133,4 +139,8 @@ pub fn delegate_and_aggregate(
         actions: all_actions,
         sub_results: sub_agent_results,
     }
+}
+
+pub fn format_agent_message(agent_type: &str, message: impl AsRef<str>) -> String {
+    format!("{}: {}", agent_type, message.as_ref())
 }

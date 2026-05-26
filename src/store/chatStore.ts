@@ -11,6 +11,7 @@ export interface StructuredAiAction {
   confidence: number;
   sdk_refs: string[];
   requires_confirmation: boolean;
+  teach?: string;
 }
 
 export interface ChatMessage {
@@ -21,6 +22,8 @@ export interface ChatMessage {
   loading?: boolean;
   images?: string[];
   action?: StructuredAiAction;
+  teach?: string;
+  manualSteps?: string;
 }
 
 export interface ChatHistory {
@@ -52,7 +55,8 @@ export interface ChatActions {
     content: string,
     images?: string[],
     provider?: string,
-    model?: string
+    model?: string,
+    forceConfirmation?: boolean
   ) => Promise<void>;
   createHistory: (title: string) => string;
   loadHistory: (id: string) => void;
@@ -100,7 +104,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 
-  sendMessage: async (content, images, provider, model) => {
+  sendMessage: async (content, images, provider, model, forceConfirmation?: boolean) => {
     const { addMessage, setLoading, setError } = get();
 
     addMessage({ role: 'user', content, images, loading: false });
@@ -109,15 +113,22 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
     try {
       const { invoke } = await import('@tauri-apps/api/core');
-      const response = await invoke<{ content: string; action: StructuredAiAction }>(
-        'process_chat_message',
-        {
-          message: content,
-          images,
-          provider: provider || null,
-          model: model || null,
-        }
-      );
+      const response = await invoke<{
+        content: string;
+        action: StructuredAiAction;
+        teach?: string;
+        manual_steps?: string;
+      }>('process_chat_message', {
+        message: content,
+        images,
+        provider: provider || null,
+        model: model || null,
+      });
+
+      // Force confirmation if in Guide Me mode
+      if (forceConfirmation && response.action) {
+        response.action.requires_confirmation = true;
+      }
 
       // If action is present and requires confirmation, we inject a marker that the UI recognizes
       let finalContent = response.content;
@@ -129,6 +140,8 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
         role: 'assistant',
         content: finalContent,
         action: response.action,
+        teach: response.teach,
+        manualSteps: response.manual_steps,
         loading: false,
       });
     } catch (e) {

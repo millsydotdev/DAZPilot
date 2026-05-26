@@ -90,8 +90,10 @@ pub struct AgentAction {
 }
 
 pub fn execute_agent(request: AgentRequest) -> AgentResponse {
-    registry::with_registry(|reg| match reg.get(&request.agent_type) {
-        Some(node) => (node.handler)(request),
+    let handler = registry::with_registry(|reg| reg.get(&request.agent_type).map(|n| n.handler));
+
+    match handler {
+        Some(handler) => handler(request),
         None => AgentResponse {
             success: false,
             result: None,
@@ -102,7 +104,7 @@ pub fn execute_agent(request: AgentRequest) -> AgentResponse {
             actions: vec![],
             sub_results: vec![],
         },
-    })
+    }
 }
 
 pub fn register_default_agents() {

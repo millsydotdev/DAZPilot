@@ -4,7 +4,7 @@
 
 # DazPilot
 
-**AI-assisted Daz Studio scene control through a local desktop app, a C++ bridge plugin, and on-device AI.**
+**AI-assisted Daz Studio scene control through a local desktop app, a custom bridge plugin, and on-device AI.**
 
 [![CI](https://github.com/millsydotdev/DazPilot/actions/workflows/ci.yml/badge.svg)](https://github.com/millsydotdev/DazPilot/actions/workflows/ci.yml)
 [![App Release](https://github.com/millsydotdev/DazPilot/actions/workflows/app-release.yml/badge.svg)](https://github.com/millsydotdev/DazPilot/actions/workflows/app-release.yml)
@@ -42,7 +42,7 @@
 
 ## Overview
 
-DazPilot connects a Tauri desktop app to a live Daz Studio session through a C++ bridge plugin. It uses local AI (GGUF via `llama-server.exe`) to interpret natural-language prompts, plan structured scene actions, and execute them through the Daz SDK. All AI runs on-device by default — no cloud services required.
+DazPilot connects a Tauri desktop app to a live Daz Studio session through a custom bridge plugin. It uses local AI (GGUF via `llama-server.exe`) to interpret natural-language prompts, plan structured scene actions, and execute them through the Daz SDK. All AI runs on-device by default — no cloud services required.
 
 ```mermaid
 flowchart LR
@@ -70,10 +70,11 @@ flowchart LR
 
 ### Daz Studio Bridge
 
-- C++ plugin running a TCP server on `127.0.0.1:8765`
+- Custom bridge plugin running a TCP server on `127.0.0.1:8765`
 - Newline-delimited JSON protocol with command schema validation
 - Main-thread execution proxy using Qt event marshaling
 - Commands: scene info, node listing, asset loading, pose application, viewport capture, model import
+- Bridge plugin source at `plugins/daz3d-bridge/` — build with Daz Studio SDK + CMake
 
 ### Knowledge System
 
@@ -123,8 +124,6 @@ For detailed architecture docs, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 - **Node.js** 20+
 - **Rust** 1.70+
-- **CMake** 3.20+
-- **Visual Studio Build Tools** (Windows, for C++ bridge plugin)
 - **Daz Studio 4.5+** with the SDK installed via Daz Install Manager
 
 ### Install and Run
@@ -137,20 +136,9 @@ cd DazPilot
 # Install frontend dependencies
 npm install
 
-# Build the bridge plugin (requires Daz SDK)
-npm run plugin:rebuild
-
 # Start the dev server
 npm run dev
 ```
-
-Copy the built bridge DLL into your Daz Studio plugins folder, then restart Daz Studio:
-
-```powershell
-copy plugins\daz3d-bridge\dist\Release\DazPilotBridge.dll "C:\Program Files\DAZ 3D\DAZStudio4\plugins\"
-```
-
-Connect from the DazPilot Settings panel to `127.0.0.1:8765`.
 
 For full setup instructions, see [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
 
@@ -171,19 +159,7 @@ The Daz Studio C++ SDK is proprietary and cannot be hosted on GitHub.
 thirdparty/DAZStudio4.5+ SDK\include
 ```
 
-### 2. Build The Daz Bridge Plugin
-
-```powershell
-npm run plugin:rebuild
-```
-
-Output:
-
-```text
-plugins\daz3d-bridge\dist\Release\
-```
-
-### 3. Build The Tauri App
+### 2. Build The Tauri App
 
 ```powershell
 npm install
@@ -191,13 +167,12 @@ npm run check
 npm run tauri build
 ```
 
-### 4. Run Tests
+### 3. Run Tests
 
 ```powershell
 npm test              # Frontend tests
 cargo test            # Rust backend tests
 npm run check         # Full pipeline: Rust clippy + typecheck + lint + format check + Rust fmt + test
-npm run acceptance    # Bridge acceptance tests (mock mode)
 ```
 
 ---
@@ -251,7 +226,7 @@ Bridge commands are organized by category. All **63 commands** are listed below:
 
 For the full command schema (parameters, risk level), see the `COMMAND_SCHEMAS` constant in `src-tauri/src/mcp_client.rs`.
 
-For the full protocol spec, see [plugins/daz3d-bridge/README.md](plugins/daz3d-bridge/README.md).
+For the full protocol spec, see the bridge plugin source at `plugins/daz3d-bridge/`.
 
 ---
 

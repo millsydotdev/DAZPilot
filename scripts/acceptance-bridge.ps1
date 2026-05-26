@@ -22,7 +22,7 @@ if ($testExit -ne 0) { exit $testExit }
 
 Write-Host "`n[3/3] Manual live Daz Studio checklist (requires local install):" -ForegroundColor Yellow
 @(
-  "  - Build plugin: npm run plugin:rebuild",
+  "  - Build your custom bridge plugin (source at plugins/daz3d-bridge/)",
   "  - Install DLL via Settings or: npm run tauri dev -> install plugin",
   "  - Start Daz Studio; confirm bridge listens on 127.0.0.1:8765",
   "  - In DazPilot: connect bridge; run chat: 'list nodes' / 'get scene info'",

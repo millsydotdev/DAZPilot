@@ -32,11 +32,10 @@ npm install               # Install frontend dependencies
 npm run dev               # Start Vite dev server
 npm run check             # Rust clippy + typecheck + lint + format check + Rust fmt + test
 npm run tauri build       # Build production Tauri app
-npm run plugin:rebuild    # Build the C++ bridge plugin
-npm run acceptance        # Run bridge acceptance tests (mock mode)
+npm run plugin:build      # Build bridge plugin (plugins/daz3d-bridge/)
 npm test                  # Frontend tests
 cargo test                # Rust backend tests
-cd plugins/daz3d-bridge/build && ctest  # C++ bridge plugin tests (doctest)
+# C++ bridge plugin tests (doctest) — at plugins/daz3d-bridge/tests/
 ```
 
 ### Key Environment Variables
@@ -93,7 +92,7 @@ DazPilot/
 │   ├── resources/                # Bundled binaries (DLL, llama-server, models)
 │   └── capabilities/             # Tauri security capabilities
 ├── plugins/
-│   └── daz3d-bridge/             # C++ Daz Studio bridge plugin
+│   └── daz3d-bridge/             # C++ bridge plugin source
 ├── docs/                         # Documentation (you are here)
 ├── plan/                         # Development plan
 ├── scripts/                      # Build and dev scripts

@@ -12,6 +12,20 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
     let children = registry::with_registry(|reg| {
         reg.get_children("task_planner")
             .into_iter()
+            .filter(|node| {
+                node.capabilities
+                    .iter()
+                    .any(|cap| registry::input_matches_capability(&input, cap))
+                    || reg
+                        .get_descendants(&node.agent_type)
+                        .iter()
+                        .any(|descendant| {
+                            descendant
+                                .capabilities
+                                .iter()
+                                .any(|cap| registry::input_matches_capability(&input, cap))
+                        })
+            })
             .map(|n| n.agent_type.clone())
             .collect::<Vec<_>>()
     });
@@ -34,7 +48,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
         if resp.success && !resp.actions.is_empty() {
             had_match = true;
             if let Some(msg) = resp.result {
-                all_messages.push(format!("[{}] {}", child_type, msg));
+                all_messages.push(orchestrator::format_agent_message(child_type, msg));
             }
             for action in resp.actions {
                 if !all_actions.iter().any(|a| a.command == action.command) {

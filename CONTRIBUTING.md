@@ -11,7 +11,7 @@
 
 - Frontend: React + TypeScript + Zustand stores in `src/`
 - Backend: Rust + Tauri 2 commands in `src-tauri/src/`
-- Bridge: C++ Daz Studio plugin in `plugins/daz3d-bridge/`
+- Bridge: Custom C++ Daz Studio plugin — source at `plugins/daz3d-bridge/`
 
 ## Git Hooks
 
@@ -58,7 +58,7 @@ npm run check         # Full pipeline: typecheck + lint + format + test
 
 - TypeScript: Strict mode, Prettier formatting (2 spaces, single quotes)
 - Rust: rustfmt with standard settings
-- C++: Follow existing patterns in the bridge plugin
+- C++: Follow existing patterns in the bridge plugin at `plugins/daz3d-bridge/`
 
 ## Pull Requests
 

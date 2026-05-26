@@ -1,9 +1,16 @@
+use crate::agents::orchestrator;
 use crate::agents::{AgentAction, AgentRequest, AgentResponse};
 use crate::ai_system::vector_store;
 use crate::asset_matcher::MultiStrategyMatcher;
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
+
+    let child_response =
+        orchestrator::delegate_and_aggregate("asset_selection", &input, request.clone());
+    if !child_response.actions.is_empty() {
+        return child_response;
+    }
 
     let search_query = input
         .replace("load", "")

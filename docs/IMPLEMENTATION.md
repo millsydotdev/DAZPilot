@@ -61,7 +61,7 @@ Notes:
 
 ## Acceptance Follow-Up
 
-- Install the freshly built `DazPilotBridge.dll` into Daz Studio and verify live connection behavior.
+- Build the bridge plugin at `plugins/daz3d-bridge/` and verify live connection behavior.
 - Test asset loading and pose application across `.duf`, `.dsf`, and pose presets.
 - Test model import coverage with OBJ, FBX, and any other supported Daz import formats.
 - Verify viewport capture output paths and UI-thread behavior inside Daz Studio.
@@ -83,7 +83,7 @@ Notes:
 | `src-tauri/src/lib.rs` | Tauri command registration |
 | `src-tauri/src/mcp_client.rs` | Bridge client and command schema |
 | `src-tauri/src/library_scanner.rs` | Asset scanner |
-| `plugins/daz3d-bridge/DazPilotBridgePlugin.cpp` | Daz plugin bridge |
+| `plugins/daz3d-bridge/DazPilotBridgePlugin.cpp` | Daz plugin bridge (TCP + SDK command dispatch) |
 | `src-tauri/src/agents/mod.rs` | Agent type definitions, registry init, handler registration |
 | `src-tauri/src/agents/registry.rs` | AgentRegistry tree, lookup, global singleton |
 | `src-tauri/src/agents/orchestrator.rs` | Parent→child delegation with cycle detection |

@@ -223,7 +223,6 @@ static QString ExtractJsonValue(const std::string& json, const std::string& key)
     size_t colon = json.find(':', keyPos + needle.size());
     if (colon == std::string::npos) return "";
     
-    // Skip whitespace
     size_t valStart = colon + 1;
     while (valStart < json.size() && (json[valStart] == ' ' || json[valStart] == '\t' || json[valStart] == '\r' || json[valStart] == '\n')) {
         valStart++;
@@ -232,13 +231,42 @@ static QString ExtractJsonValue(const std::string& json, const std::string& key)
     
     char firstChar = json[valStart];
     if (firstChar == '"') {
-        // String value
-        size_t firstQuote = valStart;
-        size_t secondQuote = firstQuote + 1;
+        std::string raw;
         bool escaped = false;
-        for (; secondQuote < json.size(); ++secondQuote) {
-            char ch = json[secondQuote];
+        size_t pos = valStart + 1;
+        for (; pos < json.size(); ++pos) {
+            char ch = json[pos];
             if (escaped) {
+                switch (ch) {
+                    case '"': raw += '"'; break;
+                    case '\\': raw += '\\'; break;
+                    case '/': raw += '/'; break;
+                    case 'b': raw += '\b'; break;
+                    case 'f': raw += '\f'; break;
+                    case 'n': raw += '\n'; break;
+                    case 'r': raw += '\r'; break;
+                    case 't': raw += '\t'; break;
+                    case 'u': {
+                        if (pos + 4 < json.size()) {
+                            std::string hex = json.substr(pos + 1, 4);
+                            unsigned int codepoint;
+                            std::istringstream(hex) >> std::hex >> codepoint;
+                            if (codepoint <= 0x7F) {
+                                raw += static_cast<char>(codepoint);
+                            } else if (codepoint <= 0x7FF) {
+                                raw += static_cast<char>(0xC0 | (codepoint >> 6));
+                                raw += static_cast<char>(0x80 | (codepoint & 0x3F));
+                            } else {
+                                raw += static_cast<char>(0xE0 | (codepoint >> 12));
+                                raw += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+                                raw += static_cast<char>(0x80 | (codepoint & 0x3F));
+                            }
+                            pos += 4;
+                        }
+                        break;
+                    }
+                    default: raw += ch; break;
+                }
                 escaped = false;
                 continue;
             }
@@ -247,11 +275,10 @@ static QString ExtractJsonValue(const std::string& json, const std::string& key)
                 continue;
             }
             if (ch == '"') break;
+            raw += ch;
         }
-        if (secondQuote >= json.size()) return "";
-        return QString::fromUtf8(json.substr(firstQuote + 1, secondQuote - firstQuote - 1).c_str());
+        return QString::fromUtf8(raw.c_str());
     } else if (firstChar == '{' || firstChar == '[') {
-        // Object or Array value: match braces/brackets
         char closeChar = (firstChar == '{') ? '}' : ']';
         int depth = 1;
         size_t idx = valStart + 1;
@@ -277,7 +304,7 @@ static QString ExtractJsonValue(const std::string& json, const std::string& key)
                 } else if (ch == closeChar) {
                     depth--;
                     if (depth == 0) {
-                        idx++; // include the closing brace/bracket
+                        idx++;
                         break;
                     }
                 }
@@ -286,7 +313,6 @@ static QString ExtractJsonValue(const std::string& json, const std::string& key)
         if (depth != 0 || idx > json.size()) return "";
         return QString::fromUtf8(json.substr(valStart, idx - valStart).c_str());
     } else {
-        // Number, Boolean, or Null value
         size_t idx = valStart;
         for (; idx < json.size(); ++idx) {
             char ch = json[idx];
@@ -535,6 +561,144 @@ static bool SetMaterialProperty(const QString& nodeId, const QString& propName, 
         }
     }
     return setAny;
+}
+
+static DzNode* ResolveNodeOrSelection(const QString& nodeId) {
+    if (!dzScene) return nullptr;
+    if (!nodeId.isEmpty() && nodeId.toLower() != "selected") {
+        DzNode* node = dzScene->findNode(nodeId);
+        if (node) return node;
+    }
+    return dzScene->getPrimarySelection();
+}
+
+static float ClampOpacity(float value) {
+    if (value < 0.0f) return 0.0f;
+    if (value > 1.0f) return 1.0f;
+    return value;
+}
+
+static bool IsInternalSurfaceName(const QString& text) {
+    QString lower = text.toLower();
+    const char* keywords[] = {
+        "skull", "bone", "rib", "spine", "pelvis", "clavicle", "scapula",
+        "skeleton", "sternum", "vertebra", "femur", "humerus", "anatomy"
+    };
+    for (const char* keyword : keywords) {
+        if (lower.contains(keyword)) return true;
+    }
+    return false;
+}
+
+static int SetOpacityOnMaterials(DzNode* node, const QString& surfacePattern, float value, QStringList* affectedSurfaces = nullptr) {
+    if (!node) return 0;
+    DzObject* obj = node->getObject();
+    if (!obj) return 0;
+    DzShape* shape = obj->getCurrentShape();
+    if (!shape) return 0;
+
+    QString pattern = surfacePattern.toLower();
+    bool matchAll = pattern.isEmpty();
+    int count = 0;
+    for (int i = 0; i < shape->getNumMaterials(); ++i) {
+        DzMaterial* mat = shape->getMaterial(i);
+        if (!mat) continue;
+
+        QString name = mat->getName();
+        QString label = mat->getLabel();
+        QString nameLower = name.toLower();
+        QString labelLower = label.toLower();
+        bool matches = matchAll ||
+            nameLower == pattern ||
+            labelLower == pattern ||
+            nameLower.contains(pattern) ||
+            labelLower.contains(pattern);
+        if (!matches) continue;
+
+        DzProperty* prop = mat->findProperty("Opacity");
+        if (DzFloatProperty* fProp = qobject_cast<DzFloatProperty*>(prop)) {
+            fProp->setValue(value);
+            count++;
+            if (affectedSurfaces) {
+                affectedSurfaces->append(!label.isEmpty() ? label : name);
+            }
+        }
+    }
+    return count;
+}
+
+static std::string JsonStringArray(const QStringList& values) {
+    std::ostringstream oss;
+    oss << "[";
+    for (int i = 0; i < values.size(); ++i) {
+        if (i > 0) oss << ",";
+        oss << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    oss << "]";
+    return oss.str();
+}
+
+static QStringList GetInternalSurfaceNames(DzNode* node) {
+    QStringList surfaces;
+    if (!node) return surfaces;
+    DzObject* obj = node->getObject();
+    if (!obj) return surfaces;
+    DzShape* shape = obj->getCurrentShape();
+    if (!shape) return surfaces;
+
+    for (int i = 0; i < shape->getNumMaterials(); ++i) {
+        DzMaterial* mat = shape->getMaterial(i);
+        if (!mat) continue;
+        QString name = mat->getName();
+        QString label = mat->getLabel();
+        if (IsInternalSurfaceName(name) || IsInternalSurfaceName(label)) {
+            surfaces.append(!label.isEmpty() ? label : name);
+        }
+    }
+    return surfaces;
+}
+
+static DzNode* FindLoadedNode(DzNode* beforeSelection, int beforeNodeCount) {
+    DzNode* selected = dzScene ? dzScene->getPrimarySelection() : nullptr;
+    if (selected && selected != beforeSelection) return selected;
+    if (!dzScene) return selected;
+    for (int i = dzScene->getNumNodes() - 1; i >= beforeNodeCount; --i) {
+        DzNode* node = dzScene->getNode(i);
+        if (node) return node;
+    }
+    return selected;
+}
+
+static std::string PlaceAssetInsideFigure(const QString& figureId, const QString& assetPath) {
+    if (!dzScene) return "{\"placed\":false,\"error\":\"No scene\"}";
+    DzNode* figure = ResolveNodeOrSelection(figureId);
+    if (!figure) return "{\"placed\":false,\"error\":\"Figure not found\"}";
+
+    DzNode* beforeSelection = dzScene->getPrimarySelection();
+    int beforeNodeCount = dzScene->getNumNodes();
+    if (!OpenContentFile(assetPath, true)) {
+        return "{\"placed\":false,\"error\":\"Asset load failed\"}";
+    }
+
+    DzNode* asset = FindLoadedNode(beforeSelection, beforeNodeCount);
+    if (!asset) return "{\"placed\":false,\"error\":\"Loaded asset node not found\"}";
+
+    DzBox3 box = figure->getWSBoundingBox();
+    DzVec3 minVec = box.getMin();
+    DzVec3 maxVec = box.getMax();
+    DzVec3 center(
+        (minVec.m_x + maxVec.m_x) * 0.5f,
+        minVec.m_y + ((maxVec.m_y - minVec.m_y) * 0.55f),
+        (minVec.m_z + maxVec.m_z) * 0.5f
+    );
+    asset->setWSPos(center);
+    figure->addNodeChild(asset, true);
+
+    std::ostringstream oss;
+    oss << "{\"placed\":true,\"figure_id\":\"" << JsonEscape(figure->getName()) << "\",";
+    oss << "\"node_id\":\"" << JsonEscape(asset->getName()) << "\",";
+    oss << "\"position\":[" << center.m_x << "," << center.m_y << "," << center.m_z << "]}";
+    return oss.str();
 }
 
 static std::string GetMaterialProperties(const QString& nodeId) {
@@ -895,6 +1059,11 @@ static std::string CommandsData() {
         "{\"name\":\"add_node\",\"description\":\"Add a primitive node\",\"category\":\"Scene\",\"parameters\":[\"type\",\"name\"]},"
         "{\"name\":\"set_property\",\"description\":\"Set a node property\",\"category\":\"Properties\",\"parameters\":[\"node_id\",\"property\",\"value\"]},"
         "{\"name\":\"set_material_property\",\"description\":\"Set a material property\",\"category\":\"Materials\",\"parameters\":[\"node_id\",\"property\",\"value\"]},"
+        "{\"name\":\"set_body_opacity\",\"description\":\"Set opacity across all body surfaces\",\"category\":\"Materials\",\"parameters\":[\"node_id\",\"value\"]},"
+        "{\"name\":\"set_surface_opacity\",\"description\":\"Set opacity on matching material surfaces\",\"category\":\"Materials\",\"parameters\":[\"node_id\",\"surface_pattern\",\"value\"]},"
+        "{\"name\":\"get_internal_surfaces\",\"description\":\"List likely internal anatomy material surfaces\",\"category\":\"Materials\",\"parameters\":[\"node_id\"]},"
+        "{\"name\":\"show_anatomy\",\"description\":\"Make internal anatomy surfaces fully opaque\",\"category\":\"Materials\",\"parameters\":[\"node_id\"]},"
+        "{\"name\":\"place_asset_inside\",\"description\":\"Load and place an asset inside a figure\",\"category\":\"Assets\",\"parameters\":[\"figure_id\",\"asset_path\"]},"
         "{\"name\":\"get_node_properties\",\"description\":\"Get animatable properties of a node\",\"category\":\"Properties\",\"parameters\":[\"node_id\"]},"
         "{\"name\":\"load_asset\",\"description\":\"Load Daz asset\",\"category\":\"Assets\",\"parameters\":[\"path\"]},"
         "{\"name\":\"apply_pose\",\"description\":\"Apply pose file\",\"category\":\"Pose\",\"parameters\":[\"pose_path\",\"figure_id\"]},"
@@ -978,7 +1147,13 @@ static std::string DispatchRequest(const std::string& line) {
         return ErrorResponse(id, QString("Node not found: %1").arg(nodeId));
     }
     if (command == "render_preview") {
-        return OkResponse(id, "{\"requested\":true}");
+        if (!dzApp) return ErrorResponse(id, "No app");
+        DzRenderMgr* renderMgr = dzApp->getRenderMgr();
+        if (renderMgr) {
+            renderMgr->doRender();
+            return OkResponse(id, "{\"rendering\":true}");
+        }
+        return ErrorResponse(id, "No render manager available");
     }
     if (command == "capture_viewport") {
         QString path = ExtractArgString(line, "path");
@@ -1009,11 +1184,18 @@ static std::string DispatchRequest(const std::string& line) {
         return ErrorResponse(id, QString("Asset load failed: %1").arg(path));
     }
     if (command == "apply_pose") {
-        QString posePath = ExtractArgString(line, "pose_path");
-        if (OpenContentFile(posePath, true)) {
-            return OkResponse(id, std::string("{\"pose_path\":\"") + JsonEscape(posePath) + "\"}");
+        QString poseFile = ExtractArgString(line, "pose_path");
+        QString figureId = ExtractArgString(line, "figure_id");
+        if (!figureId.isEmpty() && dzScene) {
+            DzNode* target = dzScene->findNode(figureId);
+            if (target) {
+                dzScene->setPrimarySelection(target);
+            }
         }
-        return ErrorResponse(id, QString("Pose application failed: %1").arg(posePath));
+        if (OpenContentFile(poseFile, true)) {
+            return OkResponse(id, std::string("{\"applied\":\"") + JsonEscape(poseFile) + "\"}");
+        }
+        return ErrorResponse(id, QString("Failed to apply pose: %1").arg(poseFile));
     }
     if (command == "import_model") {
         QString path = ExtractArgString(line, "path");
@@ -1093,6 +1275,62 @@ static std::string DispatchRequest(const std::string& line) {
         }
         return ErrorResponse(id, QString("Failed to set material property %1 on node %2").arg(prop, nodeId));
     }
+    if (command == "set_body_opacity") {
+        QString nodeId = ExtractArgString(line, "node_id");
+        float value = ClampOpacity(ExtractArgString(line, "value").toFloat());
+        DzNode* node = ResolveNodeOrSelection(nodeId);
+        QStringList affected;
+        int count = SetOpacityOnMaterials(node, "", value, &affected);
+        if (count > 0) {
+            std::ostringstream oss;
+            oss << "{\"set\":true,\"matched_count\":" << count << ",\"surfaces\":" << JsonStringArray(affected) << "}";
+            return OkResponse(id, oss.str());
+        }
+        return ErrorResponse(id, QString("No opacity material properties found on node %1").arg(nodeId));
+    }
+    if (command == "set_surface_opacity") {
+        QString nodeId = ExtractArgString(line, "node_id");
+        QString pattern = ExtractArgString(line, "surface_pattern");
+        float value = ClampOpacity(ExtractArgString(line, "value").toFloat());
+        DzNode* node = ResolveNodeOrSelection(nodeId);
+        QStringList affected;
+        int count = SetOpacityOnMaterials(node, pattern, value, &affected);
+        if (count > 0) {
+            std::ostringstream oss;
+            oss << "{\"set\":true,\"matched_count\":" << count << ",\"surfaces\":" << JsonStringArray(affected) << "}";
+            return OkResponse(id, oss.str());
+        }
+        return ErrorResponse(id, QString("No matching opacity surfaces for pattern %1").arg(pattern));
+    }
+    if (command == "get_internal_surfaces") {
+        QString nodeId = ExtractArgString(line, "node_id");
+        DzNode* node = ResolveNodeOrSelection(nodeId);
+        QStringList surfaces = GetInternalSurfaceNames(node);
+        std::ostringstream oss;
+        oss << "{\"surfaces\":" << JsonStringArray(surfaces) << ",\"count\":" << surfaces.size() << "}";
+        return OkResponse(id, oss.str());
+    }
+    if (command == "show_anatomy") {
+        QString nodeId = ExtractArgString(line, "node_id");
+        DzNode* node = ResolveNodeOrSelection(nodeId);
+        QStringList surfaces = GetInternalSurfaceNames(node);
+        QStringList affected;
+        for (int i = 0; i < surfaces.size(); ++i) {
+            SetOpacityOnMaterials(node, surfaces[i], 1.0f, &affected);
+        }
+        std::ostringstream oss;
+        oss << "{\"shown\":true,\"matched_count\":" << affected.size() << ",\"surfaces\":" << JsonStringArray(affected) << "}";
+        return OkResponse(id, oss.str());
+    }
+    if (command == "place_asset_inside") {
+        QString figureId = ExtractArgString(line, "figure_id");
+        QString assetPath = ExtractArgString(line, "asset_path");
+        std::string result = PlaceAssetInsideFigure(figureId, assetPath);
+        if (result.find("\"placed\":true") != std::string::npos) {
+            return OkResponse(id, result);
+        }
+        return ErrorResponse(id, QString::fromStdString(result));
+    }
     if (command == "get_node_properties") {
         QString nodeId = ExtractArgString(line, "node_id");
         return OkResponse(id, GetNodeProperties(nodeId));
@@ -1116,13 +1354,22 @@ static std::string DispatchRequest(const std::string& line) {
     }
     if (command == "add_figure") {
         QString path = ExtractArgString(line, "path");
-        if (!path.isEmpty()) {
-            if (OpenContentFile(path, true)) {
-                return OkResponse(id, std::string("{\"path\":\"") + JsonEscape(path) + "\"}");
+        if (path.isEmpty()) {
+            QString figureType = ExtractArgString(line, "figure_type").toLower();
+            if (figureType == "genesis9" || figureType == "genesis 9") {
+                path = "/People/Genesis 9/Characters/Genesis 9.duf";
+            } else if (figureType == "genesis8" || figureType == "genesis 8") {
+                path = "/People/Genesis 8 Female/Characters/Genesis 8 Female.duf";
+            } else if (figureType == "genesis8.1" || figureType == "genesis 8.1") {
+                path = "/People/Genesis 8.1 Female/Characters/Genesis 8.1 Female.duf";
+            } else {
+                return ErrorResponse(id, QString("Unknown figure_type '%1'. Provide a content path or use: genesis9, genesis8, genesis8.1").arg(figureType));
             }
-            return ErrorResponse(id, QString("Figure load failed: %1").arg(path));
         }
-        return ErrorResponse(id, "add_figure requires a content path; index library and use load_asset or pass path");
+        if (OpenContentFile(path, true)) {
+            return OkResponse(id, std::string("{\"path\":\"") + JsonEscape(path) + "\",\"figure_type\":\"" + JsonEscape(ExtractArgString(line, "figure_type")) + "\"}");
+        }
+        return ErrorResponse(id, QString("Figure load failed: %1").arg(path));
     }
     if (command == "set_morph") {
         QString nodeId = ExtractArgString(line, "node_id");
@@ -1540,7 +1787,16 @@ static std::string DispatchRequest(const std::string& line) {
         int maxResults = ExtractArgString(line, "max_results").toInt();
         if (maxResults <= 0) maxResults = 50;
 
-        // Search content directories for matching files
+        QStringList filters;
+        if (typeFilter == "figure") filters << "*.duf";
+        else if (typeFilter == "pose") filters << "*.duf" << "*.pz2";
+        else if (typeFilter == "morph") filters << "*.duf";
+        else if (typeFilter == "material") filters << "*.duf";
+        else if (typeFilter == "light") filters << "*.duf" << "*.lw";
+        else if (typeFilter == "animation") filters << "*.duf";
+        else filters << "*.duf" << "*.pz2" << "*.lw" << "*.obj" << "*.fbx";
+
+        // Recursively search content directories using QDirIterator
         std::ostringstream oss;
         oss << "{\"results\":[";
         bool first = true;
@@ -1548,49 +1804,18 @@ static std::string DispatchRequest(const std::string& line) {
 
         for (int i = 0; i < contentMgr->getNumContentDirectories(); i++) {
             QString dir = contentMgr->getContentDirectoryPath(i);
-            QDir searchDir(dir);
-            if (!searchDir.exists()) continue;
-
-            QStringList filters;
-            if (typeFilter == "figure") filters << "*.duf";
-            else if (typeFilter == "pose") filters << "*.duf" << "*.pz2";
-            else if (typeFilter == "morph") filters << "*.duf";
-            else if (typeFilter == "material") filters << "*.duf";
-            else if (typeFilter == "light") filters << "*.duf" << "*.lw";
-            else if (typeFilter == "animation") filters << "*.duf";
-            else filters << "*.duf" << "*.pz2" << "*.lw" << "*.obj" << "*.fbx";
-
-            QStringList entries = searchDir.entryList(filters, QDir::Files, QDir::Name);
-            for (const QString& file : entries) {
-                if (count >= maxResults) break;
-                if (!query.isEmpty() && !file.contains(query, Qt::CaseInsensitive)) continue;
+            QDirIterator it(dir, filters, QDir::Files, QDirIterator::Subdirectories);
+            while (it.hasNext() && count < maxResults) {
+                QString filePath = it.next();
+                QString fileName = it.fileName();
+                if (!query.isEmpty() && !fileName.contains(query, Qt::CaseInsensitive)) continue;
 
                 if (!first) oss << ",";
                 first = false;
-                oss << "{\"name\":\"" << JsonEscape(file) << "\",";
-                oss << "\"path\":\"" << JsonEscape(searchDir.absoluteFilePath(file)) << "\",";
+                oss << "{\"name\":\"" << JsonEscape(fileName) << "\",";
+                oss << "\"path\":\"" << JsonEscape(filePath) << "\",";
                 oss << "\"type\":\"" << JsonEscape(typeFilter.isEmpty() ? "unknown" : typeFilter) << "\"}";
                 count++;
-            }
-            if (count >= maxResults) break;
-
-            // Also search one level of subdirectories
-            QStringList subDirs = searchDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
-            for (const QString& subDir : subDirs) {
-                if (count >= maxResults) break;
-                QDir subSearchDir(searchDir.absoluteFilePath(subDir));
-                QStringList subEntries = subSearchDir.entryList(filters, QDir::Files, QDir::Name);
-                for (const QString& file : subEntries) {
-                    if (count >= maxResults) break;
-                    if (!query.isEmpty() && !file.contains(query, Qt::CaseInsensitive)) continue;
-
-                    if (!first) oss << ",";
-                    first = false;
-                    oss << "{\"name\":\"" << JsonEscape(file) << "\",";
-                    oss << "\"path\":\"" << JsonEscape(subSearchDir.absoluteFilePath(file)) << "\",";
-                    oss << "\"type\":\"" << JsonEscape(typeFilter.isEmpty() ? "unknown" : typeFilter) << "\"}";
-                    count++;
-                }
             }
         }
         oss << "],\"count\":" << count << "}";
@@ -1613,40 +1838,56 @@ static std::string DispatchRequest(const std::string& line) {
         DzShape* shape = obj->getCurrentShape();
         if (!shape) return ErrorResponse(id, "Node has no shape");
 
-        // Find the channel property name based on the channel label
-        QString propName;
-        if (channel == "diffuse" || channel == "diffuse_map") propName = "Diffuse Value Map";
-        else if (channel == "bump" || channel == "bump_map") propName = "Bump Map";
-        else if (channel == "normal" || channel == "normal_map") propName = "Normal Value Map";
-        else if (channel == "displacement" || channel == "displacement_map") propName = "Displacement Map";
-        else if (channel == "specular" || channel == "specular_map") propName = "Specular Value Map";
-        else if (channel == "specular_color") propName = "Specular Color Map";
-        else if (channel == "glossiness" || channel == "glossiness_map") propName = "Glossiness Value Map";
-        else if (channel == "reflection" || channel == "reflection_map") propName = "Reflection Value Map";
-        else if (channel == "refraction" || channel == "refraction_map") propName = "Refraction Value Map";
-        else if (channel == "opacity" || channel == "opacity_map") propName = "Opacity Value Map";
-        else if (channel == "ambient" || channel == "ambient_map") propName = "Ambient Value Map";
-        else propName = channel; // Use as-is
+        // Build candidate property names: exact match + common aliases
+        QStringList candidates;
+        QString chanLower = channel.toLower();
+        if (chanLower == "diffuse" || chanLower == "diffuse_map") {
+            candidates << "Diffuse Value Map" << "Diffuse Color" << "Color";
+        } else if (chanLower == "bump" || chanLower == "bump_map") {
+            candidates << "Bump Map" << "Bump Strength" << "Bump";
+        } else if (chanLower == "normal" || chanLower == "normal_map") {
+            candidates << "Normal Value Map" << "Normal Map" << "Normal";
+        } else if (chanLower == "displacement" || chanLower == "displacement_map") {
+            candidates << "Displacement Map" << "Displacement Strength" << "Displacement";
+        } else if (chanLower == "specular" || chanLower == "specular_map") {
+            candidates << "Specular Value Map" << "Specular Color" << "Specular Weight" << "Specular";
+        } else if (chanLower == "specular_color") {
+            candidates << "Specular Color Map" << "Specular Color";
+        } else if (chanLower == "glossiness" || chanLower == "glossiness_map") {
+            candidates << "Glossiness Value Map" << "Glossiness" << "Roughness" << "Roughness Value Map";
+        } else if (chanLower == "reflection" || chanLower == "reflection_map") {
+            candidates << "Reflection Value Map" << "Reflection Weight" << "Reflection";
+        } else if (chanLower == "refraction" || chanLower == "refraction_map") {
+            candidates << "Refraction Value Map" << "Refraction Weight" << "Refraction";
+        } else if (chanLower == "opacity" || chanLower == "opacity_map") {
+            candidates << "Opacity Value Map" << "Opacity Weight" << "Opacity" << "Transparency";
+        } else if (chanLower == "ambient" || chanLower == "ambient_map") {
+            candidates << "Ambient Value Map" << "Ambient Color" << "Ambient";
+        } else {
+            candidates << channel;
+        }
+        candidates.removeDuplicates();
 
         bool setAny = false;
         for (int i = 0; i < shape->getNumMaterials(); ++i) {
             DzMaterial* mat = shape->getMaterial(i);
             if (!mat) continue;
 
-            // Try to find as an image property first
-            DzProperty* prop = mat->findProperty(propName);
-            if (prop) {
+            for (const QString& candidate : candidates) {
+                DzProperty* prop = mat->findProperty(candidate);
+                if (!prop) continue;
+
                 DzImageProperty* imgProp = qobject_cast<DzImageProperty*>(prop);
                 if (imgProp) {
                     imgProp->setValue(filePath);
                     setAny = true;
-                } else {
-                    // Fall back on generic property set
-                    DzStringProperty* sProp = qobject_cast<DzStringProperty*>(prop);
-                    if (sProp) {
-                        sProp->setValue(filePath);
-                        setAny = true;
-                    }
+                    break;
+                }
+                DzStringProperty* sProp = qobject_cast<DzStringProperty*>(prop);
+                if (sProp) {
+                    sProp->setValue(filePath);
+                    setAny = true;
+                    break;
                 }
             }
         }
@@ -2021,10 +2262,25 @@ static void BridgeServerLoop() {
         BridgeSocket client = accept(g_listenSocket, nullptr, nullptr);
         if (client == INVALID_BRIDGE_SOCKET) continue;
 
+#ifdef _WIN32
+        DWORD timeoutMs = 5000;
+        setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutMs, sizeof(timeoutMs));
+#else
+        struct timeval tv;
+        tv.tv_sec = 5;
+        tv.tv_usec = 0;
+        setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+#endif
+
         std::string line;
         char ch;
+        const size_t MAX_REQUEST_SIZE = 1 * 1024 * 1024;
         while (recv(client, &ch, 1, 0) == 1) {
             if (ch == '\n') break;
+            if (line.size() >= MAX_REQUEST_SIZE) {
+                line.clear();
+                break;
+            }
             line.push_back(ch);
         }
 
@@ -2048,7 +2304,7 @@ static void BridgeServerLoop() {
 
 const char* GetPluginName() { return "DazPilot Bridge"; }
 const char* GetPluginDescription() { return "AI-powered scene editing bridge for Daz Studio"; }
-const char* GetPluginVersion() { return "1.0.0"; }
+const char* GetPluginVersion() { return "0.5.3"; }
 int GetPluginType() { return 1; }
 
 bool PluginInitialize() {
@@ -2143,7 +2399,12 @@ bool LoadAsset(const char* assetPath) {
 }
 
 bool ApplyPose(const char* poseFile, const char* figureId) {
-    Q_UNUSED(figureId);
+    if (figureId && strlen(figureId) > 0 && dzScene) {
+        DzNode* target = dzScene->findNode(QString(figureId));
+        if (target) {
+            dzScene->setPrimarySelection(target);
+        }
+    }
     return OpenContentFile(QString(poseFile ? poseFile : ""), true);
 }
 
@@ -2184,9 +2445,9 @@ public:
               "DazPilot Bridge",
               "DazPilot",
               "TCP bridge for DazPilot scene editing and viewport sync.",
-              1,
               0,
-              0,
+              5,
+              3,
               0) {}
 
 protected:

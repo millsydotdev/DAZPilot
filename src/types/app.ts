@@ -5,7 +5,8 @@ export type AppTab =
   | 'scene'
   | 'scratchpad'
   | 'presets'
-  | 'settings';
+  | 'settings'
+  | 'tutorial';
 
 export interface LauncherCompleteOptions {
   tab?: AppTab;

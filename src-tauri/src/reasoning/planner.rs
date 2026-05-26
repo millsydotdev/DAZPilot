@@ -900,6 +900,63 @@ impl Planner {
                     requires_confirmation: false,
                 })
             },
+            ActionType::SetBodyOpacity => {
+                let value_default = "0.2".to_string();
+                let value = step.parameters.get("opacity").unwrap_or(&value_default);
+                Some(StructuredAiAction {
+                    command: "set_body_opacity".to_string(),
+                    args: serde_json::json!({ "node_id": "selected", "value": value }),
+                    confidence: 0.8,
+                    sdk_refs: vec!["DzMaterial".to_string(), "DzFloatProperty".to_string()],
+                    requires_confirmation: false,
+                })
+            },
+            ActionType::SetSurfaceOpacity => {
+                let surface_default = "torso".to_string();
+                let value_default = "0.2".to_string();
+                let surface = step.parameters.get("surface").unwrap_or(&surface_default);
+                let value = step.parameters.get("opacity").unwrap_or(&value_default);
+                Some(StructuredAiAction {
+                    command: "set_surface_opacity".to_string(),
+                    args: serde_json::json!({
+                        "node_id": "selected",
+                        "surface_pattern": surface,
+                        "value": value,
+                    }),
+                    confidence: 0.8,
+                    sdk_refs: vec!["DzMaterial".to_string(), "DzFloatProperty".to_string()],
+                    requires_confirmation: false,
+                })
+            },
+            ActionType::GetInternalSurfaces => Some(StructuredAiAction {
+                command: "get_internal_surfaces".to_string(),
+                args: serde_json::json!({ "node_id": "selected" }),
+                confidence: 0.8,
+                sdk_refs: vec!["DzMaterial".to_string()],
+                requires_confirmation: false,
+            }),
+            ActionType::ShowAnatomy => Some(StructuredAiAction {
+                command: "show_anatomy".to_string(),
+                args: serde_json::json!({ "node_id": "selected" }),
+                confidence: 0.8,
+                sdk_refs: vec!["DzMaterial".to_string(), "DzFloatProperty".to_string()],
+                requires_confirmation: false,
+            }),
+            ActionType::PlaceAssetInside => {
+                let asset_default = "".to_string();
+                let asset = step.parameters.get("asset").unwrap_or(&asset_default);
+                Some(StructuredAiAction {
+                    command: "place_asset_inside".to_string(),
+                    args: serde_json::json!({ "figure_id": "selected", "asset_path": asset }),
+                    confidence: 0.7,
+                    sdk_refs: vec![
+                        "DzContentMgr".to_string(),
+                        "DzNode".to_string(),
+                        "DzBox3".to_string(),
+                    ],
+                    requires_confirmation: false,
+                })
+            },
             ActionType::Animate => Some(StructuredAiAction {
                 command: "play_timeline".to_string(),
                 args: serde_json::json!({}),

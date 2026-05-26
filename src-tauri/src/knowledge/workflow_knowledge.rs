@@ -171,6 +171,50 @@ pub fn action_to_command_map() -> HashMap<ActionType, CommandMapping> {
         },
     );
     m.insert(
+        ActionType::SetBodyOpacity,
+        CommandMapping {
+            command: "set_body_opacity",
+            alternatives: &["set_material_property"],
+            param_mapping: &[("figure", "node_id"), ("opacity", "value")],
+        },
+    );
+    m.insert(
+        ActionType::SetSurfaceOpacity,
+        CommandMapping {
+            command: "set_surface_opacity",
+            alternatives: &["set_material_property"],
+            param_mapping: &[
+                ("figure", "node_id"),
+                ("surface", "surface_pattern"),
+                ("opacity", "value"),
+            ],
+        },
+    );
+    m.insert(
+        ActionType::GetInternalSurfaces,
+        CommandMapping {
+            command: "get_internal_surfaces",
+            alternatives: &["get_material_zones"],
+            param_mapping: &[("figure", "node_id")],
+        },
+    );
+    m.insert(
+        ActionType::ShowAnatomy,
+        CommandMapping {
+            command: "show_anatomy",
+            alternatives: &["set_surface_opacity"],
+            param_mapping: &[("figure", "node_id")],
+        },
+    );
+    m.insert(
+        ActionType::PlaceAssetInside,
+        CommandMapping {
+            command: "place_asset_inside",
+            alternatives: &["load_asset", "set_node_transform"],
+            param_mapping: &[("figure", "figure_id"), ("asset", "asset_path")],
+        },
+    );
+    m.insert(
         ActionType::Animate,
         CommandMapping {
             command: "play_timeline",
@@ -259,6 +303,16 @@ pub enum ActionType {
     SetRenderOptions,
     /// Assign a texture map to a material surface channel
     SetMaterialTexture,
+    /// Set uniform opacity across a figure/body
+    SetBodyOpacity,
+    /// Set opacity for one or more matching material surfaces
+    SetSurfaceOpacity,
+    /// Discover likely internal anatomy material surfaces
+    GetInternalSurfaces,
+    /// Make likely internal anatomy material surfaces fully opaque
+    ShowAnatomy,
+    /// Load and position an asset inside a figure
+    PlaceAssetInside,
     /// Trigger timeline playback or animation
     Animate,
     /// Run arbitrary DazScript
