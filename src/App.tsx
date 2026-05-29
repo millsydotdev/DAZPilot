@@ -8,6 +8,7 @@ import {
   Settings,
   FileText,
   BookOpen,
+  Wand2,
 } from 'lucide-react';
 import { useHotkeys } from './hooks/useHotkey';
 import {
@@ -33,6 +34,8 @@ import { AppLayout } from './components/layout/AppLayout';
 import type { SidebarTab } from './components/layout/AppSidebar';
 import type { AppTab } from './types/app';
 
+import VibeCodingPanel from './components/compose/VibeCodingPanel';
+
 const tabs: SidebarTab[] = [
   { id: 'chat', label: 'AI Chat', icon: <MessageSquare size={20} /> },
   { id: 'assets', label: 'Assets', icon: <FolderOpen size={20} /> },
@@ -41,6 +44,7 @@ const tabs: SidebarTab[] = [
   { id: 'scratchpad', label: 'Scratchpad', icon: <StickyNote size={20} /> },
   { id: 'presets', label: 'Presets', icon: <FileText size={20} /> },
   { id: 'tutorial', label: 'Tutorial', icon: <BookOpen size={20} /> },
+  { id: 'compose', label: 'Vibe Coding', icon: <Wand2 size={20} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
 ];
 
@@ -152,6 +156,8 @@ function App() {
         return <ScratchpadPanel />;
       case 'presets':
         return <PresetPanel />;
+      case 'compose':
+        return <VibeCodingPanel />;
       case 'tutorial':
         return <TutorialPanel />;
       case 'settings':

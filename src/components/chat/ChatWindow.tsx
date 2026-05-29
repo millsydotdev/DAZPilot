@@ -21,6 +21,8 @@ import {
   Database,
   Cpu,
   RefreshCw,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { useChatStore, useConnectionStore, useAppStore, useToastStore } from '../../store';
@@ -619,6 +621,78 @@ export default function ChatWindow() {
                         manualSteps={msg.manualSteps}
                         defaultExpanded={guideMe}
                       />
+                    )}
+                    {msg.role === 'assistant' && !msg.loading && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '8px',
+                          marginTop: '8px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <button
+                          onClick={async () => {
+                            useChatStore
+                              .getState()
+                              .updateMessage(msg.id, {
+                                feedback: msg.feedback === 'up' ? undefined : 'up',
+                              });
+                            try {
+                              await invoke('record_feedback', {
+                                messageId: msg.id,
+                                command: msg.action?.command || 'general',
+                                accepted: true,
+                              });
+                            } catch (e) {
+                              console.error('Failed to record feedback:', e);
+                            }
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            color: msg.feedback === 'up' ? '#22c55e' : '#64748b',
+                            opacity: msg.feedback === 'down' ? 0.3 : 1,
+                          }}
+                          title="Helpful"
+                        >
+                          <ThumbsUp size={16} />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            useChatStore
+                              .getState()
+                              .updateMessage(msg.id, {
+                                feedback: msg.feedback === 'down' ? undefined : 'down',
+                              });
+                            try {
+                              await invoke('record_feedback', {
+                                messageId: msg.id,
+                                command: msg.action?.command || 'general',
+                                accepted: false,
+                              });
+                            } catch (e) {
+                              console.error('Failed to record feedback:', e);
+                            }
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            color: msg.feedback === 'down' ? '#ef4444' : '#64748b',
+                            opacity: msg.feedback === 'up' ? 0.3 : 1,
+                          }}
+                          title="Not helpful"
+                        >
+                          <ThumbsDown size={16} />
+                        </button>
+                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                          {msg.feedback ? 'Feedback recorded' : ''}
+                        </span>
+                      </div>
                     )}
                   </>
                 )}

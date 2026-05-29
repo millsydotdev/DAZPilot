@@ -534,6 +534,907 @@ const COMMAND_SCHEMAS: &[CommandSchema] = &[
         parameters: &["mode"],
         high_risk: false,
     },
+    // ── Environment Commands ──────────────────────────────────────────────────
+    CommandSchema {
+        name: "set_environment",
+        description: "Set environment map or preset",
+        category: "Environment",
+        parameters: &["type", "preset", "intensity", "rotation"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "add_ground",
+        description: "Add a ground plane to the scene",
+        category: "Environment",
+        parameters: &["type", "color", "size"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_fog",
+        description: "Enable/configure fog in the scene",
+        category: "Environment",
+        parameters: &["enabled", "density", "color", "distance"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_sun",
+        description: "Set sun position and color",
+        category: "Environment",
+        parameters: &["direction", "intensity", "color"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_time_of_day",
+        description: "Set scene time of day with automatic lighting",
+        category: "Environment",
+        parameters: &["time", "adjust_env"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "add_env_light",
+        description: "Add an environment fill/rim/bounce light",
+        category: "Lighting",
+        parameters: &["type", "intensity", "color", "direction"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "rotate_environment",
+        description: "Rotate the environment map",
+        category: "Environment",
+        parameters: &["rotation", "hdri_only"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_environment_info",
+        description: "Get current environment settings",
+        category: "Environment",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "clear_environment",
+        description: "Remove environment elements (hdri/ground/fog)",
+        category: "Environment",
+        parameters: &["hdri", "ground", "fog"],
+        high_risk: false,
+    },
+    // ── Figure Commands ───────────────────────────────────────────────────────
+    CommandSchema {
+        name: "apply_figure_preset",
+        description: "Apply a figure/character preset",
+        category: "Figure",
+        parameters: &[
+            "figure_id",
+            "preset_path",
+            "apply_morphs",
+            "apply_materials",
+        ],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "list_figures",
+        description: "List all figure nodes in the scene",
+        category: "Figure",
+        parameters: &["include_details"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "remove_figure",
+        description: "Remove a figure from the scene",
+        category: "Figure",
+        parameters: &["figure_id"],
+        high_risk: true,
+    },
+    // ── Selection Commands ────────────────────────────────────────────────────
+    CommandSchema {
+        name: "select_by_type",
+        description: "Select nodes by type and optional name filter",
+        category: "Selection",
+        parameters: &["type", "mode", "name_contains"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "select_hierarchy",
+        description: "Select a node hierarchy",
+        category: "Selection",
+        parameters: &["node_id", "include_parent"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "invert_selection",
+        description: "Invert the current node selection",
+        category: "Selection",
+        parameters: &["type"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "save_selection",
+        description: "Save current selection set",
+        category: "Selection",
+        parameters: &["name"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "load_selection",
+        description: "Load a saved selection set",
+        category: "Selection",
+        parameters: &["name"],
+        high_risk: false,
+    },
+    // ── Camera Commands ──────────────────────────────────────────────────────
+    CommandSchema {
+        name: "create_camera",
+        description: "Create a new camera node",
+        category: "Camera",
+        parameters: &["name", "position", "focal_length"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_camera_transform",
+        description: "Position and orient a camera",
+        category: "Camera",
+        parameters: &["camera_id", "position", "target"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_focal_length",
+        description: "Set camera focal length in mm",
+        category: "Camera",
+        parameters: &["camera_id", "focal_length"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_aperture",
+        description: "Set camera aperture and depth of field",
+        category: "Camera",
+        parameters: &["camera_id", "f_stop", "enable_dof", "focus_distance"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "focus_camera",
+        description: "Point camera to look at a target node",
+        category: "Camera",
+        parameters: &["camera_id", "target", "offset"],
+        high_risk: false,
+    },
+    // ── Viewport Commands ─────────────────────────────────────────────────────
+    CommandSchema {
+        name: "set_display_mode",
+        description: "Set viewport display mode (textured, solid, wireframe, etc.)",
+        category: "Viewport",
+        parameters: &["mode", "viewport"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_viewport_quality",
+        description: "Set viewport rendering quality",
+        category: "Viewport",
+        parameters: &["quality", "texture_resolution", "anti_aliasing"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "toggle_guide",
+        description: "Show/hide a viewport guide element",
+        category: "Viewport",
+        parameters: &["guide", "show"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_viewport_camera",
+        description: "Set active viewport camera",
+        category: "Viewport",
+        parameters: &["camera", "viewport"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_viewport_lighting",
+        description: "Set viewport lighting mode",
+        category: "Viewport",
+        parameters: &["lighting", "ambient_intensity"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "center_view",
+        description: "Center viewport on a node",
+        category: "Viewport",
+        parameters: &["node_id", "animate"],
+        high_risk: false,
+    },
+    // ── Render Commands ───────────────────────────────────────────────────────
+    CommandSchema {
+        name: "render",
+        description: "Render preview, region, or final output",
+        category: "Render",
+        parameters: &["quality", "width", "height", "mode"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_render_output",
+        description: "Configure render output format and path",
+        category: "Render",
+        parameters: &["format", "path", "filename", "include_alpha"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_render_engine",
+        description: "Select render engine and GPU options",
+        category: "Render",
+        parameters: &["engine", "use_gpu", "gpu_devices"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_resolution",
+        description: "Set render output resolution",
+        category: "Render",
+        parameters: &["width", "height"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "render_region",
+        description: "Render a specific viewport region",
+        category: "Render",
+        parameters: &["x", "y", "width", "height", "quality"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "queue_render",
+        description: "Add a render pass to the queue",
+        category: "Render",
+        parameters: &["pass_name", "camera_name"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "cancel_render",
+        description: "Cancel the current render",
+        category: "Render",
+        parameters: &["clear_queue"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_denoising",
+        description: "Configure render denoising settings",
+        category: "Render",
+        parameters: &["enabled", "strength", "mode"],
+        high_risk: false,
+    },
+    // ── Export Commands ───────────────────────────────────────────────────────
+    CommandSchema {
+        name: "export_fbx",
+        description: "Export scene to FBX format",
+        category: "Export",
+        parameters: &[
+            "filepath",
+            "selected_only",
+            "scale",
+            "axis_system",
+            "embed_textures",
+            "triangulate",
+        ],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "export_obj",
+        description: "Export scene to OBJ format",
+        category: "Export",
+        parameters: &["filepath", "selected_only", "export_materials"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "export_gltf",
+        description: "Export scene to glTF format",
+        category: "Export",
+        parameters: &[
+            "filepath",
+            "selected_only",
+            "binary",
+            "compress",
+            "include_animations",
+        ],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "export_collada",
+        description: "Export scene to Collada DAE format",
+        category: "Export",
+        parameters: &["filepath", "selected_only", "export_normals", "export_uvs"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "export_usd",
+        description: "Export scene to USD/USDZ format",
+        category: "Export",
+        parameters: &["filepath", "selected_only", "include_animations", "flatten"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "export_selected",
+        description: "Export selected nodes to a file",
+        category: "Export",
+        parameters: &["filepath", "format"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "batch_export",
+        description: "Batch export multiple items to files",
+        category: "Export",
+        parameters: &["dir", "items", "format", "name_pattern"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "export_animation",
+        description: "Export animation data to a file",
+        category: "Export",
+        parameters: &[
+            "filepath",
+            "figure_id",
+            "format",
+            "bake_keyframes",
+            "frame_rate",
+        ],
+        high_risk: true,
+    },
+    // ── Pose Commands ─────────────────────────────────────────────────────────
+    CommandSchema {
+        name: "list_poses",
+        description: "List available pose presets",
+        category: "Pose",
+        parameters: &["category", "figure_type", "mood"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "save_pose",
+        description: "Save current pose as a preset",
+        category: "Pose",
+        parameters: &["figure_id", "name", "category", "include_facial"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "blend_poses",
+        description: "Blend between two poses",
+        category: "Pose",
+        parameters: &["figure_id", "pose_a", "pose_b", "blend"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "mirror_pose",
+        description: "Mirror the current pose left-right",
+        category: "Pose",
+        parameters: &["figure_id", "selected_only"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "asymmetric_pose",
+        description: "Apply different poses to left and right sides",
+        category: "Pose",
+        parameters: &["figure_id", "left", "right"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "reset_pose",
+        description: "Reset a figure to T-pose or A-pose",
+        category: "Pose",
+        parameters: &["figure_id", "pose_type", "preserve_facial"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "random_pose",
+        description: "Apply a random pose to a figure",
+        category: "Pose",
+        parameters: &["figure_id", "category", "intensity"],
+        high_risk: false,
+    },
+    // ── Hair Commands ─────────────────────────────────────────────────────────
+    CommandSchema {
+        name: "load_hair",
+        description: "Load a hair asset from the content library",
+        category: "Hair",
+        parameters: &["name", "figure_id", "color"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "style_hair",
+        description: "Apply a hair styling preset",
+        category: "Hair",
+        parameters: &["hair_id", "preset"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_hair_color",
+        description: "Change hair color with optional highlights/roots",
+        category: "Hair",
+        parameters: &["hair_id", "color", "highlights", "root_color"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "apply_hair_physics",
+        description: "Configure dForce physics on hair",
+        category: "Hair",
+        parameters: &["hair_id", "enable", "stiffness", "gravity_scale", "wind"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_hair_length",
+        description: "Adjust hair length preset",
+        category: "Hair",
+        parameters: &["hair_id", "length", "scale_factor"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_hair_volume",
+        description: "Adjust hair volume/thickness",
+        category: "Hair",
+        parameters: &["hair_id", "volume"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "list_hair_presets",
+        description: "List available hair presets",
+        category: "Hair",
+        parameters: &["figure_type"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "remove_hair",
+        description: "Remove a hair asset from the scene",
+        category: "Hair",
+        parameters: &["hair_id", "keep_textures"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_hair_shader",
+        description: "Change hair shader settings (glossy, matte, etc.)",
+        category: "Hair",
+        parameters: &["hair_id", "shader_type", "gloss", "specular"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "apply_hair_preset",
+        description: "Apply a complete hair style preset",
+        category: "Hair",
+        parameters: &["hair_id", "preset"],
+        high_risk: false,
+    },
+    // ── Clothing/Fitting Commands ─────────────────────────────────────────────
+    CommandSchema {
+        name: "load_clothing",
+        description: "Load a clothing asset onto a figure",
+        category: "Fitting",
+        parameters: &["name", "fit_mode", "figure_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "fit_clothing",
+        description: "Fit clothing to a figure",
+        category: "Fitting",
+        parameters: &["clothing_id", "figure_id", "fit_type", "clear_morphs"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "remove_clothing",
+        description: "Remove clothing from a figure or scene",
+        category: "Fitting",
+        parameters: &["clothing_id", "remove_from_scene"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "list_worn_items",
+        description: "List items worn by a figure",
+        category: "Fitting",
+        parameters: &["figure_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_clothing_params",
+        description: "Set a clothing parameter value",
+        category: "Fitting",
+        parameters: &["clothing_id", "parameter", "value"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "suggest_outfit",
+        description: "Suggest an outfit for a figure",
+        category: "Fitting",
+        parameters: &["figure_id", "style"],
+        high_risk: false,
+    },
+    // ── Props Commands ────────────────────────────────────────────────────────
+    CommandSchema {
+        name: "load_prop",
+        description: "Load a prop from the content library",
+        category: "Props",
+        parameters: &["name", "category", "position"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "position_prop",
+        description: "Position a prop in the scene",
+        category: "Props",
+        parameters: &["prop_id", "position", "relative"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "rotate_prop",
+        description: "Rotate a prop",
+        category: "Props",
+        parameters: &["prop_id", "rotation", "relative"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "scale_prop",
+        description: "Scale a prop uniformly or per-axis",
+        category: "Props",
+        parameters: &["prop_id", "scale", "relative"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "list_props",
+        description: "List props in the scene",
+        category: "Props",
+        parameters: &["category"],
+        high_risk: false,
+    },
+    // ── Morph Commands ────────────────────────────────────────────────────────
+    CommandSchema {
+        name: "batch_set_morphs",
+        description: "Set multiple morph values at once",
+        category: "Morphs",
+        parameters: &["figure_id", "morphs"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "symmetry_morphs",
+        description: "Mirror morph values symmetrically left-right",
+        category: "Morphs",
+        parameters: &["figure_id", "direction", "morph_group"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "randomize_morphs",
+        description: "Randomize morph values on a figure",
+        category: "Morphs",
+        parameters: &["figure_id", "intensity", "morph_group"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "save_morph_preset",
+        description: "Save current morph values as a preset",
+        category: "Morphs",
+        parameters: &["figure_id", "preset_name", "morph_group"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "load_morph_preset",
+        description: "Load a morph preset onto a figure",
+        category: "Morphs",
+        parameters: &["figure_id", "preset_name", "blend"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "reset_morphs",
+        description: "Reset all morphs on a figure to zero",
+        category: "Morphs",
+        parameters: &["figure_id", "morph_group"],
+        high_risk: false,
+    },
+    // ── Physics Commands ──────────────────────────────────────────────────────
+    CommandSchema {
+        name: "simulate_physics",
+        description: "Run a physics simulation on nodes",
+        category: "Physics",
+        parameters: &["node_ids", "frames", "start_frame", "real_time"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_wind",
+        description: "Set wind parameters for physics simulation",
+        category: "Physics",
+        parameters: &["direction", "speed", "turbulence", "gust_strength"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_gravity",
+        description: "Set gravity for physics simulation",
+        category: "Physics",
+        parameters: &["strength", "direction", "node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "add_collision",
+        description: "Add a collision object for physics",
+        category: "Physics",
+        parameters: &["node_id", "shape", "friction"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "bake_physics",
+        description: "Bake physics simulation to keyframes",
+        category: "Animation",
+        parameters: &["node_id", "range_start", "range_end", "sample_rate"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_physics_props",
+        description: "Set physics properties on a node (mass, stiffness, etc.)",
+        category: "Physics",
+        parameters: &["node_id", "mass", "stiffness", "damping", "collision"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "remove_physics",
+        description: "Remove physics modifiers from a node",
+        category: "Physics",
+        parameters: &["node_id", "remove_modifiers"],
+        high_risk: false,
+    },
+    // ── Rigging Commands ──────────────────────────────────────────────────────
+    CommandSchema {
+        name: "get_joint_list",
+        description: "List all joints/bones in a figure",
+        category: "Rigging",
+        parameters: &["figure_id", "include_hidden"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_joint_rotation",
+        description: "Set a joint rotation",
+        category: "Rigging",
+        parameters: &["figure_id", "joint", "rotation", "space"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_ik_fk_blend",
+        description: "Set IK/FK blend on a limb",
+        category: "Rigging",
+        parameters: &["figure_id", "limb", "blend"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "add_joint",
+        description: "Add a new joint to a figure",
+        category: "Rigging",
+        parameters: &["figure_id", "joint_name", "parent_joint", "position"],
+        high_risk: true,
+    },
+    // ── Transform Commands ────────────────────────────────────────────────────
+    CommandSchema {
+        name: "set_transform",
+        description: "Set node transform (position/rotation/scale)",
+        category: "Transform",
+        parameters: &["node_id", "position", "rotation", "scale", "space"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "align_nodes",
+        description: "Align nodes to a target node",
+        category: "Transform",
+        parameters: &["target_node", "node_ids", "axes", "alignment"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "distribute_nodes",
+        description: "Distribute nodes evenly along an axis",
+        category: "Transform",
+        parameters: &["node_ids", "axis", "spacing", "bounds"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "snap_to_ground",
+        description: "Snap a node to the ground or another node",
+        category: "Transform",
+        parameters: &["node_id", "offset_y", "snap_to_node"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "reset_transform",
+        description: "Reset node transform to defaults",
+        category: "Transform",
+        parameters: &["node_id", "position", "rotation", "scale"],
+        high_risk: false,
+    },
+    // ── Scene Commands ────────────────────────────────────────────────────────
+    CommandSchema {
+        name: "set_visibility",
+        description: "Show or hide a node",
+        category: "Scene",
+        parameters: &["node_id", "visible", "recursive"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "delete_nodes",
+        description: "Delete multiple nodes from the scene",
+        category: "Scene",
+        parameters: &["node_ids"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "duplicate_nodes",
+        description: "Duplicate one or more nodes",
+        category: "Scene",
+        parameters: &["node_ids", "copies", "offset"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "rename_node",
+        description: "Rename a scene node",
+        category: "Scene",
+        parameters: &["node_id", "new_name"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "group_nodes",
+        description: "Group nodes under a new parent",
+        category: "Scene",
+        parameters: &["node_ids", "group_name"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "merge_scene",
+        description: "Merge a scene file into the current scene",
+        category: "Scene",
+        parameters: &["filepath", "import_location"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "get_scene_stats",
+        description: "Get scene statistics",
+        category: "Scene",
+        parameters: &["detailed"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "select_all",
+        description: "Select all nodes in the scene",
+        category: "Selection",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "deselect_all",
+        description: "Deselect all nodes",
+        category: "Selection",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "select_children",
+        description: "Select all children of a node",
+        category: "Selection",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "select_parent",
+        description: "Select the parent of the current selection",
+        category: "Selection",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_selection_count",
+        description: "Get the number of selected nodes",
+        category: "Selection",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "delete_camera",
+        description: "Delete a camera from the scene",
+        category: "Camera",
+        parameters: &["camera_name"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_camera_target",
+        description: "Set camera aim/focus point",
+        category: "Camera",
+        parameters: &["camera_name", "target"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_camera_properties",
+        description: "Get detailed properties of a camera",
+        category: "Camera",
+        parameters: &["camera_name"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_pivot",
+        description: "Set a node's pivot point",
+        category: "Transform",
+        parameters: &["node_id", "pivot"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "selection_map_list",
+        description: "List selection set maps",
+        category: "Selection",
+        parameters: &[],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "selection_map_get_pairs",
+        description: "Get all node-group pairs in a selection map",
+        category: "Selection",
+        parameters: &["map_index"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "selection_map_add_pair",
+        description: "Add a node-group pair to a selection map",
+        category: "Selection",
+        parameters: &["map_index", "node_id", "group_name"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "selection_map_remove_pair",
+        description: "Remove a node-group pair from a selection map by index",
+        category: "Selection",
+        parameters: &["map_index", "pair_index"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "selection_map_clear",
+        description: "Clear all pairs from a selection map",
+        category: "Selection",
+        parameters: &["map_index"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_node_selectable",
+        description: "Control whether a node can be selected in the viewport",
+        category: "Node",
+        parameters: &["node_id", "selectable"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "set_render_visible",
+        description: "Control whether a node is visible in renders",
+        category: "Node",
+        parameters: &["node_id", "visible"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "parent_node",
+        description: "Reparent a node under a new parent",
+        category: "Node",
+        parameters: &["node_id", "parent_id"],
+        high_risk: true,
+    },
+    CommandSchema {
+        name: "unparent_node",
+        description: "Remove a node from its parent",
+        category: "Node",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "mesh_get_vertex_count",
+        description: "Get vertex count of a mesh node",
+        category: "Mesh",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "mesh_get_face_count",
+        description: "Get face/polygon count of a mesh node",
+        category: "Mesh",
+        parameters: &["node_id"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "get_shape_materials",
+        description: "List material names on a shape",
+        category: "Material",
+        parameters: &["node_id", "shape_index"],
+        high_risk: false,
+    },
+    CommandSchema {
+        name: "lock_property",
+        description: "Lock or unlock a property",
+        category: "Property",
+        parameters: &["node_id", "property_name", "locked"],
+        high_risk: false,
+    },
 ];
 
 pub struct McpConnection {
@@ -653,12 +1554,6 @@ fn parse_bridge_response(raw: &str) -> Result<McpResponse, String> {
     })
 }
 
-pub fn is_dev_mock_bridge_enabled() -> bool {
-    std::env::var("DAZPILOT_DEV_MOCK_BRIDGE")
-        .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "on"))
-        .unwrap_or(false)
-}
-
 pub fn get_command_schemas() -> Vec<CommandSchema> {
     COMMAND_SCHEMAS.to_vec()
 }
@@ -706,12 +1601,6 @@ pub fn validate_command(command: &str, args: &Value) -> Result<(), String> {
 }
 
 pub fn set_daz3d_connection(host: &str, port: u16) -> Result<String, String> {
-    if is_dev_mock_bridge_enabled() {
-        let mut global = MCP_CLIENT.lock().unwrap();
-        *global = None;
-        return Ok("Connected to Daz3D dev mock bridge (DAZPILOT_DEV_MOCK_BRIDGE=1)".to_string());
-    }
-
     let conn = McpConnection::connect(host, port)?;
     let mut global = MCP_CLIENT.lock().unwrap();
     *global = Some(conn);
@@ -725,14 +1614,10 @@ pub fn disconnect_daz3d() -> String {
 }
 
 pub fn is_connected() -> bool {
-    is_dev_mock_bridge_enabled() || MCP_CLIENT.lock().unwrap().is_some()
+    MCP_CLIENT.lock().unwrap().is_some()
 }
 
 pub fn check_connection_status() -> String {
-    if is_dev_mock_bridge_enabled() {
-        return "connected".to_string();
-    }
-
     if MCP_CLIENT.lock().unwrap().is_some() {
         "connected".to_string()
     } else {
@@ -742,10 +1627,6 @@ pub fn check_connection_status() -> String {
 
 pub fn send_mcp_request(command: &str, args: Value) -> Result<McpResponse, String> {
     validate_command(command, &args)?;
-
-    if is_dev_mock_bridge_enabled() {
-        return dev_mock_response(command, &args);
-    }
 
     let mut global = MCP_CLIENT.lock().unwrap();
     let Some(ref mut conn) = *global else {
@@ -781,217 +1662,6 @@ pub fn send_mcp_request(command: &str, args: Value) -> Result<McpResponse, Strin
             }
         },
     }
-}
-
-fn dev_mock_response(command: &str, args: &Value) -> Result<McpResponse, String> {
-    let data = match command {
-        "get_commands" => serde_json::json!({ "commands": get_mcp_command_list() }),
-        "get_scene_info" => serde_json::json!({
-            "filename": "Dev Mock Scene.duf",
-            "nodes": 3,
-            "lights": 1,
-            "cameras": 1,
-            "primary_selection": "",
-            "dev_mock": true
-        }),
-        "list_nodes" => serde_json::json!({
-            "nodes": [
-                {"name": "MockCamera", "type": "camera", "selected": false},
-                {"name": "MockLight", "type": "light", "selected": false},
-                {"name": "MockFigure", "type": "figure", "selected": true}
-            ],
-            "dev_mock": true
-        }),
-        "get_selected_nodes" => serde_json::json!({
-            "nodes": [{"name": "MockFigure", "type": "figure", "selected": true}],
-            "dev_mock": true
-        }),
-        "get_scene_assets" => serde_json::json!({
-            "assets": ["/Mock/Figure.duf"],
-            "dev_mock": true
-        }),
-        "get_cameras" => serde_json::json!({
-            "cameras": [{"name": "MockCamera", "focal_length": 50.0}],
-            "dev_mock": true
-        }),
-        "get_bounding_boxes" => serde_json::json!({
-            "boxes": [{
-                "node": "MockFigure",
-                "min": [-0.5, 0.0, -0.5],
-                "max": [0.5, 1.8, 0.5],
-                "center": [0.0, 0.9, 0.0]
-            }],
-            "dev_mock": true
-        }),
-        "get_geoshells" => serde_json::json!({ "shells": [], "dev_mock": true }),
-        "get_node_transform" => serde_json::json!({
-            "position": [0.0, 0.0, 0.0],
-            "rotation": [0.0, 0.0, 0.0, 1.0],
-            "scale": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-            "dev_mock": true
-        }),
-        "get_node_properties" => serde_json::json!({
-            "properties": [
-                {"name": "xPos", "value": 0.0, "min": -100.0, "max": 100.0, "is_morph": false},
-                {"name": "yPos", "value": 0.0, "min": -100.0, "max": 100.0, "is_morph": false}
-            ],
-            "dev_mock": true
-        }),
-        "get_figure_morphs" => serde_json::json!({
-            "morphs": [
-                {"id": "head_height", "label": "Head Height", "value": 0.0, "min": -1.0, "max": 1.0, "type": "morph"},
-                {"id": "waist_width", "label": "Waist Width", "value": 0.0, "min": -1.0, "max": 1.0, "type": "morph"}
-            ],
-            "dev_mock": true
-        }),
-        "get_fitted_items" => serde_json::json!({ "items": [], "dev_mock": true }),
-        "get_active_expressions" => serde_json::json!({ "expressions": [], "dev_mock": true }),
-        "get_material_zones" => serde_json::json!({
-            "materials": [{"name": "Skin", "label": "Skin"}, {"name": "Eyes", "label": "Eyes"}],
-            "dev_mock": true
-        }),
-        "get_material_properties" => serde_json::json!({
-            "properties": [
-                {"name": "Opacity", "value": 1.0, "min": 0.0, "max": 1.0},
-                {"name": "Glossiness", "value": 0.5, "min": 0.0, "max": 1.0}
-            ],
-            "dev_mock": true
-        }),
-        "get_material_channels" => serde_json::json!({
-            "channels": [
-                {"name": "Diffuse Color", "texture": "", "value": [0.8, 0.8, 0.8]},
-                {"name": "Bump", "texture": "", "value": 0.0}
-            ],
-            "dev_mock": true
-        }),
-        "capture_viewport" => serde_json::json!({
-            "result": "base64",
-            "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-            "dev_mock": true
-        }),
-        "play_timeline" => serde_json::json!({ "playing": true, "dev_mock": true }),
-        "pause_timeline" => serde_json::json!({ "playing": false, "dev_mock": true }),
-        "stop_timeline" => serde_json::json!({ "frame": 0, "dev_mock": true }),
-        "get_timeline_state" => serde_json::json!({
-            "current_frame": 0, "start_frame": 0, "end_frame": 300,
-            "fps": 30.0, "is_playing": false, "dev_mock": true
-        }),
-        "list_bones" => serde_json::json!({
-            "bones": [{"name": "hip", "parent": ""}, {"name": "abdomen", "parent": "hip"}],
-            "dev_mock": true
-        }),
-        "list_keyframes" => serde_json::json!({
-            "keyframes": [],
-            "dev_mock": true
-        }),
-        "list_modifiers" => serde_json::json!({
-            "modifiers": [],
-            "dev_mock": true
-        }),
-        "add_node" | "add_figure" => serde_json::json!({
-            "node_id": format!("Mock{}_Created", args.get("figure_type").or(args.get("type")).and_then(Value::as_str).unwrap_or("Node")),
-            "dev_mock": true
-        }),
-        "select_node" => serde_json::json!({ "selected": true, "dev_mock": true }),
-        "delete_node" => serde_json::json!({ "deleted": true, "dev_mock": true }),
-        "set_property" | "set_morph" | "set_light" | "set_material_property" | "set_camera" => {
-            serde_json::json!({ "set": true, "dev_mock": true })
-        },
-        "set_body_opacity" => serde_json::json!({
-            "set": true,
-            "matched_count": 2,
-            "surfaces": ["Skin", "Torso"],
-            "value": args.get("value"),
-            "dev_mock": true
-        }),
-        "set_surface_opacity" => serde_json::json!({
-            "set": true,
-            "matched_count": 1,
-            "surfaces": [args.get("surface_pattern").and_then(Value::as_str).unwrap_or("Surface")],
-            "value": args.get("value"),
-            "dev_mock": true
-        }),
-        "get_internal_surfaces" => serde_json::json!({
-            "surfaces": ["Skull", "Ribcage", "Spine", "Pelvis"],
-            "count": 4,
-            "dev_mock": true
-        }),
-        "show_anatomy" => serde_json::json!({
-            "shown": true,
-            "matched_count": 4,
-            "surfaces": ["Skull", "Ribcage", "Spine", "Pelvis"],
-            "dev_mock": true
-        }),
-        "place_asset_inside" => serde_json::json!({
-            "placed": true,
-            "figure_id": args.get("figure_id"),
-            "node_id": "MockPlacedAsset",
-            "asset_path": args.get("asset_path"),
-            "position": [0.0, 0.99, 0.0],
-            "dev_mock": true
-        }),
-        "apply_morph" | "apply_expression" | "apply_pose" => {
-            serde_json::json!({ "applied": true, "dev_mock": true })
-        },
-        "set_node_transform" => serde_json::json!({ "transformed": true, "dev_mock": true }),
-        "set_bone_transform" => serde_json::json!({ "transformed": true, "dev_mock": true }),
-        "set_keyframe" => serde_json::json!({ "keyframe_set": true, "dev_mock": true }),
-        "set_timeline_range" => serde_json::json!({ "range_set": true, "dev_mock": true }),
-        "seek_to_frame" => {
-            serde_json::json!({ "seeked": true, "frame": args.get("frame"), "dev_mock": true })
-        },
-        "set_render_settings" => serde_json::json!({
-            "width": args.get("width"), "height": args.get("height"),
-            "applied": true, "dev_mock": true
-        }),
-        "set_render_options" => serde_json::json!({ "applied": true, "dev_mock": true }),
-        "set_viewport_mode" => serde_json::json!({ "mode_set": true, "dev_mock": true }),
-        "set_material_texture" => serde_json::json!({ "texture_set": true, "dev_mock": true }),
-        "begin_undo_batch" => serde_json::json!({ "batch_started": true, "dev_mock": true }),
-        "accept_undo_batch" => serde_json::json!({ "batch_accepted": true, "dev_mock": true }),
-        "cancel_undo_batch" => serde_json::json!({ "batch_cancelled": true, "dev_mock": true }),
-        "save_scene" => serde_json::json!({ "saved": true, "dev_mock": true }),
-        "load_scene" => serde_json::json!({ "loaded": true, "dev_mock": true }),
-        "clear_scene" => serde_json::json!({ "cleared": true, "dev_mock": true }),
-        "render_preview" => serde_json::json!({ "requested": true, "dev_mock": true }),
-        "run_script" => serde_json::json!({
-            "result": "Script executed (dev mock)",
-            "success": true,
-            "dev_mock": true
-        }),
-        "load_asset" => serde_json::json!({
-            "loaded": true,
-            "path": args.get("path"),
-            "dev_mock": true
-        }),
-        "import_model" => serde_json::json!({ "imported": true, "dev_mock": true }),
-        "export_scene" => serde_json::json!({ "exported": true, "dev_mock": true }),
-        "viewport_click" => serde_json::json!({
-            "node": "MockFigure", "x": args.get("x"), "y": args.get("y"),
-            "dev_mock": true
-        }),
-        "search_content" => serde_json::json!({
-            "results": [{"name": "MockAsset", "path": "/Mock/MockAsset.duf", "type": "Figure"}],
-            "dev_mock": true
-        }),
-        "run_dforce_simulation" => serde_json::json!({ "simulated": true, "dev_mock": true }),
-        "apply_phy_modifier" => serde_json::json!({ "modifier_applied": true, "dev_mock": true }),
-        "remove_phy_modifier" => serde_json::json!({ "modifier_removed": true, "dev_mock": true }),
-        "set_phy_modifier_params" => serde_json::json!({ "params_set": true, "dev_mock": true }),
-        _ => serde_json::json!({ "command": command, "args": args, "dev_mock": true }),
-    };
-
-    Ok(McpResponse {
-        status: "ok".to_string(),
-        result: Some(format!("Dev mock executed '{}'", command)),
-        commands: if command == "get_commands" {
-            Some(get_mcp_command_list())
-        } else {
-            None
-        },
-        data: Some(data),
-        error: None,
-    })
 }
 
 fn uuid_simple() -> String {
@@ -1030,13 +1700,8 @@ mod tests {
     use serial_test::serial;
 
     #[test]
-    #[serial]
-    fn status_never_reports_mock() {
-        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
-        assert!(matches!(
-            check_connection_status().as_str(),
-            "connected" | "disconnected" | "error"
-        ));
+    fn status_reports_disconnected() {
+        assert_eq!(check_connection_status(), "disconnected");
     }
 
     #[test]
@@ -1055,7 +1720,6 @@ mod tests {
     #[test]
     #[serial]
     fn connection_fails_with_useful_error_when_bridge_not_running() {
-        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
         let result = McpConnection::connect("127.0.0.1", 19999);
         assert!(result.is_err());
         match result {
@@ -1068,18 +1732,6 @@ mod tests {
             },
             Ok(_) => panic!("Expected connection to fail"),
         }
-    }
-
-    #[test]
-    #[serial]
-    fn mock_bridge_provides_valid_responses() {
-        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
-        let resp = send_mcp_request("get_scene_info", serde_json::json!({}));
-        assert!(resp.is_ok());
-        let resp = resp.unwrap();
-        assert_eq!(resp.status, "ok");
-        assert!(resp.data.is_some());
-        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
     }
 
     #[test]
@@ -1096,79 +1748,6 @@ mod tests {
         let raw = r#"{"status":"error","error":"something broke"}"#;
         let resp = parse_bridge_response(raw).unwrap();
         assert_eq!(resp.status, "error");
-    }
-
-    #[test]
-    #[serial]
-    fn acceptance_mock_bridge_core_commands() {
-        std::env::set_var("DAZPILOT_DEV_MOCK_BRIDGE", "1");
-        let commands = [
-            ("get_scene_info", serde_json::json!({})),
-            ("list_nodes", serde_json::json!({})),
-            ("get_scene_assets", serde_json::json!({})),
-            (
-                "add_figure",
-                serde_json::json!({ "figure_type": "genesis9" }),
-            ),
-            (
-                "set_morph",
-                serde_json::json!({
-                    "node_id": "Genesis",
-                    "morph": "Fitness",
-                    "value": "0.5"
-                }),
-            ),
-            (
-                "set_light",
-                serde_json::json!({
-                    "node_id": "Light 1",
-                    "property": "Intensity",
-                    "value": "1.2"
-                }),
-            ),
-            (
-                "set_render_settings",
-                serde_json::json!({
-                    "width": "1920",
-                    "height": "1080"
-                }),
-            ),
-            ("play_timeline", serde_json::json!({})),
-            ("pause_timeline", serde_json::json!({})),
-            ("stop_timeline", serde_json::json!({})),
-            ("get_timeline_state", serde_json::json!({})),
-            (
-                "get_figure_morphs",
-                serde_json::json!({ "figure_id": "Genesis 9" }),
-            ),
-            (
-                "apply_morph",
-                serde_json::json!({ "figure_id": "Genesis 9", "morph_id": "test", "value": 0.5 }),
-            ),
-            (
-                "set_body_opacity",
-                serde_json::json!({ "node_id": "selected", "value": 0.15 }),
-            ),
-            (
-                "set_surface_opacity",
-                serde_json::json!({ "node_id": "selected", "surface_pattern": "torso", "value": 0.05 }),
-            ),
-            (
-                "get_internal_surfaces",
-                serde_json::json!({ "node_id": "selected" }),
-            ),
-            ("show_anatomy", serde_json::json!({ "node_id": "selected" })),
-            (
-                "place_asset_inside",
-                serde_json::json!({ "figure_id": "selected", "asset_path": "/Mock/Alien.duf" }),
-            ),
-        ];
-        for (cmd, args) in commands {
-            let resp = send_mcp_request(cmd, args);
-            assert!(resp.is_ok(), "acceptance failed for {}", cmd);
-            assert_eq!(resp.unwrap().status, "ok");
-        }
-        std::env::remove_var("DAZPILOT_DEV_MOCK_BRIDGE");
     }
 
     #[test]
@@ -1220,8 +1799,8 @@ mod tests {
     fn command_schemas_are_complete() {
         let commands = get_mcp_command_list();
         assert!(
-            commands.len() >= 30,
-            "Should have at least 30 commands, got {}",
+            commands.len() >= 178,
+            "Should have at least 178 commands, got {}",
             commands.len()
         );
         assert!(commands.iter().any(|c| c.name == "get_scene_info"));
@@ -1264,7 +1843,7 @@ mod tests {
     #[test]
     fn schema_consistency_check() {
         let names: Vec<&str> = COMMAND_SCHEMAS.iter().map(|s| s.name).collect();
-        assert!(names.len() >= 55, "Should have at least 55 commands");
+        assert!(names.len() >= 178, "Should have at least 178 commands");
         assert!(names.contains(&"get_scene_info"));
         assert!(names.contains(&"list_nodes"));
         assert!(names.contains(&"load_asset"));

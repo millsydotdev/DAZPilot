@@ -1,4 +1,7 @@
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbeddingQuery {
@@ -10,6 +13,17 @@ pub struct EmbeddingQuery {
 struct OllamaEmbedResponse {
     embeddings: Vec<Vec<f32>>,
 }
+
+// ── In-memory caches ──────────────────────────────────────────────────────────
+// Cache for query -> embedding results (queries are normalized to lowercase)
+static QUERY_EMBEDDING_CACHE: Lazy<Mutex<HashMap<String, Vec<f32>>>> =
+    Lazy::new(|| Mutex::new(HashMap::with_capacity(256)));
+
+// Cache for all stored asset embeddings (path -> embedding), invalidated on write
+static ASSET_EMBEDDING_CACHE: Lazy<Mutex<Option<Vec<(String, Vec<f32>)>>>> =
+    Lazy::new(|| Mutex::new(None));
+
+const EMBEDDING_CACHE_MAX: usize = 256;
 
 fn get_ollama_host() -> String {
     crate::database::get_setting("ollama_host")
@@ -27,7 +41,19 @@ fn get_embed_model() -> String {
         .unwrap_or_else(|| "nomic-embed-text".to_string())
 }
 
+/// Generate embedding with caching: returns cached value if this exact query was
+/// seen recently, otherwise calls Ollama and stores the result.
 async fn generate_embedding(text: &str) -> Option<Vec<f32>> {
+    let key = text.to_lowercase();
+
+    // Fast path: check cache first
+    {
+        let cache = QUERY_EMBEDDING_CACHE.lock().unwrap();
+        if let Some(emb) = cache.get(&key) {
+            return Some(emb.clone());
+        }
+    }
+
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(30))
         .build()
@@ -42,7 +68,21 @@ async fn generate_embedding(text: &str) -> Option<Vec<f32>> {
         return None;
     }
     let data: OllamaEmbedResponse = resp.json().await.ok()?;
-    data.embeddings.into_iter().next()
+    let embedding = data.embeddings.into_iter().next()?;
+
+    // Store in cache (evict oldest if full)
+    {
+        let mut cache = QUERY_EMBEDDING_CACHE.lock().unwrap();
+        if cache.len() >= EMBEDDING_CACHE_MAX {
+            // Simple eviction: remove a random entry (first one)
+            if let Some(key) = cache.keys().next().cloned() {
+                cache.remove(&key);
+            }
+        }
+        cache.insert(key, embedding.clone());
+    }
+
+    Some(embedding)
 }
 
 fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
@@ -69,6 +109,14 @@ fn ensure_embeddings_table(conn: &rusqlite::Connection) {
 }
 
 fn read_embeddings_from_db() -> Vec<(String, Vec<f32>)> {
+    // Check cache first
+    {
+        let cache = ASSET_EMBEDDING_CACHE.lock().unwrap();
+        if let Some(ref cached) = *cache {
+            return cached.clone();
+        }
+    }
+
     let guard = match crate::database::get_db() {
         Ok(g) => g,
         Err(_) => return vec![],
@@ -100,7 +148,20 @@ fn read_embeddings_from_db() -> Vec<(String, Vec<f32>)> {
             results.push(row);
         }
     }
+
+    // Populate cache
+    {
+        let mut cache = ASSET_EMBEDDING_CACHE.lock().unwrap();
+        *cache = Some(results.clone());
+    }
+
     results
+}
+
+/// Invalidate the in-memory asset embedding cache (call when new embeddings are written)
+pub fn invalidate_embedding_cache() {
+    let mut cache = ASSET_EMBEDDING_CACHE.lock().unwrap();
+    *cache = None;
 }
 
 pub async fn embed_all_assets() -> usize {
@@ -140,6 +201,7 @@ pub async fn embed_all_assets() -> usize {
     };
 
     let mut count = 0;
+    let mut new_embeddings: Vec<(String, Vec<u8>)> = Vec::new();
     for (path, name, tags, desc) in &rows {
         let already: bool = {
             let guard = match crate::database::get_db() {
@@ -168,26 +230,32 @@ pub async fn embed_all_assets() -> usize {
         let text = format!("{} {} {}", text, name, tags);
         if let Some(embedding) = generate_embedding(&text).await {
             let blob: Vec<u8> = embedding.iter().flat_map(|f| f.to_le_bytes()).collect();
-            let _ = {
-                let guard = match crate::database::get_db() {
-                    Ok(g) => g,
-                    Err(_) => return count,
-                };
-                let db = match guard.as_ref() {
-                    Some(d) => d,
-                    None => return count,
-                };
-                let conn = match rusqlite::Connection::open(db.path()) {
-                    Ok(c) => c,
-                    Err(_) => return 0,
-                };
-                conn.execute(
-                    "INSERT OR REPLACE INTO asset_embeddings (asset_path, embedding) VALUES (?1, ?2)",
-                    rusqlite::params![path, blob],
-                )
-            };
+            new_embeddings.push((path.clone(), blob));
             count += 1;
         }
+    }
+
+    // Batch insert all new embeddings in a single transaction
+    if !new_embeddings.is_empty() {
+        let guard = match crate::database::get_db() {
+            Ok(g) => g,
+            Err(_) => return count,
+        };
+        let db = match guard.as_ref() {
+            Some(d) => d,
+            None => return count,
+        };
+        if let Ok(conn) = rusqlite::Connection::open(db.path()) {
+            let _ = conn.execute_batch("BEGIN TRANSACTION");
+            for (path, blob) in &new_embeddings {
+                let _ = conn.execute(
+                    "INSERT OR REPLACE INTO asset_embeddings (asset_path, embedding) VALUES (?1, ?2)",
+                    rusqlite::params![path, blob],
+                );
+            }
+            let _ = conn.execute_batch("COMMIT");
+        }
+        invalidate_embedding_cache();
     }
     count
 }

@@ -8,9 +8,12 @@ if(WIN32)
     add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX)
 endif()
 
-if(DEFINED ENV{DAZ_SDK_ROOT} AND NOT DEFINED DAZ_SDK_ROOT)
+# Check DAZ_SDK_PATH (used by Rust sdk_indexer), then DAZ_SDK_ROOT, then default
+if(DEFINED ENV{DAZ_SDK_PATH} AND NOT DEFINED DAZ_SDK_ROOT)
+    set(DAZ_SDK_ROOT "$ENV{DAZ_SDK_PATH}")
+elseif(DEFINED ENV{DAZ_SDK_ROOT} AND NOT DEFINED DAZ_SDK_ROOT)
     set(DAZ_SDK_ROOT "$ENV{DAZ_SDK_ROOT}")
-else()
+elseif(NOT DEFINED DAZ_SDK_ROOT)
     set(DAZ_SDK_ROOT "${CMAKE_SOURCE_DIR}/../../thirdparty/DAZStudio4.5+ SDK" CACHE PATH "Daz Studio SDK root")
 endif()
 set(DAZ_SDK_INCLUDE "${DAZ_SDK_ROOT}/include")
@@ -23,6 +26,20 @@ else()
 endif()
 set(DAZ_SDK_LIB "${DAZ_SDK_ROOT}/lib/${DAZ_SDK_PLATFORM}")
 set(DAZ_SDK_BIN "${DAZ_SDK_ROOT}/bin/${DAZ_SDK_PLATFORM}")
+
+# ── dzsdkmemory import target (required for VS 2019+ / DAZ 4.20+) ──────────
+if(WIN32)
+    if(MSVC_VERSION GREATER_EQUAL 1920)
+        set(DAZ_SDK_MEMORY_LIB "${DAZ_SDK_LIB}/dzsdkmemory.lib")
+        if(NOT EXISTS "${DAZ_SDK_MEMORY_LIB}")
+            message(WARNING "dzsdkmemory.lib not found - plugin may not load on DAZ 4.20+ with VS 2019+")
+        else()
+            add_library(dzsdkmemory SHARED IMPORTED)
+            set_property(TARGET dzsdkmemory APPEND PROPERTY IMPORTED_IMPLIB "${DAZ_SDK_MEMORY_LIB}")
+            set_property(TARGET dzsdkmemory APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DAZ_SDK_INCLUDE}")
+        endif()
+    endif()
+endif()
 
 if(NOT EXISTS "${DAZ_SDK_INCLUDE}/dzplugin.h")
     message(FATAL_ERROR "Daz Studio SDK not found at '${DAZ_SDK_ROOT}'. Set DAZ_SDK_ROOT to the SDK root directory.")
@@ -142,10 +159,16 @@ add_library(DazPilotBridge SHARED
     Log.h
 )
 if(WIN32)
-    target_sources(DazPilotBridge PRIVATE DazPilotBridge.def)
+    target_sources(DazPilotBridge PRIVATE
+        DazPilotBridge.def
+        "${DAZ_SDK_INCLUDE}/dzsdkmemorydefines.cpp"
+    )
 endif()
 
 target_link_libraries(DazPilotBridge PRIVATE ${DAZ_LIBS})
+if(TARGET dzsdkmemory)
+    target_link_libraries(DazPilotBridge PRIVATE dzsdkmemory)
+endif()
 target_include_directories(DazPilotBridge PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
     ${DAZ_SDK_ROOT}/include/QtCore

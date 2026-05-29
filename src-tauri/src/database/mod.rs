@@ -383,6 +383,26 @@ impl SqliteDatabase {
                 updated_at INTEGER NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS conversations (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
+                title TEXT NOT NULL DEFAULT 'New Conversation',
+                messages TEXT NOT NULL DEFAULT '[]',
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS user_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL DEFAULT 'default',
+                message_id TEXT,
+                command TEXT,
+                accepted INTEGER NOT NULL,
+                feedback_type TEXT NOT NULL DEFAULT 'explicit',
+                phrase TEXT,
+                timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE TABLE IF NOT EXISTS scene_presets (
                 id TEXT PRIMARY KEY,
                 user_id TEXT NOT NULL DEFAULT 'default',
@@ -663,6 +683,114 @@ pub fn delete_scene_preset(preset_id: &str) -> Result<(), String> {
     conn.execute(
         "DELETE FROM scene_presets WHERE id=?1 AND user_id='default'",
         rusqlite::params![preset_id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn save_feedback(
+    message_id: &str,
+    command: &str,
+    accepted: bool,
+    phrase: Option<&str>,
+) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT INTO user_feedback (user_id, message_id, command, accepted, phrase) VALUES ('default', ?1, ?2, ?3, ?4)",
+        rusqlite::params![message_id, command, accepted as i32, phrase.unwrap_or("")],
+    )
+    .map_err(|e| e.to_string())?;
+
+    // Also update accuracy_metrics
+    let category = command.split('_').next().unwrap_or("unknown").to_string();
+    conn.execute(
+        "INSERT INTO accuracy_metrics (user_id, category, total, accepted, rejected, success_rate)
+          VALUES ('default', ?1, 1, CASE WHEN ?2 THEN 1 ELSE 0 END, CASE WHEN ?2 THEN 0 ELSE 1 END, CAST(CASE WHEN ?2 THEN 1 ELSE 0 END AS REAL) / CAST((total + 1) AS REAL),
+          ON CONFLICT(user_id, category) DO UPDATE SET
+             total = total + 1,
+             accepted = accepted + CASE WHEN ?2 THEN 1 ELSE 0 END,
+             rejected = rejected + CASE WHEN ?2 THEN 0 ELSE 1 END,
+             success_rate = CAST((accepted + CASE WHEN ?2 THEN 1 ELSE 0 END) AS REAL) / CAST((total + 1) AS REAL),
+             last_updated = CURRENT_TIMESTAMP",
+        rusqlite::params![category, accepted as i32],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+// ── Conversation persistence ──────────────────────────────────────────────────
+
+pub fn save_conversation(
+    id: &str,
+    title: &str,
+    messages_json: &str,
+    created_at: i64,
+    updated_at: i64,
+) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT OR REPLACE INTO conversations (id, user_id, title, messages, created_at, updated_at) VALUES (?1, 'default', ?2, ?3, ?4, ?5)",
+        rusqlite::params![id, title, messages_json, created_at, updated_at],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn load_conversation(id: &str) -> Result<Option<(String, String, String, i64, i64)>, String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare("SELECT id, title, messages, created_at, updated_at FROM conversations WHERE id=?1 AND user_id='default'")
+        .map_err(|e| e.to_string())?;
+    let mut rows = stmt
+        .query(rusqlite::params![id])
+        .map_err(|e| e.to_string())?;
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        Ok(Some((
+            row.get::<_, String>(0).map_err(|e| e.to_string())?,
+            row.get::<_, String>(1).map_err(|e| e.to_string())?,
+            row.get::<_, String>(2).map_err(|e| e.to_string())?,
+            row.get::<_, i64>(3).map_err(|e| e.to_string())?,
+            row.get::<_, i64>(4).map_err(|e| e.to_string())?,
+        )))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn list_conversations() -> Result<Vec<(String, String, i64, i64)>, String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare(
+        "SELECT id, title, created_at, updated_at FROM conversations WHERE user_id='default' ORDER BY updated_at DESC"
+    ).map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, i64>(2)?,
+                row.get::<_, i64>(3)?,
+            ))
+        })
+        .map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())
+}
+
+pub fn delete_conversation(id: &str) -> Result<(), String> {
+    let db_guard = get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    conn.execute(
+        "DELETE FROM conversations WHERE id=?1 AND user_id='default'",
+        rusqlite::params![id],
     )
     .map_err(|e| e.to_string())?;
     Ok(())

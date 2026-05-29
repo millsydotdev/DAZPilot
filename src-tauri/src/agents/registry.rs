@@ -298,21 +298,21 @@ impl From<&AgentNode> for AgentTreeNode {
 static AGENT_REGISTRY: Mutex<Option<AgentRegistry>> = Mutex::new(None);
 
 pub fn init_registry() {
-    let mut guard = AGENT_REGISTRY.lock().unwrap();
+    let mut guard = AGENT_REGISTRY.lock().unwrap_or_else(|e| e.into_inner());
     if guard.is_none() {
         *guard = Some(AgentRegistry::new());
     }
 }
 
 pub fn global_registry() -> std::sync::MutexGuard<'static, Option<AgentRegistry>> {
-    AGENT_REGISTRY.lock().unwrap()
+    AGENT_REGISTRY.lock().unwrap_or_else(|e| e.into_inner())
 }
 
 pub fn with_registry<F, R>(f: F) -> R
 where
     F: FnOnce(&AgentRegistry) -> R,
 {
-    let guard = AGENT_REGISTRY.lock().unwrap();
+    let guard = AGENT_REGISTRY.lock().unwrap_or_else(|e| e.into_inner());
     let registry = guard.as_ref().expect("AgentRegistry not initialized");
     f(registry)
 }
@@ -321,7 +321,7 @@ pub fn with_registry_mut<F, R>(f: F) -> R
 where
     F: FnOnce(&mut AgentRegistry) -> R,
 {
-    let mut guard = AGENT_REGISTRY.lock().unwrap();
+    let mut guard = AGENT_REGISTRY.lock().unwrap_or_else(|e| e.into_inner());
     let registry = guard.as_mut().expect("AgentRegistry not initialized");
     f(registry)
 }

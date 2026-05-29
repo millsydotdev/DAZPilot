@@ -5,6 +5,7 @@ export type AppTab =
   | 'scene'
   | 'scratchpad'
   | 'presets'
+  | 'compose'
   | 'settings'
   | 'tutorial';
 

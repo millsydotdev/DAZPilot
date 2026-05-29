@@ -33,11 +33,12 @@ See [CURRENT_STATE.md](CURRENT_STATE.md) for the implementation snapshot.
 
 - [ ] **Live acceptance validation** — Verify all bridge commands against a real Daz Studio session
 - [ ] **Scene export live test** — Verify C++ DzExportMgr exporter + DazScript fallback work end-to-end
-- [x] **Schema parity test** — Rust test auto-checks C++ bridge commands match `mcp_client.rs`
-- [x] **Sub-agent hierarchy** — 7 sub-agents in 3-level tree with registry, orchestration, and delegation
-- [x] **Agent prompt tuning** — Refine sub-agent keyword matching and response formatting
+- [ ] **Schema parity test** — Rust test auto-checks C++ bridge commands match `mcp_client.rs`
+- [ ] **Sub-agent hierarchy** — 7 sub-agents in 3-level tree with registry, orchestration, and delegation
+- [ ] **Agent prompt tuning** — Refine sub-agent keyword matching and response formatting
 - [ ] **Viewport capture polish** — Ensure capture paths and UI-thread behavior work reliably
 - [ ] **Asset loading coverage** — Validate `.duf`, `.dsf`, pose presets, and content library items
+- [ ] **UI Professionalization** — Complete visual redesign with professional 3D software aesthetics, refined design system, and workflow-oriented interface improvements
 
 ### Medium Term
 
@@ -58,6 +59,7 @@ See [CURRENT_STATE.md](CURRENT_STATE.md) for the implementation snapshot.
 - [ ] **Agent analytics dashboard** — Track execution rates, success rates, and delegation patterns per agent
 - [ ] **Custom sub-agent plugins** — Allow users to register custom sub-agents from the UI
 - [ ] **Asset recommendation engine** — Suggest complementary assets based on scene context and user intent
+- [ ] **UI Professionalization Phase 1** — Updated design system with professional color scheme, refined typography, and improved component styling
 
 ### Long Term
 

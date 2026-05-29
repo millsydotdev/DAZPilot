@@ -1,3 +1,4 @@
+pub mod analytics;
 pub mod animation_agent;
 pub mod asset_selection;
 pub mod conflict_resolution;
@@ -90,21 +91,40 @@ pub struct AgentAction {
 }
 
 pub fn execute_agent(request: AgentRequest) -> AgentResponse {
-    let handler = registry::with_registry(|reg| reg.get(&request.agent_type).map(|n| n.handler));
+    let start = analytics::start_timer();
+    let agent_type = request.agent_type.clone();
 
-    match handler {
-        Some(handler) => handler(request),
+    let handler = registry::with_registry(|reg| reg.get(&agent_type).map(|n| n.handler));
+
+    let response = match handler {
+        Some(handler) => handler(AgentRequest {
+            agent_type: agent_type.clone(),
+            ..request
+        }),
         None => AgentResponse {
             success: false,
             result: None,
             error: Some(format!(
                 "Unknown agent type: '{}'. Use list_agents to see available agents.",
-                request.agent_type
+                agent_type
             )),
             actions: vec![],
             sub_results: vec![],
         },
+    };
+
+    let duration = start.elapsed();
+    analytics::record_execution(&agent_type, response.success, duration);
+    // Record per-command metrics for the first action if exists
+    if let Some(first_action) = response.actions.first() {
+        analytics::record_command_execution(
+            &agent_type,
+            &first_action.command,
+            response.success,
+            duration,
+        );
     }
+    response
 }
 
 pub fn register_default_agents() {

@@ -633,13 +633,27 @@ impl WorkflowKnowledgeBase {
                         difficulty: DifficultyLevel::Trivial,
                     },
                     WorkflowStepTemplate {
+                        description: "Load environment if specified".to_string(),
+                        action_type: ActionType::LoadAsset,
+                        parameters_template: HashMap::from([(
+                            "asset_type".to_string(),
+                            "environment".to_string(),
+                        )]),
+                        prerequisites: vec!["add_base_figure".to_string()],
+                        estimated_time_seconds: 8,
+                        difficulty: DifficultyLevel::Easy,
+                    },
+                    WorkflowStepTemplate {
                         description: "Apply figure morphs for desired appearance".to_string(),
                         action_type: ActionType::SetMorph,
                         parameters_template: HashMap::from([
                             ("morph".to_string(), "Head_Height".to_string()),
                             ("value".to_string(), "0.3".to_string()),
                         ]),
-                        prerequisites: vec!["add_base_figure".to_string()],
+                        prerequisites: vec![
+                            "add_base_figure".to_string(),
+                            "load_environment".to_string(),
+                        ],
                         estimated_time_seconds: 10,
                         difficulty: DifficultyLevel::Easy,
                     },
@@ -655,13 +669,24 @@ impl WorkflowKnowledgeBase {
                         difficulty: DifficultyLevel::Easy,
                     },
                     WorkflowStepTemplate {
+                        description: "Load props if specified".to_string(),
+                        action_type: ActionType::LoadAsset,
+                        parameters_template: HashMap::from([(
+                            "asset_type".to_string(),
+                            "props".to_string(),
+                        )]),
+                        prerequisites: vec!["load_clothing".to_string()],
+                        estimated_time_seconds: 6,
+                        difficulty: DifficultyLevel::Easy,
+                    },
+                    WorkflowStepTemplate {
                         description: "Apply base pose to figure".to_string(),
                         action_type: ActionType::ApplyPose,
                         parameters_template: HashMap::from([(
                             "pose_type".to_string(),
                             "basic".to_string(),
                         )]),
-                        prerequisites: vec!["load_clothing".to_string()],
+                        prerequisites: vec!["load_clothing".to_string(), "load_props".to_string()],
                         estimated_time_seconds: 5,
                         difficulty: DifficultyLevel::Easy,
                     },

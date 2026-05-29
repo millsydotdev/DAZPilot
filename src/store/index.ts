@@ -102,3 +102,10 @@ export {
   type PresetActions,
   type ScenePreset,
 } from './presetStore';
+
+export {
+  useAgentAnalyticsStore,
+  type AgentMetrics,
+  type AgentAnalyticsState,
+  type AgentAnalyticsActions,
+} from './agentAnalyticsStore';
