@@ -1,1 +1,2 @@
+git submodule status
 npm run check && npm run test:rust && npm run lint:md && npm run build
