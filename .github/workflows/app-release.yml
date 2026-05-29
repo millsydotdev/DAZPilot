@@ -79,7 +79,7 @@ jobs:
             rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
             arch-label: universal-m13
 
-          # ── Linux (5) ────────────────────────────────────────────────
+          # ── Linux (4) ────────────────────────────────────────────────
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             bundles: appimage,deb,rpm
@@ -90,11 +90,6 @@ jobs:
             bundles: appimage,deb,rpm
             rust-targets: ""
             arch-label: ubuntu24
-          - os: ubuntu-24.04
-            target: aarch64-unknown-linux-gnu
-            bundles: appimage,deb,rpm
-            rust-targets: aarch64-unknown-linux-gnu
-            arch-label: aarch64-x64
           - os: ubuntu-24.04
             target: armv7-unknown-linux-gnueabihf
             bundles: appimage,deb
@@ -164,6 +159,9 @@ jobs:
         if: matrix.target == 'armv7-unknown-linux-gnueabihf'
         run: |
           sudo dpkg --add-architecture armhf
+          echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports noble main universe restricted multiverse" | sudo tee /etc/apt/sources.list.d/armhf.list > /dev/null
+          echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports noble-updates main universe restricted multiverse" | sudo tee /etc/apt/sources.list.d/armhf-updates.list > /dev/null
+          echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports noble-security main universe restricted multiverse" | sudo tee /etc/apt/sources.list.d/armhf-security.list > /dev/null
           sudo apt-get update
           sudo apt-get install -y \
             gcc-arm-linux-gnueabihf \

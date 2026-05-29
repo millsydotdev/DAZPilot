@@ -22,7 +22,7 @@
     "acceptance": "powershell -ExecutionPolicy Bypass -File scripts/acceptance-bridge.ps1",
     "lint:md": "markdownlint-cli2 \"*.md\" \"docs/**/*.md\" \"plan/**/*.md\" \"Fix/**/*.md\"",
     "plugin:build": "cd plugins/daz3d-bridge && cmake -B build && cmake --build build",
-    "release:check": "npm run check && npm run test:rust && npm run lint:md && npm run build && npm run tauri build -- --bundles none --ci",
+    "release:check": "npm run check && npm run test:rust && npm run lint:md && npm run build && cargo build --manifest-path src-tauri/Cargo.toml --release",
     "prepare": "husky"
   },
   "dependencies": {
