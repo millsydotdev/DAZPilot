@@ -6,7 +6,7 @@ This document lists all third-party libraries included in the `thirdparty` direc
 
 | Library | Purpose | License | Current Usage | Notes |
 |---------|---------|---------|---------------|-------|
-| DAZStudio4.5+ SDK | Daz Studio C++ SDK for plugin development | Proprietary (DAZ 3D) | ✅ Used | Required for building the bridge plugin |
+| DAZStudio4.5+ SDK | Daz Studio C++ SDK for plugin development | Proprietary (DAZ 3D) | ✅ Used | Required for building a custom bridge plugin |
 | doctest | C++ testing framework | MIT | ✅ Used | Unit tests for bridge plugin via CTest |
 | glm | OpenGL Mathematics | MIT/GPL | ✅ Used | Vector/matrix/quaternion math for bridge plugin |
 | imgui | Immediate Mode GUI | MIT | ❌ Not used | Requires complex backend integration with DAZ renderer |
@@ -21,8 +21,8 @@ This document lists all third-party libraries included in the `thirdparty` direc
 ### DAZStudio4.5+ SDK
 - **Location**: `thirdparty/DAZStudio4.5+ SDK`
 - **Purpose**: Provides the Daz Studio C++ SDK headers and libraries needed to develop plugins for Daz Studio
-- **Usage**: Used by the `daz3d-bridge` plugin to interface with Daz Studio
-- **Build Integration**: Already configured in `plugins/daz3d-bridge/CMakeLists.txt`
+- **Usage**: Used by the bridge plugin to interface with Daz Studio (see `plugins/daz3d-bridge/`)
+- **Build Integration**: Configured in `plugins/daz3d-bridge/CMakeLists.txt`
 - **Note**: This is proprietary software and must be obtained separately from DAZ 3D
 
 ### doctest
@@ -30,7 +30,7 @@ This document lists all third-party libraries included in the `thirdparty` direc
 - **Purpose**: Lightweight C++ testing framework that allows writing tests directly in production code
 - **License**: MIT
 - **Current Usage**: Used for unit testing the bridge plugin
-- **Integration**: Integrated into `plugins/daz3d-bridge/CMakeLists.txt`. Tests live in `plugins/daz3d-bridge/tests/`. Run via CTest (`ctest`) or build the `DazPilotBridgeTests` target directly.
+- **Integration**: Integrated into `plugins/daz3d-bridge/CMakeLists.txt`. Tests live in `plugins/daz3d-bridge/tests/`.
 - **Header**: `thirdparty/doctest/doctest/doctest.h`
 
 ### glm

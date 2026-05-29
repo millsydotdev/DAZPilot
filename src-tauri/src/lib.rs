@@ -22,6 +22,7 @@ pub mod ollama_service;
 pub mod physics;
 pub mod reasoning;
 pub mod sdk_indexer;
+pub mod tools;
 pub mod viewport_sync;
 pub mod vision_service;
 pub mod visual_properties;
@@ -198,6 +199,16 @@ pub fn run() {
             viewport_sync::init_viewport_sync(app.handle());
             info!("Viewport sync loop started");
 
+            // Pre-compute asset embeddings in background for semantic search
+            let db = crate::database::get_db().ok().and_then(|g| g.as_ref().map(|d| d.path().to_owned()));
+            if db.is_some() {
+                tauri::async_runtime::spawn(async move {
+                    info!("Starting background asset embedding...");
+                    let count = crate::ai_system::vector_store::embed_all_assets().await;
+                    info!("Background asset embedding complete: {} assets embedded", count);
+                });
+            }
+
             info!("App setup complete");
             Ok(())
         })
@@ -227,6 +238,7 @@ pub fn run() {
             register_sub_agent,
             unregister_agent,
             get_agent_tree,
+            get_agent_metrics,
             test_agent,
             get_content_paths,
             add_custom_content_path,
@@ -342,7 +354,14 @@ pub fn run() {
             bridge_apply_expression,
             check_before_load,
             detect_uv_conflicts,
-            check_compatibility_mismatch
+            check_compatibility_mismatch,
+            record_feedback,
+            save_conversation,
+            load_conversation,
+            list_conversations,
+            delete_conversation,
+            execute_scene_composition,
+            continue_composition
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -369,6 +388,53 @@ async fn execute_command(
     args: serde_json::Value,
 ) -> Result<mcp_client::McpResponse, String> {
     mcp_client::send_mcp_request(&command, args)
+}
+
+#[tauri::command]
+fn execute_scene_composition(description: String) -> Result<serde_json::Value, String> {
+    use crate::tools::scene_composition;
+    use crate::tools::ToolRequest;
+    use std::collections::HashMap;
+
+    let mut args = HashMap::new();
+    args.insert("description".to_string(), serde_json::json!(description));
+
+    let request = ToolRequest {
+        tool_name: "execute_scene_composition".to_string(),
+        args,
+    };
+
+    // Call the internal tool handler (blocking call, fine for non-async command)
+    let response = scene_composition::handle_execute_scene_composition_internal(request);
+
+    if response.success {
+        Ok(response.data)
+    } else {
+        Err(response.message)
+    }
+}
+
+#[tauri::command]
+fn continue_composition(session_id: String) -> Result<serde_json::Value, String> {
+    use crate::tools::scene_composition;
+    use crate::tools::ToolRequest;
+    use std::collections::HashMap;
+
+    let mut args = HashMap::new();
+    args.insert("session_id".to_string(), serde_json::json!(session_id));
+
+    let request = ToolRequest {
+        tool_name: "continue_composition".to_string(),
+        args,
+    };
+
+    let response = scene_composition::handle_execute_scene_composition_internal(request);
+
+    if response.success {
+        Ok(response.data)
+    } else {
+        Err(response.message)
+    }
 }
 
 #[tauri::command]
@@ -770,6 +836,11 @@ fn unregister_agent(agent_type: String) -> Result<String, String> {
 #[tauri::command]
 fn get_agent_tree() -> Result<Vec<agents::registry::AgentTreeNode>, String> {
     Ok(agents::registry::with_registry(|reg| reg.get_agent_tree()))
+}
+
+#[tauri::command]
+fn get_agent_metrics() -> Result<Vec<agents::analytics::AgentMetrics>, String> {
+    Ok(agents::analytics::get_metrics())
 }
 
 #[tauri::command]
@@ -1371,8 +1442,8 @@ fn map_phrase_to_command(phrase: String) -> Option<String> {
 }
 
 #[tauri::command]
-fn learn_phrase(phrase: String, command: String, category: String) {
-    ai_system::learn_phrase(&phrase, &command, &category)
+fn learn_phrase(phrase: String, command: String, category: String, accepted: bool) {
+    ai_system::learn_phrase(&phrase, &command, &category, accepted)
 }
 
 #[tauri::command]
@@ -1536,6 +1607,10 @@ fn build_sdk_context_for_message(message: &str) -> String {
 pub struct ChatResponse {
     pub content: String,
     pub action: Option<ai_action::StructuredAiAction>,
+    #[serde(default)]
+    pub teach: Option<String>,
+    #[serde(default)]
+    pub manual_steps: Option<String>,
 }
 
 #[tauri::command]
@@ -1849,6 +1924,10 @@ async fn try_execute_multi_step_scene_plan(
         .join(", ");
     let executor = reasoning::executor::Executor::new();
     let result = executor.execute_plan(&plan, &context).await;
+
+    let validation = executor.validator.validate_plan(&plan, &context);
+    ai_system::learn_from_plan_execution(&plan, &context, &result, &validation);
+
     let summary = format!(
         "{} Plan: {}. Commands: {}.",
         describe_plan_execution(&result),
@@ -1993,6 +2072,15 @@ async fn process_chat_message(
         }
     };
 
+    // Generate educational context for the action
+    let explainer = crate::reasoning::explainer::Explainer::new();
+    let teach = action
+        .as_ref()
+        .and_then(|a| explainer.explain_teaching_concept(&a.command, &a.args));
+    let manual_steps = action
+        .as_ref()
+        .and_then(|a| explainer.manual_steps_for_command(&a.command, &a.args));
+
     let sdk_context = build_sdk_context_for_message(&message);
 
     let cleaned_images: Option<Vec<String>> = images.map(|imgs| {
@@ -2043,6 +2131,26 @@ async fn process_chat_message(
         String::new()
     };
 
+    let mut rag_context = String::new();
+    let semantic_matches = crate::ai_system::vector_store::get_semantic_matches(&message);
+    if !semantic_matches.is_empty() {
+        let asset_lines: Vec<String> = semantic_matches
+            .into_iter()
+            .take(5)
+            .map(|(path, score)| {
+                let name = std::path::Path::new(&path)
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or(&path);
+                format!("  - {} (relevance: {:.2})", name, score)
+            })
+            .collect();
+        rag_context = format!(
+            "\nRELEVANT ASSETS FROM LIBRARY:\n{}\n",
+            asset_lines.join("\n")
+        );
+    }
+
     let execution_summary = if let Some((ref summary, _)) = multi_step_result {
         summary.clone()
     } else if let Some(ref planned) = action {
@@ -2052,10 +2160,30 @@ async fn process_chat_message(
                 planned.command
             )
         } else {
-            match ai_action::execute_structured_action(planned.clone()) {
-                Ok(result) => format!("Executed '{}': {}", planned.command, result),
-                Err(e) => format!("Planned '{}', but execution failed: {}", planned.command, e),
+            // Multi-turn tool loop: execute initial action
+            let results = ai_system::multi_turn_execute(
+                planned,
+                &message,
+                &scene_summary,
+                provider.as_deref(),
+                model.as_deref(),
+            )
+            .await;
+            for (action_taken, success, output) in &results {
+                ai_system::learn_from_single_action(action_taken, &message, *success, Some(output));
             }
+            let lines: Vec<String> = results
+                .iter()
+                .enumerate()
+                .map(|(i, (a, success, out))| {
+                    if *success {
+                        format!("Step {} - Executed '{}': {}", i + 1, a.command, out)
+                    } else {
+                        format!("Step {} - Failed '{}': {}", i + 1, a.command, out)
+                    }
+                })
+                .collect();
+            lines.join("\n")
         }
     } else {
         "No executable bridge action was inferred; answer with guidance only.".to_string()
@@ -2064,13 +2192,21 @@ async fn process_chat_message(
     if std::env::var("DAZPILOT_DEV_MOCK_AI").ok().as_deref() == Some("1") {
         return Ok(ChatResponse {
             content: format!(
-                "Plan: {}\n{}{}{}{}",
-                message, execution_summary, vision_context, spatial_context, conflict_info
+                "Plan: {}\n{}{}{}{}{}",
+                message,
+                execution_summary,
+                vision_context,
+                spatial_context,
+                rag_context,
+                conflict_info
             ),
             action,
+            teach,
+            manual_steps: manual_steps.clone(),
         });
     }
 
+    let session_summary = crate::ai_system::get_session_summary();
     let prompt = format!(
         "You are DazPilot, an expert AI co-pilot for Daz Studio.\n\n\
          User request: {}\n\n\
@@ -2080,6 +2216,9 @@ async fn process_chat_message(
          SDK context:\n\
          {}\n\
          {}\n\
+         {}\n\
+         Session summary (what has been done so far):\n\
+         {}\n\
          Execution state:\n\
          {}\n\n\
          If the user's request requires a complex scene change, custom behavior, or is not covered by the Execution state, you MUST write a DazScript (Javascript) macro inside a ```javascript code block to accomplish it. Use the SDK Context provided. Otherwise, provide a concise summary of what was done and what the scene looks like.",
@@ -2088,6 +2227,8 @@ async fn process_chat_message(
         vision_context,
         spatial_context,
         sdk_context,
+        rag_context,
+        session_summary,
         conflict_info,
         execution_summary
     );
@@ -2153,12 +2294,16 @@ async fn process_chat_message(
                 script_id, response_text
             ),
             action,
+            teach,
+            manual_steps: manual_steps.clone(),
         });
     }
 
     Ok(ChatResponse {
         content: response_text,
         action,
+        teach,
+        manual_steps,
     })
 }
 
@@ -2174,6 +2319,66 @@ fn extract_javascript_macro(text: &str) -> Option<String> {
         }
     }
     None
+}
+
+#[tauri::command]
+fn record_feedback(
+    message_id: String,
+    command: String,
+    accepted: bool,
+    phrase: Option<String>,
+) -> Result<String, String> {
+    database::save_feedback(&message_id, &command, accepted, phrase.as_deref())?;
+    crate::ai_system::record_user_feedback("default", &command, accepted, phrase.as_deref());
+    log::info!(
+        "User feedback recorded: command='{}' accepted={}",
+        command,
+        accepted
+    );
+    Ok("Feedback recorded".to_string())
+}
+
+#[tauri::command]
+fn save_conversation(
+    id: String,
+    title: String,
+    messages: String,
+    created_at: i64,
+    updated_at: i64,
+) -> Result<String, String> {
+    database::save_conversation(&id, &title, &messages, created_at, updated_at)?;
+    Ok("Conversation saved".to_string())
+}
+
+#[tauri::command]
+fn load_conversation(id: String) -> Result<Option<String>, String> {
+    match database::load_conversation(&id)? {
+        Some((_id, _title, messages, _created, _updated)) => Ok(Some(messages)),
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
+fn list_conversations() -> Result<Vec<serde_json::Value>, String> {
+    let convos = database::list_conversations()?;
+    let result: Vec<serde_json::Value> = convos
+        .into_iter()
+        .map(|(id, title, created, updated)| {
+            serde_json::json!({
+                "id": id,
+                "title": title,
+                "createdAt": created,
+                "updatedAt": updated,
+            })
+        })
+        .collect();
+    Ok(result)
+}
+
+#[tauri::command]
+fn delete_conversation(id: String) -> Result<String, String> {
+    database::delete_conversation(&id)?;
+    Ok("Conversation deleted".to_string())
 }
 
 #[tauri::command]

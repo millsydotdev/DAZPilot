@@ -97,6 +97,10 @@ export default function SettingsPanel() {
     setMaxTokens,
     mockAiMode,
     setMockAiMode,
+    showTeaching,
+    setShowTeaching,
+    guideMe,
+    setGuideMe,
     aiProvider,
     setAiProvider,
     aiModel: selectedAiModel,
@@ -1164,6 +1168,28 @@ export default function SettingsPanel() {
                         onChange={(e) => setMockAiMode(e.target.checked)}
                       />
                       Force Mock Replies (Local Offline Debugging)
+                    </label>
+                  </div>
+
+                  <div className={styles.checkboxGroup}>
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={showTeaching}
+                        onChange={(e) => setShowTeaching(e.target.checked)}
+                      />
+                      Show DAZ3D Teaching Tips (explains each action)
+                    </label>
+                  </div>
+
+                  <div className={styles.checkboxGroup}>
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={guideMe}
+                        onChange={(e) => setGuideMe(e.target.checked)}
+                      />
+                      Guide Me Mode (requires confirmation for each action)
                     </label>
                   </div>
                 </CardContent>

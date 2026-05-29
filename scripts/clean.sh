@@ -14,6 +14,6 @@ fi
 rm -rf dist/
 rm -rf node_modules/
 rm -rf src-tauri/target/
-rm -rf plugins/daz3d-bridge/build/
+# Bridge plugin source at plugins/daz3d-bridge/
 
 echo "Clean complete."

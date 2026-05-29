@@ -10,6 +10,8 @@ const TAB_TITLES: Record<AppTab, string> = {
   scene: 'Scene Control',
   scratchpad: 'Scratchpad',
   presets: 'Scene Presets',
+  compose: 'Vibe Coding',
+  tutorial: 'Tutorials',
   settings: 'Settings',
 };
 

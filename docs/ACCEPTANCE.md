@@ -11,18 +11,17 @@ This runs:
 1. `npm run check` (Rust clippy, typecheck, lint, format check, Rust fmt, frontend tests)
 2. `cargo test acceptance_` with `DAZPILOT_DEV_MOCK_BRIDGE=1`
 
-Rust tests validate full command-name parity between `DazPilotBridgePlugin.cpp` and `mcp_client.rs`; mock bridge tests exercise representative workflow commands including `get_scene_assets`, `add_figure`, `set_morph`, `set_light`, and `set_render_settings`.
+Rust mock bridge tests exercise representative workflow commands including `get_scene_assets`, `add_figure`, `set_morph`, `set_light`, and `set_render_settings`.
 
 ## Manual (live Daz Studio)
 
-Requires Daz Studio with `DazPilotBridge.dll` installed and listening on `127.0.0.1:8765`.
+Requires Daz Studio with the bridge plugin (`plugins/daz3d-bridge/`) installed and listening on `127.0.0.1:8765`.
 
 ### Setup
 
 | # | Step | Expected |
 | --- | --- | --- |
-| 0.1 | Build bridge: `npm run plugin:rebuild` | `DazPilotBridge.dll` in `dist/Release/` |
-| 0.2 | Install plugin (auto or copy to Daz plugins folder) | DLL in Daz plugins dir |
+| 0.1 | Build custom bridge plugin | Bridge DLL in Daz plugins dir |
 | 0.3 | Start Daz Studio | Bridge log: listening on 8765 |
 | 0.4 | Start DazPilot → connect bridge | Launcher shows Daz Studio connected |
 
@@ -60,6 +59,10 @@ Requires Daz Studio with `DazPilotBridge.dll` installed and listening on `127.0.
 | 3.1 | `get_node_properties` on a node | Animatable properties with current values |
 | 3.2 | `set_property` with property name and new value | Property updates in Daz Studio |
 | 3.3 | `set_material_property` with property and value | Material property updates in viewport |
+| 3.4 | `set_body_opacity` with value 0.15 | All opacity-capable body surfaces become transparent |
+| 3.5 | `set_surface_opacity` with surface_pattern `Torso` and value 0.05 | Matching torso/stomach surfaces become transparent |
+| 3.6 | `get_internal_surfaces` on a figure | Likely skeleton/anatomy material surface names are returned |
+| 3.7 | `show_anatomy` on a figure | Internal anatomy surfaces become fully opaque |
 
 ### Asset & Pose Commands
 
@@ -68,6 +71,7 @@ Requires Daz Studio with `DazPilotBridge.dll` installed and listening on `127.0.
 | 4.1 | `load_asset` with a .duf path | Asset appears in scene |
 | 4.2 | `apply_pose` with pose_path and figure_id | Pose applies to figure |
 | 4.3 | `import_model` with an OBJ/FBX path | Model imports into scene |
+| 4.4 | `place_asset_inside` with figure_id and asset_path | Asset loads, moves to torso center, and is parented to the figure |
 
 ### Scene Export
 

@@ -3,7 +3,15 @@ import { invoke } from '@tauri-apps/api/core';
 
 export type Theme = 'dark' | 'light';
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-export type ActivePanel = 'chat' | 'assets' | 'viewport' | 'scene' | 'settings' | 'scratchpad';
+export type ActivePanel =
+  | 'chat'
+  | 'assets'
+  | 'viewport'
+  | 'scene'
+  | 'settings'
+  | 'scratchpad'
+  | 'presets'
+  | 'tutorial';
 
 export interface AppState {
   theme: Theme;
@@ -20,6 +28,8 @@ export interface AppState {
   temperature: number;
   maxTokens: number;
   mockAiMode: boolean;
+  showTeaching: boolean;
+  guideMe: boolean;
 
   // AI settings
   aiProvider: string;
@@ -47,6 +57,8 @@ export interface AppActions {
   setTemperature: (temp: number) => void;
   setMaxTokens: (tokens: number) => void;
   setMockAiMode: (enabled: boolean) => void;
+  setShowTeaching: (enabled: boolean) => void;
+  setGuideMe: (enabled: boolean) => void;
   reset: () => void;
 
   // AI settings actions
@@ -79,6 +91,8 @@ const initialState: AppState = {
   temperature: 0.7,
   maxTokens: 2048,
   mockAiMode: false,
+  showTeaching: true,
+  guideMe: false,
 
   aiProvider: 'local-gguf',
   aiModel: 'phi-2-q4.gguf',
@@ -117,6 +131,8 @@ export const useAppStore = create<AppState & AppActions>((set) => ({
     );
   },
   setMockAiMode: (mockAiMode) => set({ mockAiMode }),
+  setShowTeaching: (showTeaching) => set({ showTeaching }),
+  setGuideMe: (guideMe) => set({ guideMe }),
   reset: () => set(initialState),
 
   // AI settings persistence actions

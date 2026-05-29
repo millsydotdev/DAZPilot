@@ -13,11 +13,16 @@ import {
   Plus,
   GitBranch,
   ChevronUp,
+  ChevronDown,
+  BookOpen,
+  GraduationCap,
   Brain,
   Zap,
   Database,
   Cpu,
   RefreshCw,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { useChatStore, useConnectionStore, useAppStore, useToastStore } from '../../store';
@@ -270,6 +275,60 @@ function InteractiveActionCard({
   );
 }
 
+// Subcomponent to show educational "Why?" content for each action
+function TeachingCard({
+  teach,
+  defaultExpanded,
+  manualSteps,
+}: {
+  teach?: string;
+  defaultExpanded?: boolean;
+  manualSteps?: string;
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded || false);
+  const [showManual, setShowManual] = useState(false);
+  if (!teach && !manualSteps) return null;
+
+  return (
+    <div className="mt-2 flex flex-col gap-1">
+      {teach && (
+        <>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 bg-transparent border-none cursor-pointer px-0 py-1 transition-colors"
+          >
+            <BookOpen size={12} />
+            <span>Learn why this was done</span>
+            {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+          {expanded && (
+            <div className="mt-1 p-2.5 rounded-md bg-slate-800/60 border border-slate-700/50 text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">
+              {teach}
+            </div>
+          )}
+        </>
+      )}
+      {manualSteps && (
+        <>
+          <button
+            onClick={() => setShowManual(!showManual)}
+            className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 bg-transparent border-none cursor-pointer px-0 py-1 transition-colors"
+          >
+            <Lightbulb size={12} />
+            <span>Show me how to do this manually</span>
+            {showManual ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+          {showManual && (
+            <div className="mt-1 p-2.5 rounded-md bg-slate-800/60 border border-amber-700/30 text-xs text-slate-300 leading-relaxed whitespace-pre-wrap font-mono">
+              {manualSteps}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function ChatWindow() {
   const { messages, input, isLoading, setInput, sendMessage } = useChatStore();
   const { status } = useConnectionStore();
@@ -283,6 +342,9 @@ export default function ChatWindow() {
     geminiApiKey,
     anthropicApiKey,
     ollamaHost,
+    showTeaching,
+    guideMe,
+    setGuideMe,
   } = useAppStore();
 
   const [mode, setMode] = useState<AIMode>('plan');
@@ -369,7 +431,7 @@ export default function ChatWindow() {
 
   const handleSend = () => {
     if ((!input.trim() && attachedImages.length === 0) || isLoading) return;
-    sendMessage(input, attachedImages, aiProvider, activeModel);
+    sendMessage(input, attachedImages, aiProvider, activeModel, guideMe);
     setInput('');
     setAttachedImages([]);
     if (textareaRef.current) {
@@ -552,6 +614,85 @@ export default function ChatWindow() {
                         userQuery={getPreviousUserQuery(index)}
                         commandName={commandName}
                       />
+                    )}
+                    {(showTeaching || guideMe) && (msg.teach || msg.manualSteps) && (
+                      <TeachingCard
+                        teach={msg.teach}
+                        manualSteps={msg.manualSteps}
+                        defaultExpanded={guideMe}
+                      />
+                    )}
+                    {msg.role === 'assistant' && !msg.loading && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '8px',
+                          marginTop: '8px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <button
+                          onClick={async () => {
+                            useChatStore
+                              .getState()
+                              .updateMessage(msg.id, {
+                                feedback: msg.feedback === 'up' ? undefined : 'up',
+                              });
+                            try {
+                              await invoke('record_feedback', {
+                                messageId: msg.id,
+                                command: msg.action?.command || 'general',
+                                accepted: true,
+                              });
+                            } catch (e) {
+                              console.error('Failed to record feedback:', e);
+                            }
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            color: msg.feedback === 'up' ? '#22c55e' : '#64748b',
+                            opacity: msg.feedback === 'down' ? 0.3 : 1,
+                          }}
+                          title="Helpful"
+                        >
+                          <ThumbsUp size={16} />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            useChatStore
+                              .getState()
+                              .updateMessage(msg.id, {
+                                feedback: msg.feedback === 'down' ? undefined : 'down',
+                              });
+                            try {
+                              await invoke('record_feedback', {
+                                messageId: msg.id,
+                                command: msg.action?.command || 'general',
+                                accepted: false,
+                              });
+                            } catch (e) {
+                              console.error('Failed to record feedback:', e);
+                            }
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            color: msg.feedback === 'down' ? '#ef4444' : '#64748b',
+                            opacity: msg.feedback === 'up' ? 0.3 : 1,
+                          }}
+                          title="Not helpful"
+                        >
+                          <ThumbsDown size={16} />
+                        </button>
+                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                          {msg.feedback ? 'Feedback recorded' : ''}
+                        </span>
+                      </div>
                     )}
                   </>
                 )}
@@ -850,6 +991,25 @@ export default function ChatWindow() {
                   </div>
                 )}
               </div>
+
+              {/* Guide Me Toggle */}
+              <button
+                onClick={() => setGuideMe(!guideMe)}
+                title={
+                  guideMe
+                    ? 'Guide Me mode: step-by-step with explanations'
+                    : 'Auto mode: execute immediately'
+                }
+                className={`${styles.toolbarDropdownTrigger} ${guideMe ? styles.active : ''}`}
+                style={{
+                  color: guideMe ? 'var(--color-primary, #22d3ee)' : undefined,
+                  border: guideMe ? '1px solid var(--color-primary, #22d3ee)' : undefined,
+                }}
+                disabled={isLoading}
+              >
+                <GraduationCap size={13} className={styles.widgetIcon} />
+                <span>{guideMe ? 'Guide Me' : 'Auto'}</span>
+              </button>
 
               {/* Mode Dropdown Widget */}
               <div className={styles.dropdownContainer}>

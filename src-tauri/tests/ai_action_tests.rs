@@ -41,3 +41,52 @@ fn test_dforce_physics_simulation_planning() {
         Some(90)
     );
 }
+
+#[test]
+fn test_body_opacity_planning() {
+    let action = ai_action::plan_validated_action("make the body transparent at 15 percent")
+        .expect("Should plan body opacity request.");
+    assert_eq!(action.command, "set_body_opacity");
+    assert_eq!(
+        action.args.get("node_id").and_then(|v| v.as_str()),
+        Some("selected")
+    );
+    let value = action.args.get("value").and_then(|v| v.as_f64()).unwrap();
+    assert!((value - 0.15).abs() < 0.0001);
+}
+
+#[test]
+fn test_surface_opacity_planning() {
+    let action = ai_action::plan_validated_action("make torso opacity 0.05")
+        .expect("Should plan surface opacity request.");
+    assert_eq!(action.command, "set_surface_opacity");
+    assert_eq!(
+        action.args.get("surface_pattern").and_then(|v| v.as_str()),
+        Some("torso")
+    );
+    let value = action.args.get("value").and_then(|v| v.as_f64()).unwrap();
+    assert!((value - 0.05).abs() < 0.0001);
+}
+
+#[test]
+fn test_internal_surface_and_anatomy_planning() {
+    let discover = ai_action::plan_validated_action("list internal surfaces")
+        .expect("Should plan internal surface discovery.");
+    assert_eq!(discover.command, "get_internal_surfaces");
+
+    let show = ai_action::plan_validated_action("show anatomy on the selected figure")
+        .expect("Should plan show anatomy.");
+    assert_eq!(show.command, "show_anatomy");
+}
+
+#[test]
+fn test_place_asset_inside_planning() {
+    let action =
+        ai_action::plan_validated_action("place asset \"C:/Content/Alien.duf\" inside the figure")
+            .expect("Should plan inside asset placement.");
+    assert_eq!(action.command, "place_asset_inside");
+    assert_eq!(
+        action.args.get("asset_path").and_then(|v| v.as_str()),
+        Some("C:/Content/Alien.duf")
+    );
+}

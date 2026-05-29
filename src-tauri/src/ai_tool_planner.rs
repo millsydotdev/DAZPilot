@@ -215,6 +215,93 @@ pub async fn plan_with_llm_tools(
 /// - heuristic >= 0.85 → prefer heuristic (high-confidence keyword match)
 /// - heuristic < 0.70  → prefer LLM (heuristic uncertain, LLM may generalize better)
 /// - otherwise         → pick whichever has higher confidence
+pub async fn plan_next_action(
+    user_message: &str,
+    action_history: &[(String, String, bool)], // (command, output, success)
+    scene_summary: &str,
+    provider: Option<&str>,
+    model: Option<&str>,
+) -> Option<StructuredAiAction> {
+    // Build history summary for the prompt
+    let history_summary = if action_history.is_empty() {
+        "No previous actions executed.".to_string()
+    } else {
+        action_history
+            .iter()
+            .enumerate()
+            .map(|(i, (cmd, output, success))| {
+                format!(
+                    "Action {}: {}\nResult: {}\nStatus: {}\n",
+                    i + 1,
+                    cmd,
+                    if output.len() > 200 {
+                        format!("{}... (truncated)", &output[..200])
+                    } else {
+                        output.clone()
+                    },
+                    if *success { "SUCCESS" } else { "FAILED" }
+                )
+            })
+            .collect::<Vec<String>>()
+            .join("\n---\n")
+    };
+
+    // Check for potential loops (same command repeated 3+ times)
+    let mut command_counts = std::collections::HashMap::new();
+    for (cmd, _, _) in action_history.iter().rev().take(5) {
+        // Check last 5 actions
+        *command_counts.entry(cmd.clone()).or_insert(0) += 1;
+    }
+
+    let has_repetition = command_counts.values().any(|&count| count >= 3);
+
+    let prompt = format!(
+        "You are continuing a multi-step task.\n\n\
+        Original request: {}\n\n\
+        Action History:\n{}\n\n\
+        Scene context: {}\n\n\
+        Based on the history above, is another action needed to fully satisfy the original request?\n\
+        If YES, output a single action as a JSON block:\n\
+        ```json\n\
+        {{\n\
+          \"command\": \"command_name\",\n\
+          \"args\": {{}},\n\
+          \"confidence\": 0.8\n\
+        }}\n\
+        ```\n\
+        If NO, meaning the task is complete, respond with just the text: DONE\n\n\
+        Only output the JSON block or DONE - no extra explanation.\n\
+        {}", 
+        user_message,
+        history_summary,
+        scene_summary,
+        if has_repetition {
+            "WARNING: You have been repeating similar actions. Consider if a different approach is needed or if the task is actually complete."
+        } else { "" }
+    );
+
+    let response = crate::ai_providers::run_chat(
+        provider.unwrap_or("local-gguf"),
+        model.unwrap_or("phi-2-q4"),
+        prompt,
+        None,
+        None,
+        0.1,
+        512,
+        None,
+    )
+    .await
+    .ok()?;
+
+    // Check if response is DONE (task complete)
+    if response.trim().to_uppercase() == "DONE" {
+        return None;
+    }
+
+    // Otherwise try to parse as JSON action
+    parse_llm_tool_plan(&response)
+}
+
 pub fn merge_plans(
     heuristic: Option<StructuredAiAction>,
     llm: Option<StructuredAiAction>,

@@ -70,7 +70,7 @@ Dear Daz 3D Published Artist Team,
 
 I would like to apply to become a Published Artist on the Daz 3D Store.
 
-I have created DazPilot, a desktop application and Daz Studio bridge plugin for AI-assisted scene control. It includes a local desktop UI, a C++ Daz Studio plugin, local asset and SDK indexing, and bridge commands for scene inspection, asset loading, pose application, viewport capture, and model import.
+I have created DazPilot, a desktop application with a custom Daz Studio bridge plugin for AI-assisted scene control. It includes a local desktop UI, a bridge plugin (`plugins/daz3d-bridge/`), local asset and SDK indexing, and bridge commands for scene inspection, asset loading, pose application, viewport capture, and model import.
 
 I have attached promotional interface previews and workflow images in the requested format.
 
@@ -90,11 +90,7 @@ If accepted, expect Daz to provide the current legal, tax, and submission requir
 
 ### Plugin Package
 
-C++ plugins compiled as DLLs should be packaged so they land in Daz Studio's application plugin directory.
-
-```text
-/plugins/DazPilotBridge.dll
-```
+Build your own custom bridge plugin and package it so it lands in Daz Studio's application plugin directory.
 
 Common destination:
 
@@ -121,8 +117,7 @@ C:\Users\[User]\Documents\My DAZ 3D Library\
 
 1. Update versions in `package.json` and `src-tauri/tauri.conf.json`.
 2. Run `npm run check`.
-3. Rebuild the bridge plugin if C++ changed.
-4. Build installers with `npm run tauri build`.
+3. Build installers with `npm run tauri build`.
 5. Prepare marketplace ZIP packages with the correct folder layouts.
 6. Prepare promotional images and product copy.
 7. Submit through the current Daz Published Artist process.

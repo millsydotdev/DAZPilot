@@ -39,7 +39,6 @@ pub enum PopularityLevel {
 pub struct AssetKnowledgeBase {
     pub daz_knowledge: DazKnowledgeBase,
     pub semantic_assets: Mutex<HashMap<String, SemanticAsset>>,
-    pub asset_embeddings: Mutex<HashMap<String, Vec<f32>>>, // for similarity search
 }
 
 impl AssetKnowledgeBase {
@@ -47,7 +46,6 @@ impl AssetKnowledgeBase {
         Self {
             daz_knowledge: DazKnowledgeBase::new(),
             semantic_assets: Mutex::new(HashMap::new()),
-            asset_embeddings: Mutex::new(HashMap::new()),
         }
     }
 

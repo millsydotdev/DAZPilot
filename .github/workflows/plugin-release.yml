@@ -1,89 +1,12 @@
-name: Plugin Release
+# Plugin Release — disabled
+# Bridge plugin at plugins/daz3d-bridge/ — enable when ready for automated builds.
+name: Plugin Release (disabled)
 
 on:
-  push:
-    tags:
-      - 'plugin-v*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: Release tag
-        required: true
-        type: string
-
-concurrency:
-  group: plugin-release-${{ github.event.inputs.tag || github.ref_name }}
-  cancel-in-progress: false
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
-
-permissions:
-  contents: write
 
 jobs:
-  build-plugin:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.runner }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: windows
-            runner: windows-2022
-            bridge_file: DazPilotBridge.dll
-            plugin_zip: DazPilotBridge-windows-x86_64
-          - name: macos
-            runner: macos-latest
-            bridge_file: libDazPilotBridge.dylib
-            plugin_zip: DazPilotBridge-macos-universal
-          - name: linux
-            runner: ubuntu-24.04
-            bridge_file: libDazPilotBridge.so
-            plugin_zip: DazPilotBridge-linux-x86_64
-
+  noop:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          lfs: true
-          ref: ${{ github.event.inputs.tag || github.ref }}
-          token: ${{ secrets.GH_PAT || github.token }}
-
-      - name: Cache Daz SDK
-        if: matrix.name == 'windows'
-        uses: actions/cache@v4
-        with:
-          path: thirdparty/DAZStudio4.5+ SDK
-          key: ${{ runner.os }}-daz-sdk-${{ hashFiles('plugins/daz3d-bridge/**') }}
-
-      - name: Configure and build bridge
-        id: bridge-build
-        if: matrix.name == 'windows'
-        working-directory: plugins/daz3d-bridge
-        run: |
-          cmake -B build -DDAZ_SDK_ROOT="${{ github.workspace }}/thirdparty/DAZStudio4.5+ SDK"
-          cmake --build build --config Release
-
-      - name: Package plugin
-        if: steps.bridge-build.outcome == 'success'
-        shell: bash
-        run: |
-          mkdir -p release/plugin
-          cp plugins/daz3d-bridge/dist/Release/${{ matrix.bridge_file }} release/plugin/
-          cp plugins/daz3d-bridge/README.md release/plugin/
-          cd release/plugin
-          7z a ../../${{ matrix.plugin_zip }}-${RELEASE_TAG}.zip ./*
-          cd ../..
-
-      - name: Upload plugin to release
-        if: steps.bridge-build.outcome == 'success'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          draft: true
-          prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
-          files: ${{ matrix.plugin_zip }}-${{ env.RELEASE_TAG }}.zip
+      - run: echo "Bridge plugin at plugins/daz3d-bridge/ — enable for automated builds"

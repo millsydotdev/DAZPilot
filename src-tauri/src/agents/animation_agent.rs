@@ -1,9 +1,18 @@
+use crate::agents::orchestrator;
 use crate::agents::{AgentAction, AgentRequest, AgentResponse};
 
 pub fn execute(request: AgentRequest) -> AgentResponse {
     let input = request.input.to_lowercase();
     let mut actions = vec![];
     let mut messages: Vec<String> = vec![];
+
+    let child_response = orchestrator::delegate_and_aggregate("animation", &input, request.clone());
+    if !child_response.actions.is_empty() {
+        actions.extend(child_response.actions);
+        if let Some(result) = child_response.result {
+            messages.push(result);
+        }
+    }
 
     // Helper: extract first number from string
     fn extract_number(s: &str) -> Option<i32> {

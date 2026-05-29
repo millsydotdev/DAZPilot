@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Unreleased]
+
+### Removed
+
+- Bridge plugin source restored at `plugins/daz3d-bridge/` — fully upgraded to support all DazPilot features.
+
 ## [0.1.1] - 2026-05-19
 
 ### Added

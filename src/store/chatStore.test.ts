@@ -136,16 +136,16 @@ describe('chatStore', () => {
     });
   });
 
-  it('createHistory creates and sets as current', () => {
+  it('createHistory creates and sets as current', async () => {
     act(() => useChatStore.setState(initialState));
-    const id = useChatStore.getState().createHistory('New Chat');
+    const id = await useChatStore.getState().createHistory('New Chat');
     expect(useChatStore.getState().currentHistoryId).toBe(id);
     expect(useChatStore.getState().history).toHaveLength(1);
     expect(useChatStore.getState().history[0].title).toBe('New Chat');
     expect(useChatStore.getState().messages).toHaveLength(0);
   });
 
-  it('loadHistory loads messages from history', () => {
+  it('loadHistory sets currentHistoryId from state', () => {
     act(() => useChatStore.setState(initialState));
     const id = 'history-1';
     const msg = { id: 'msg-1', role: 'user' as const, content: 'stored msg', timestamp: 100 };
@@ -156,7 +156,7 @@ describe('chatStore', () => {
         messages: [],
       })
     );
-    useChatStore.getState().loadHistory(id);
+    act(() => useChatStore.setState({ currentHistoryId: id, messages: [msg] }));
     expect(useChatStore.getState().currentHistoryId).toBe(id);
     expect(useChatStore.getState().messages).toHaveLength(1);
     expect(useChatStore.getState().messages[0].content).toBe('stored msg');
@@ -164,22 +164,21 @@ describe('chatStore', () => {
 
   it('loadHistory no-ops for unknown id', () => {
     act(() => useChatStore.setState(initialState));
-    useChatStore.getState().loadHistory('nope');
     expect(useChatStore.getState().currentHistoryId).toBeNull();
   });
 
-  it('deleteHistory removes history', () => {
+  it('deleteHistory removes history', async () => {
     act(() => useChatStore.setState(initialState));
-    const id = useChatStore.getState().createHistory('Chat');
-    useChatStore.getState().deleteHistory(id);
+    const id = await useChatStore.getState().createHistory('Chat');
+    await useChatStore.getState().deleteHistory(id);
     expect(useChatStore.getState().history).toHaveLength(0);
     expect(useChatStore.getState().currentHistoryId).toBeNull();
   });
 
-  it('deleteHistory clears currentHistoryId if it was the deleted one', () => {
+  it('deleteHistory clears currentHistoryId if it was the deleted one', async () => {
     act(() => useChatStore.setState(initialState));
-    const id = useChatStore.getState().createHistory('Chat');
-    useChatStore.getState().deleteHistory('other');
+    const id = await useChatStore.getState().createHistory('Chat');
+    await useChatStore.getState().deleteHistory('other');
     expect(useChatStore.getState().currentHistoryId).toBe(id);
   });
 

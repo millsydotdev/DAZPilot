@@ -1,7 +1,7 @@
 {
   "name": "dazpilot",
   "private": true,
-  "version": "0.5.3",
+  "version": "0.5.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,10 +21,8 @@
     "fmt:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
     "acceptance": "powershell -ExecutionPolicy Bypass -File scripts/acceptance-bridge.ps1",
     "lint:md": "markdownlint-cli2 \"*.md\" \"docs/**/*.md\" \"plan/**/*.md\" \"Fix/**/*.md\"",
-    "plugin:configure": "cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build",
-    "plugin:build": "cmake --build plugins/daz3d-bridge/build --config Release",
-    "plugin:rebuild": "cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build && cmake --build plugins/daz3d-bridge/build --config Release",
-    "plugin:rebuild:deploy": "cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DDAZPILOT_DEPLOY_TO_DAZ=ON && cmake --build plugins/daz3d-bridge/build --config Release",
+    "plugin:build": "cd plugins/daz3d-bridge && cmake -B build && cmake --build build",
+    "release:check": "npm run check && npm run test:rust && npm run lint:md && npm run build && npm run tauri build -- --bundles none --ci",
     "prepare": "husky"
   },
   "dependencies": {

@@ -165,7 +165,6 @@ impl AgentRegistry {
     }
 
     pub fn find_by_input(&self, input: &str) -> Vec<(&AgentNode, usize)> {
-        let lower = input.to_lowercase();
         let mut matches: Vec<(&AgentNode, usize)> = self
             .nodes
             .values()
@@ -173,7 +172,7 @@ impl AgentRegistry {
                 let count = node
                     .capabilities
                     .iter()
-                    .filter(|c| lower.contains(&c.to_lowercase()))
+                    .filter(|c| input_matches_capability(input, c))
                     .count();
                 if count > 0 {
                     Some((node, count))
@@ -211,6 +210,19 @@ impl AgentRegistry {
             }
         }
     }
+}
+
+pub fn input_matches_capability(input: &str, capability: &str) -> bool {
+    let input = input.to_lowercase();
+    let capability = capability.to_lowercase();
+
+    if capability.split_whitespace().count() > 1 {
+        return input.contains(&capability);
+    }
+
+    input
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .any(|word| word == capability)
 }
 
 impl Default for AgentRegistry {
@@ -286,21 +298,21 @@ impl From<&AgentNode> for AgentTreeNode {
 static AGENT_REGISTRY: Mutex<Option<AgentRegistry>> = Mutex::new(None);
 
 pub fn init_registry() {
-    let mut guard = AGENT_REGISTRY.lock().unwrap();
+    let mut guard = AGENT_REGISTRY.lock().unwrap_or_else(|e| e.into_inner());
     if guard.is_none() {
         *guard = Some(AgentRegistry::new());
     }
 }
 
 pub fn global_registry() -> std::sync::MutexGuard<'static, Option<AgentRegistry>> {
-    AGENT_REGISTRY.lock().unwrap()
+    AGENT_REGISTRY.lock().unwrap_or_else(|e| e.into_inner())
 }
 
 pub fn with_registry<F, R>(f: F) -> R
 where
     F: FnOnce(&AgentRegistry) -> R,
 {
-    let guard = AGENT_REGISTRY.lock().unwrap();
+    let guard = AGENT_REGISTRY.lock().unwrap_or_else(|e| e.into_inner());
     let registry = guard.as_ref().expect("AgentRegistry not initialized");
     f(registry)
 }
@@ -309,7 +321,7 @@ pub fn with_registry_mut<F, R>(f: F) -> R
 where
     F: FnOnce(&mut AgentRegistry) -> R,
 {
-    let mut guard = AGENT_REGISTRY.lock().unwrap();
+    let mut guard = AGENT_REGISTRY.lock().unwrap_or_else(|e| e.into_inner());
     let registry = guard.as_mut().expect("AgentRegistry not initialized");
     f(registry)
 }

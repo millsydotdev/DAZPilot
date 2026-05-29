@@ -307,6 +307,7 @@ pub fn plan_validated_action(input: &str) -> Option<StructuredAiAction> {
         .or_else(|| plan_scene_creation(&lower))
         .or_else(|| plan_create_light(&lower))
         .or_else(|| plan_apply_expression(&lower, input))
+        .or_else(|| plan_material_opacity_tools(&lower, input))
         .or_else(|| plan_load_asset(&lower, input))
         .or_else(|| plan_export_scene(&lower, input))
         .or_else(|| plan_legacy_command(&lower, input))
@@ -745,6 +746,180 @@ fn plan_export_scene(lower: &str, input: &str) -> Option<StructuredAiAction> {
     })
 }
 
+fn plan_material_opacity_tools(lower: &str, input: &str) -> Option<StructuredAiAction> {
+    let node_id = extract_node_id(input);
+    let node_id = if node_id.is_empty() {
+        "selected".to_string()
+    } else {
+        node_id
+    };
+
+    if lower.contains("internal surface")
+        || lower.contains("internal surfaces")
+        || lower.contains("anatomy surfaces")
+    {
+        return Some(structured_material_action(
+            "get_internal_surfaces",
+            serde_json::json!({ "node_id": node_id }),
+            0.88,
+        ));
+    }
+
+    if lower.contains("show anatomy")
+        || lower.contains("show skeleton")
+        || lower.contains("make anatomy visible")
+        || lower.contains("make skeleton visible")
+    {
+        return Some(structured_material_action(
+            "show_anatomy",
+            serde_json::json!({ "node_id": node_id }),
+            0.9,
+        ));
+    }
+
+    if (lower.contains("inside") || lower.contains("within"))
+        && (lower.contains("place")
+            || lower.contains("put")
+            || lower.contains("load")
+            || lower.contains("insert"))
+        && (lower.contains("asset") || lower.contains(".duf") || lower.contains(".dsf"))
+    {
+        let asset_path = extract_quoted_text(input)
+            .or_else(|| extract_asset_path(input))
+            .or_else(|| {
+                extract_asset_search_query(input)
+                    .and_then(|query| search_best_matching_asset(&query))
+            })?;
+        return Some(structured_material_action(
+            "place_asset_inside",
+            serde_json::json!({ "figure_id": node_id, "asset_path": asset_path }),
+            0.82,
+        ));
+    }
+
+    let opacity_intent = lower.contains("opacity")
+        || lower.contains("transparent")
+        || lower.contains("translucent")
+        || lower.contains("see-through")
+        || lower.contains("see through");
+    if !opacity_intent {
+        return None;
+    }
+
+    let value = extract_opacity_value(lower);
+    if let Some(surface_pattern) = extract_surface_pattern(lower) {
+        return Some(structured_material_action(
+            "set_surface_opacity",
+            serde_json::json!({
+                "node_id": node_id,
+                "surface_pattern": surface_pattern,
+                "value": value
+            }),
+            0.86,
+        ));
+    }
+
+    if lower.contains("body")
+        || lower.contains("figure")
+        || lower.contains("character")
+        || lower.contains("skin")
+        || lower.contains("transparent")
+        || lower.contains("translucent")
+    {
+        return Some(structured_material_action(
+            "set_body_opacity",
+            serde_json::json!({ "node_id": node_id, "value": value }),
+            0.86,
+        ));
+    }
+
+    None
+}
+
+fn structured_material_action(
+    command: &str,
+    args: serde_json::Value,
+    confidence: f32,
+) -> StructuredAiAction {
+    StructuredAiAction {
+        command: command.to_string(),
+        args,
+        confidence,
+        sdk_refs: sdk_refs_for_command(command),
+        requires_confirmation: crate::mcp_client::command_requires_confirmation(command),
+    }
+}
+
+fn extract_quoted_text(input: &str) -> Option<String> {
+    for quote in ['"', '\''] {
+        if let Some(start) = input.find(quote) {
+            if let Some(end) = input[start + 1..].find(quote) {
+                let value = input[start + 1..start + 1 + end].trim();
+                if !value.is_empty() {
+                    return Some(value.to_string());
+                }
+            }
+        }
+    }
+    None
+}
+
+fn extract_asset_path(input: &str) -> Option<String> {
+    input
+        .split_whitespace()
+        .map(|w| w.trim_matches(|c: char| c == '"' || c == '\'' || c == ',' || c == '.'))
+        .find(|w| {
+            let lower = w.to_lowercase();
+            lower.ends_with(".duf") || lower.ends_with(".dsf") || lower.ends_with(".dsa")
+        })
+        .map(|w| w.to_string())
+}
+
+fn extract_opacity_value(lower: &str) -> f32 {
+    let mut parsed = lower
+        .split_whitespace()
+        .filter_map(|w| {
+            let clean = w.trim_matches(|c: char| !c.is_ascii_digit() && c != '.');
+            clean.parse::<f32>().ok()
+        })
+        .next()
+        .unwrap_or_else(|| {
+            if lower.contains("transparent") || lower.contains("see-through") {
+                0.2
+            } else {
+                1.0
+            }
+        });
+    if parsed > 1.0 && parsed <= 100.0 {
+        parsed /= 100.0;
+    }
+    parsed.clamp(0.0, 1.0)
+}
+
+fn extract_surface_pattern(lower: &str) -> Option<String> {
+    const SURFACES: &[&str] = &[
+        "torso", "stomach", "abdomen", "chest", "arm", "forearm", "hand", "leg", "thigh", "shin",
+        "foot", "head", "face", "neck", "skull", "rib", "spine", "pelvis",
+    ];
+    for surface in SURFACES {
+        if lower.contains(surface) {
+            return Some((*surface).to_string());
+        }
+    }
+    if let Some(idx) = lower.find("surface") {
+        let rest = lower[idx + "surface".len()..].trim();
+        let candidate = rest
+            .split_whitespace()
+            .take_while(|w| *w != "to" && *w != "opacity" && *w != "transparent")
+            .collect::<Vec<_>>()
+            .join(" ");
+        if !candidate.is_empty() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+
 fn plan_legacy_command(lower: &str, input: &str) -> Option<StructuredAiAction> {
     let (command, args, confidence) =
         if lower.contains("scene") && (lower.contains("info") || lower.contains("status")) {
@@ -988,6 +1163,10 @@ pub fn execute_structured_action(action: StructuredAiAction) -> Result<String, S
             | "add_figure"
             | "set_property"
             | "set_material_property"
+            | "set_body_opacity"
+            | "set_surface_opacity"
+            | "show_anatomy"
+            | "place_asset_inside"
             | "set_morph"
             | "set_light"
             | "set_render_settings"
@@ -1079,6 +1258,15 @@ fn sdk_refs_for_command(command: &str) -> Vec<String> {
         "set_morph" => vec!["DzMorph".to_string(), "DzFloatProperty".to_string()],
         "set_light" => vec!["DzLight".to_string(), "DzProperty".to_string()],
         "set_render_settings" => vec!["DzRenderMgr".to_string()],
+        "set_body_opacity" | "set_surface_opacity" | "show_anatomy" => {
+            vec!["DzMaterial".to_string(), "DzFloatProperty".to_string()]
+        },
+        "get_internal_surfaces" => vec!["DzMaterial".to_string()],
+        "place_asset_inside" => vec![
+            "DzContentMgr".to_string(),
+            "DzNode".to_string(),
+            "DzBox3".to_string(),
+        ],
         "add_figure" => vec!["DzFigure".to_string(), "DzContentMgr".to_string()],
         "get_scene_assets" => vec!["DzScene".to_string()],
         _ => vec![],
@@ -1543,10 +1731,9 @@ fn execute_set_opacity(action: &AiAction) -> ActionResult {
         .unwrap_or_else(|| "1.0".to_string());
 
     match crate::mcp_client::send_mcp_request(
-        "set_material_property",
+        "set_body_opacity",
         serde_json::json!({
             "node_id": "selected",
-            "property": "Opacity",
             "value": value
         }),
     ) {
