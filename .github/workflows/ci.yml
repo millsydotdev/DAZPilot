@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
 
       - name: Install Linux dependencies
         run: |
@@ -69,4 +72,32 @@ jobs:
         working-directory: src-tauri
         run: cargo test --lib
 
+  plugin-checks:
+    name: Plugin checks
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Install Linux dependencies
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
+      - name: Build C++ Bridge Plugin
+        run: |
+          cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build plugins/daz3d-bridge/build --config Release
+
+      - name: Run C++ Bridge Plugin Unit Tests
+        run: |
+          ctest --test-dir plugins/daz3d-bridge/build --output-on-failure
