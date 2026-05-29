@@ -167,6 +167,7 @@ jobs:
         env:
           ARCH_LABEL: ${{ matrix.arch-label }}
         run: |
+          shopt -s nullglob
           MACOS_DIR=$(ls -d src-tauri/target/*/release/bundle/macos/ 2>/dev/null | head -1)
           if [ -z "$MACOS_DIR" ]; then
             echo "No macOS bundle directory found — skipping rename"
@@ -196,6 +197,7 @@ jobs:
         env:
           ARCH_LABEL: ${{ matrix.arch-label }}
         run: |
+          shopt -s nullglob
           LINUX_DIR=$(ls -d src-tauri/target/*/release/bundle/ 2>/dev/null | head -1)
           if [ -z "$LINUX_DIR" ]; then
             echo "No Linux bundle directory found — skipping rename"
