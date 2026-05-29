@@ -24,21 +24,7 @@ permissions:
 jobs:
   build-plugin:
     name: Build Plugin
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            platform: windows
-            asset-name: DazPilotBridge.dll
-          - os: macos-latest
-            platform: macos
-            asset-name: libDazPilotBridge.dylib
-          - os: ubuntu-latest
-            platform: linux
-            asset-name: libDazPilotBridge.so
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
@@ -47,22 +33,10 @@ jobs:
           submodules: true
           lfs: true
 
-      - name: Install Linux dependencies
-        if: matrix.platform == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake
-
       # ── Build C++ Bridge Plugin ──────────────────────────────────────
       - name: Build C++ Bridge Plugin
-        shell: bash
         run: |
-          # For macOS, build a universal binary
-          if [ "${{ matrix.platform }}" = "macos" ]; then
-            cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
-          else
-            cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release
-          fi
+          cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release
           cmake --build plugins/daz3d-bridge/build --config Release
 
       # ── Run C++ Unit Tests ───────────────────────────────────────────
@@ -74,10 +48,8 @@ jobs:
       - name: Upload built binary
         uses: actions/upload-artifact@v4
         with:
-          name: plugin-${{ matrix.platform }}
-          path: |
-            plugins/daz3d-bridge/dist/${{ matrix.asset-name }}
-            src-tauri/resources/${{ matrix.asset-name }}
+          name: plugin-windows
+          path: src-tauri/resources/DazPilotBridge.dll
           if-no-files-found: error
 
   publish-plugin-release:
@@ -102,7 +74,7 @@ jobs:
           allowUpdates: true
           name: "DazPilot Bridge Plugin ${{ env.RELEASE_TAG }}"
           tag: ${{ env.RELEASE_TAG }}
-          body: "Pre-compiled Daz Studio bridge plugin binaries for Windows, macOS, and Linux."
+          body: "Pre-compiled Daz Studio bridge plugin binaries for Windows."
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "plugin-assets/**/*"
           artifactErrorsFailBuild: true
