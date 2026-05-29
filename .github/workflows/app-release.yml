@@ -133,7 +133,7 @@ jobs:
       - name: Run C++ Bridge Plugin Unit Tests
         if: matrix.os == 'windows-latest' && matrix.target == 'x86_64-pc-windows-msvc'
         run: |
-          ctest --test-dir plugins/daz3d-bridge/build --output-on-failure
+          ctest --test-dir plugins/daz3d-bridge/build -C Release --output-on-failure
 
       # ── Tauri build ──────────────────────────────────────────────────
       - name: Build Tauri app

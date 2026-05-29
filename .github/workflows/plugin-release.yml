@@ -42,7 +42,7 @@ jobs:
       # ── Run C++ Unit Tests ───────────────────────────────────────────
       - name: Run C++ Bridge Plugin Unit Tests
         run: |
-          ctest --test-dir plugins/daz3d-bridge/build --output-on-failure
+          ctest --test-dir plugins/daz3d-bridge/build -C Release --output-on-failure
 
       # ── Upload built binary as runner artifact ───────────────────────
       - name: Upload built binary

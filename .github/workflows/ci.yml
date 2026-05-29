@@ -90,4 +90,4 @@ jobs:
 
       - name: Run C++ Bridge Plugin Unit Tests
         run: |
-          ctest --test-dir plugins/daz3d-bridge/build --output-on-failure
+          ctest --test-dir plugins/daz3d-bridge/build -C Release --output-on-failure
