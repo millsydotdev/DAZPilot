@@ -88,6 +88,12 @@ jobs:
           path: plugin-assets
           merge-multiple: true
 
+      - name: Flatten plugin release files
+        run: |
+          mkdir -p plugin-release
+          find plugin-assets -type f \( -name '*.dll' -o -name '*.manifest' \) -exec cp -f {} plugin-release/ \;
+          ls -la plugin-release/
+
       - name: Create or Update GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -104,7 +110,8 @@ jobs:
 
             Install: copy the correct DLL into your Daz Studio plugins folder and restart Daz.
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "plugin-assets/**/*"
+          artifacts: "plugin-release/*"
           artifactErrorsFailBuild: true
           replacesArtifacts: true
+          removeArtifacts: true
           makeLatest: false

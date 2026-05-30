@@ -7,11 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [Unreleased]
+## [0.5.5] - 2026-05-30
 
-### Removed
+### Added
 
-- Bridge plugin source restored at `plugins/daz3d-bridge/` — fully upgraded to support all DazPilot features.
+- Agents panel with custom sub-agent form, render queue panel, and consolidated scripts tab.
+- Bridge command manifest (`bridge_commands.manifest`) kept in sync with Rust MCP schemas.
+- Platform matrix documentation (`docs/PLATFORM_MATRIX.md`).
+- App inbox handoff from the Daz Studio pane (viewport context to desktop app on port 8766).
+
+### Changed
+
+- UI shell consolidation: shared `PanelShell`, scene presets in the scene panel, learning dashboard styling.
+- Release CI stages only installable bundle files; macOS updater archives are disambiguated per CPU architecture.
+- Windows bridge plugin release is **x64 only** (Daz Studio SDK ships x64 libs; ARM64 Windows uses the same plugin).
+
+### Fixed
+
+- DazPilot bridge pane compile errors (Qt4-compatible pane, removed incomplete ImGui integration).
+- Release workflows locate MSVC-built `DazPilotBridge.dll` under `dist/` / `dist/Release/`.
+- GitHub release upload no longer attaches empty `target/` or `resources/` directories.
 
 ## [0.1.1] - 2026-05-19
 
@@ -60,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separate release workflows for app bundles and bridge plugin
 - Environment variable configuration for dev mocks and AI backend selection
 
-[Unreleased]: https://github.com/millsydotdev/DazPilot/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/millsydotdev/DazPilot/compare/v0.5.5...HEAD
+[0.5.5]: https://github.com/millsydotdev/DazPilot/compare/v0.1.1...v0.5.5
 [0.1.1]: https://github.com/millsydotdev/DazPilot/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/millsydotdev/DazPilot/releases/tag/v0.1.0

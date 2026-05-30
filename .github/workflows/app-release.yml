@@ -213,8 +213,25 @@ jobs:
             capture { print }
           ' CHANGELOG.md > release_notes.md
           if [ ! -s release_notes.md ]; then
-            echo "See the assets below to download and install." > release_notes.md
+            {
+              echo "## DazPilot ${VERSION}"
+              echo ""
+              echo "Multi-platform desktop build. See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md)."
+              echo ""
+              echo "### Install"
+              echo ""
+              echo "- **Windows:** MSI or NSIS installer for x64 or ARM64."
+              echo "- **macOS:** DMG or \`DAZPilot_*-apple-darwin.app.tar.gz\` for Apple Silicon or Intel."
+              echo "- **Linux:** AppImage, deb, or rpm for amd64 or arm64."
+              echo ""
+              echo "### Daz Studio plugin"
+              echo ""
+              echo "Install \`DazPilotBridge-x64.dll\` from the [plugin-v${VER}](https://github.com/${{ github.repository }}/releases/tag/plugin-v${VER}) release."
+            } > release_notes.md
           fi
+
+      - name: Stage installable release files
+        run: bash scripts/stage-release-assets.sh all-artifacts release-staging
 
       - name: Build latest.json from signatures
         env:
@@ -234,7 +251,7 @@ jobs:
               notes: $notes,
               pub_date: $pub_date,
               platforms: {}
-            }' > all-artifacts/latest.json
+            }' > release-staging/latest.json
 
           # Helper function to find a file and its signature, and add to latest.json
           add_platform_to_json() {
@@ -242,20 +259,24 @@ jobs:
             local file_pattern="$2"
             local sig_pattern="$3"
 
+            if jq -e --arg k "$platform_key" '.platforms[$k] != null' release-staging/latest.json >/dev/null 2>&1; then
+              return
+            fi
+
             echo "Looking for $platform_key using file pattern: '$file_pattern' and sig pattern: '$sig_pattern'..."
-            
+
             local file_path
-            file_path=$(find all-artifacts -name "$file_pattern" -type f 2>/dev/null | head -1)
-            
+            file_path=$(find release-staging -name "$file_pattern" -type f 2>/dev/null | head -1)
+
             local sig_path
-            sig_path=$(find all-artifacts -name "$sig_pattern" -type f 2>/dev/null | head -1)
+            sig_path=$(find release-staging -name "$sig_pattern" -type f 2>/dev/null | head -1)
 
             if [ -n "$file_path" ] && [ -n "$sig_path" ]; then
               local filename
               filename=$(basename "$file_path")
               local signature
               signature=$(cat "$sig_path" | tr -d '\n\r' | xargs)
-              
+
               echo "  Found file: $filename"
               echo "  Found signature: (length ${#signature})"
 
@@ -263,30 +284,27 @@ jobs:
                  --arg sig_val "$signature" \
                  --arg key "$platform_key" \
                  '.platforms[$key] = {url: $url, signature: $sig_val}' \
-                 all-artifacts/latest.json > tmp.json && mv tmp.json all-artifacts/latest.json
+                 release-staging/latest.json > tmp.json && mv tmp.json release-staging/latest.json
             else
               echo "  WARNING: Not found both file and signature for $platform_key"
             fi
           }
 
-          # Add platforms for Tauri v2 updater
-          # macOS
-          add_platform_to_json "darwin-aarch64" "*_aarch64.app.tar.gz" "*_aarch64.app.tar.gz.sig"
-          add_platform_to_json "darwin-x86_64"  "*_x64.app.tar.gz"     "*_x64.app.tar.gz.sig"
-          
-          # If arm64/x64 are missing, try universal macOS
-          add_platform_to_json "darwin-universal" "*_universal.app.tar.gz" "*_universal.app.tar.gz.sig"
+          # Tauri v2 updater platforms (staged macOS archives include the target triple when names collide)
+          add_platform_to_json "darwin-aarch64" "DAZPilot_aarch64-apple-darwin.app.tar.gz" "DAZPilot_aarch64-apple-darwin.app.tar.gz.sig"
+          add_platform_to_json "darwin-x86_64" "DAZPilot_x86_64-apple-darwin.app.tar.gz" "DAZPilot_x86_64-apple-darwin.app.tar.gz.sig"
+          add_platform_to_json "darwin-aarch64" "*aarch64*.app.tar.gz" "*aarch64*.app.tar.gz.sig"
+          add_platform_to_json "darwin-x86_64" "*x86_64-apple-darwin*.app.tar.gz" "*x86_64-apple-darwin*.app.tar.gz.sig"
+          add_platform_to_json "darwin-universal" "*universal*.app.tar.gz" "*universal*.app.tar.gz.sig"
 
-          # Windows
-          add_platform_to_json "windows-x86_64" "*_x64-setup.nsis.zip" "*_x64-setup.nsis.zip.sig"
-          add_platform_to_json "windows-aarch64" "*_arm64-setup.nsis.zip" "*_arm64-setup.nsis.zip.sig"
+          add_platform_to_json "windows-x86_64" "*x64-setup.nsis.zip" "*x64-setup.nsis.zip.sig"
+          add_platform_to_json "windows-aarch64" "*arm64-setup.nsis.zip" "*arm64-setup.nsis.zip.sig"
 
-          # Linux
-          add_platform_to_json "linux-x86_64" "*_amd64.AppImage.tar.gz" "*_amd64.AppImage.tar.gz.sig"
-          add_platform_to_json "linux-aarch64" "*_arm64.AppImage.tar.gz" "*_arm64.AppImage.tar.gz.sig"
+          add_platform_to_json "linux-x86_64" "*amd64.AppImage.tar.gz" "*amd64.AppImage.tar.gz.sig"
+          add_platform_to_json "linux-aarch64" "*arm64.AppImage.tar.gz" "*arm64.AppImage.tar.gz.sig"
 
           echo "Generated latest.json:"
-          cat all-artifacts/latest.json
+          cat release-staging/latest.json
 
       - name: Create or Update GitHub Release
         uses: ncipollo/release-action@v1
@@ -296,7 +314,8 @@ jobs:
           tag: ${{ env.RELEASE_TAG }}
           bodyFile: "release_notes.md"
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "all-artifacts/**/*"
-          artifactErrorsFailBuild: false
+          artifacts: "release-staging/*"
+          artifactErrorsFailBuild: true
           replacesArtifacts: true
+          removeArtifacts: true
           makeLatest: legacy
