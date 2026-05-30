@@ -1,0 +1,105 @@
+name: Bug report
+description: Report something that is broken in the app or bridge plugin
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as you can.
+
+        **Disclaimer:** DazPilot is an independent third-party project and is not affiliated with DAZ 3D.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of DazPilot is affected?
+      options:
+        - Desktop app (UI / Tauri)
+        - Rust backend
+        - Bridge plugin (Daz Studio)
+        - Local AI / llama-server
+        - Asset or SDK indexing
+        - Script IDE / agent system
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: DazPilot version
+      description: App version from Settings or the latest release tag
+      placeholder: e.g. 0.5.4
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: daz-version
+    attributes:
+      label: Daz Studio version
+      description: Required for bridge-related bugs
+      placeholder: e.g. 4.21
+
+  - type: dropdown
+    id: bridge-connected
+    attributes:
+      label: Bridge connection status
+      options:
+        - Connected (plugin loaded, app shows connected)
+        - Not connected
+        - Not applicable (app-only issue)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected instead
+      placeholder: A clear description of the problem
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps help us reproduce the issue
+      placeholder: |
+        1. Open Daz Studio with the bridge plugin loaded
+        2. Launch DazPilot and connect
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error messages
+      description: App logs, bridge output, or console errors if available
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and discussions for duplicates
+          required: true
+        - label: This is not a security vulnerability (see SECURITY.md for private reporting)
+          required: true

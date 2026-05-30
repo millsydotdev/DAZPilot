@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/millsydotdev/DAZPilot/discussions
+    about: Ask questions, share ideas, or show what you built in Discussions
+  - name: Security vulnerability
+    url: https://github.com/millsydotdev/DAZPilot/blob/master/SECURITY.md
+    about: Report security issues privately. Do not open a public issue.

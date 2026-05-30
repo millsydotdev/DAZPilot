@@ -65,3 +65,9 @@ npm run check         # Full pipeline: typecheck + lint + format + test
 - Keep changes focused and well-described
 - Add tests for new functionality
 - Verify `npm run check` passes before submitting
+- Use the PR template checklist when opening a pull request
+
+## Code of Conduct
+
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
+Please be respectful in issues, discussions, and pull requests.
