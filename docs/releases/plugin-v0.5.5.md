@@ -1,5 +1,11 @@
 Pre-built **Windows x64** Daz Studio bridge plugin for DazPilot **v0.5.5**.
 
+## Patch notes (30 May 2026)
+
+- Plugin version string updated to **0.5.5** (was `0.5.3` in diagnostics).
+- Build and release CI fixed for MSVC output paths and x64-only SDK libraries.
+- Ships with **`bridge_commands.manifest`** for schema parity with the desktop app.
+
 ## Files
 
 | File | Use |

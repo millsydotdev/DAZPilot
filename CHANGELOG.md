@@ -36,6 +36,8 @@ DazPilot is an AI-assisted desktop companion for DAZ Studio. This release adds *
 - DazPilot bridge pane compile errors (Qt4-compatible pane; removed incomplete ImGui integration).
 - Release workflows locate MSVC-built `DazPilotBridge.dll` under `dist/` / `dist/Release/`.
 - GitHub release upload no longer attaches empty `target/` directories or duplicate macOS asset names.
+- App/installer version bumped to **0.5.5** so release asset names match the git tag.
+- Removed obsolete CI updater JSON upload path and Node 24 Actions override warnings.
 
 ### Install
 
