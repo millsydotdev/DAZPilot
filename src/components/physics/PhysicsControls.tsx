@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useViewportStore } from '../../store';
 import { Play, Pause, RefreshCw, Settings, Info } from 'lucide-react';
 import { Button, Input, VStack, HStack, Text, Separator } from '../ui';
 import styles from './PhysicsControls.module.css';
 
-export function PhysicsControls() {
+interface PhysicsControlsProps {
+  embedded?: boolean;
+}
+
+export function PhysicsControls({ embedded = false }: PhysicsControlsProps) {
   const { selectedFigure } = useViewportStore();
 
   const [simulationActive, setSimulationActive] = useState(false);
@@ -23,11 +27,37 @@ export function PhysicsControls() {
 
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [simulationLogs, setSimulationLogs] = useState<string[]>([]);
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Initialize simulation from viewport state or defaults
   useEffect(() => {
-    // In a full implementation, we'd load physics state from the store
-    // For now, we'll use local state
+    const loadPhysics = async () => {
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        const settings = await invoke<{
+          quality?: string | { Preview?: unknown; Medium?: unknown };
+          enabled?: boolean;
+        }>('get_physics_settings');
+        const qualityRaw = settings.quality;
+        const qualityStr =
+          typeof qualityRaw === 'string'
+            ? qualityRaw.toLowerCase()
+            : qualityRaw && typeof qualityRaw === 'object'
+              ? (Object.keys(qualityRaw)[0]?.toLowerCase() ?? 'medium')
+              : 'medium';
+        setSimulationSettings((prev) => ({
+          ...prev,
+          quality: qualityStr,
+        }));
+      } catch (error) {
+        console.error('Failed to load physics settings:', error);
+      }
+    };
+    void loadPhysics();
+    return () => {
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+      }
+    };
   }, []);
 
   const addLog = (message: string) => {
@@ -44,22 +74,32 @@ export function PhysicsControls() {
     }
 
     try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('set_simulation_quality', { quality: simulationSettings.quality });
+      await invoke('enable_dforce', { node_id: selectedFigure, enabled: true });
+      await invoke('run_simulation', { start_frame: 0, end_frame: totalFrames });
+
       setSimulationActive(true);
       setSimulationProgress(0);
       setCurrentFrame(0);
       addLog(`Starting dForce simulation for ${selectedFigure}`);
 
-      // In a real implementation, we'd call the physics simulation
-      // For demo purposes, we'll simulate progress
-      const interval = setInterval(() => {
-        setSimulationProgress((prev) => Math.min(100, prev + 2));
-        setCurrentFrame((prev) => Math.min(totalFrames, prev + 5));
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+      }
 
-        if (simulationProgress >= 100) {
-          clearInterval(interval);
-          setSimulationActive(false);
-          addLog('Simulation completed successfully');
-        }
+      progressTimerRef.current = setInterval(() => {
+        setSimulationProgress((prev) => {
+          const next = Math.min(100, prev + 2);
+          if (next >= 100 && progressTimerRef.current) {
+            clearInterval(progressTimerRef.current);
+            progressTimerRef.current = null;
+            setSimulationActive(false);
+            addLog('Simulation completed successfully');
+          }
+          return next;
+        });
+        setCurrentFrame((prev) => Math.min(totalFrames, prev + 5));
       }, 100);
     } catch (error) {
       addLog(`Simulation failed: ${(error as Error).message}`);
@@ -69,6 +109,10 @@ export function PhysicsControls() {
 
   const stopSimulation = async () => {
     try {
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
       const { invoke } = await import('@tauri-apps/api/core');
       await invoke('stop_simulation');
       setSimulationActive(false);
@@ -79,6 +123,10 @@ export function PhysicsControls() {
   };
 
   const resetSimulation = async () => {
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
     setSimulationActive(false);
     setSimulationProgress(0);
     setCurrentFrame(0);
@@ -118,22 +166,38 @@ export function PhysicsControls() {
   };
 
   return (
-    <div className={styles.physicsControlsContainer}>
-      <div className={styles.header}>
-        <h2>Physics Simulation Controls</h2>
-        <div className={styles.headerActions}>
+    <div className={embedded ? styles.embedded : styles.physicsControlsContainer}>
+      {!embedded && (
+        <>
+          <div className={styles.header}>
+            <h2>Physics Simulation Controls</h2>
+            <div className={styles.headerActions}>
+              <Button
+                icon={<Info size={16} />}
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsConfiguring(true)}
+              >
+                Settings
+              </Button>
+            </div>
+          </div>
+          <Separator />
+        </>
+      )}
+
+      {embedded && (
+        <div className={styles.embeddedToolbar}>
           <Button
             icon={<Info size={16} />}
             variant="secondary"
             size="sm"
             onClick={() => setIsConfiguring(true)}
           >
-            Settings
+            Physics settings
           </Button>
         </div>
-      </div>
-
-      <Separator />
+      )}
 
       {/* Simulation Status */}
       <div className={styles.statusSection}>

@@ -10,7 +10,7 @@
 [![App Release](https://github.com/millsydotdev/DazPilot/actions/workflows/app-release.yml/badge.svg)](https://github.com/millsydotdev/DazPilot/actions/workflows/app-release.yml)
 [![Plugin Release](https://github.com/millsydotdev/DazPilot/actions/workflows/plugin-release.yml/badge.svg)](https://github.com/millsydotdev/DazPilot/actions/workflows/plugin-release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.5.1-green.svg)](https://github.com/millsydotdev/DazPilot/releases)
+[![Version](https://img.shields.io/badge/Version-0.5.4-green.svg)](https://github.com/millsydotdev/DazPilot/releases)
 [![Tauri 2](https://img.shields.io/badge/Tauri-2-ffc131?logo=tauri)](https://v2.tauri.app/)
 [![React 18](https://img.shields.io/badge/React-18-61dafb?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6?logo=typescript)](https://www.typescriptlang.org/)

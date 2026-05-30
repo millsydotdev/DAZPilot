@@ -165,17 +165,27 @@ impl AgentRegistry {
     }
 
     pub fn find_by_input(&self, input: &str) -> Vec<(&AgentNode, usize)> {
+        let input_lower = input.to_lowercase();
         let mut matches: Vec<(&AgentNode, usize)> = self
             .nodes
             .values()
             .filter_map(|node| {
-                let count = node
+                let cap_count = node
                     .capabilities
                     .iter()
                     .filter(|c| input_matches_capability(input, c))
                     .count();
-                if count > 0 {
-                    Some((node, count))
+                let type_match = input_lower.contains(&node.agent_type.to_lowercase());
+                let desc_words = node
+                    .description
+                    .to_lowercase()
+                    .split(|c: char| !c.is_ascii_alphanumeric())
+                    .filter(|w| w.len() >= 4)
+                    .filter(|w| input_lower.contains(w))
+                    .count();
+                let total = cap_count + if type_match { 2 } else { 0 } + desc_words;
+                if total > 0 {
+                    Some((node, total))
                 } else {
                     None
                 }
@@ -220,9 +230,50 @@ pub fn input_matches_capability(input: &str, capability: &str) -> bool {
         return input.contains(&capability);
     }
 
-    input
+    if input
         .split(|c: char| !c.is_ascii_alphanumeric())
         .any(|word| word == capability)
+    {
+        return true;
+    }
+
+    // Plural / tense normalization (lights -> light, rendering -> render)
+    let singular = capability.trim_end_matches('s');
+    if singular.len() >= 3
+        && input
+            .split(|c: char| !c.is_ascii_alphanumeric())
+            .any(|word| word == singular || word.starts_with(singular))
+    {
+        return true;
+    }
+
+    // Common synonym aliases for agent routing
+    const SYNONYMS: &[(&str, &[&str])] = &[
+        (
+            "light",
+            &["lighting", "illuminate", "illumination", "bright", "dim"],
+        ),
+        ("render", &["rendering", "preview", "output", "snapshot"]),
+        ("pose", &["posing", "posture", "stance"]),
+        ("camera", &["view", "framing", "shot", "angle", "zoom"]),
+        ("export", &["save", "output", "batch"]),
+        ("morph", &["shape", "expression", "facial"]),
+        ("material", &["texture", "shader", "surface", "skin"]),
+        ("timeline", &["keyframe", "animation", "playback"]),
+        ("simulate", &["simulation", "dforce", "physics"]),
+    ];
+
+    for (canonical, aliases) in SYNONYMS {
+        if (capability == *canonical || aliases.contains(&capability.as_str()))
+            && input
+                .split(|c: char| !c.is_ascii_alphanumeric())
+                .any(|word| word == *canonical || aliases.contains(&word))
+        {
+            return true;
+        }
+    }
+
+    false
 }
 
 impl Default for AgentRegistry {

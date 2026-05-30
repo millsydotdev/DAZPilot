@@ -1241,7 +1241,7 @@ fn resolve_action_for_bridge(
     ))
 }
 
-fn sdk_refs_for_command(command: &str) -> Vec<String> {
+pub fn sdk_refs_for_command(command: &str) -> Vec<String> {
     match command {
         "get_scene_info" | "list_nodes" | "get_selected_nodes" | "select_node" => {
             vec!["DzScene".to_string(), "DzNode".to_string()]

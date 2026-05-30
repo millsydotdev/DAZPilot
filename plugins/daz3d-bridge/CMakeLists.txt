@@ -55,6 +55,8 @@ include_directories(
     "${CMAKE_SOURCE_DIR}/../../thirdparty/stb"
     "${CMAKE_SOURCE_DIR}/../../thirdparty/simdjson/singleheader"
     "${CMAKE_SOURCE_DIR}/../../thirdparty/utfcpp/source"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/imgui"
+    "${CMAKE_SOURCE_DIR}/../../thirdparty/imgui/backends"
 )
 # DzBridge Library
 set(DZBRIDGE_ROOT "${CMAKE_SOURCE_DIR}/../../../temp_dazbridge" CACHE PATH "Path to DzBridge root")
@@ -168,6 +170,10 @@ endif()
 target_link_libraries(DazPilotBridge PRIVATE ${DAZ_LIBS})
 if(TARGET dzsdkmemory)
     target_link_libraries(DazPilotBridge PRIVATE dzsdkmemory)
+endif()
+# ImGui dependencies on Windows
+if(WIN32)
+    target_link_libraries(DazPilotBridge PRIVATE d3d9 dwmapi)
 endif()
 target_include_directories(DazPilotBridge PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}

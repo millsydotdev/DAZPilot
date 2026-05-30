@@ -1600,7 +1600,19 @@ pub fn validate_command(command: &str, args: &Value) -> Result<(), String> {
     Ok(())
 }
 
+pub fn is_dev_mock_bridge_enabled() -> bool {
+    std::env::var("DAZPILOT_DEV_MOCK_BRIDGE")
+        .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "on"))
+        .unwrap_or(false)
+}
+
 pub fn set_daz3d_connection(host: &str, port: u16) -> Result<String, String> {
+    if is_dev_mock_bridge_enabled() {
+        let mut global = MCP_CLIENT.lock().unwrap();
+        *global = None;
+        return Ok("Connected to Daz3D dev mock bridge (DAZPILOT_DEV_MOCK_BRIDGE=1)".to_string());
+    }
+
     let conn = McpConnection::connect(host, port)?;
     let mut global = MCP_CLIENT.lock().unwrap();
     *global = Some(conn);
@@ -1614,10 +1626,14 @@ pub fn disconnect_daz3d() -> String {
 }
 
 pub fn is_connected() -> bool {
-    MCP_CLIENT.lock().unwrap().is_some()
+    is_dev_mock_bridge_enabled() || MCP_CLIENT.lock().unwrap().is_some()
 }
 
 pub fn check_connection_status() -> String {
+    if is_dev_mock_bridge_enabled() {
+        return "connected".to_string();
+    }
+
     if MCP_CLIENT.lock().unwrap().is_some() {
         "connected".to_string()
     } else {
@@ -1627,6 +1643,10 @@ pub fn check_connection_status() -> String {
 
 pub fn send_mcp_request(command: &str, args: Value) -> Result<McpResponse, String> {
     validate_command(command, &args)?;
+
+    if is_dev_mock_bridge_enabled() {
+        return dev_mock_response(command, &args);
+    }
 
     let mut global = MCP_CLIENT.lock().unwrap();
     let Some(ref mut conn) = *global else {
@@ -1662,6 +1682,76 @@ pub fn send_mcp_request(command: &str, args: Value) -> Result<McpResponse, Strin
             }
         },
     }
+}
+
+fn dev_mock_response(command: &str, args: &Value) -> Result<McpResponse, String> {
+    let data = match command {
+        "get_commands" => serde_json::json!({ "commands": get_mcp_command_list() }),
+        "get_scene_info" => serde_json::json!({
+            "scene": "Dev Mock Scene",
+            "nodes": 0,
+            "lights": 0,
+            "cameras": 0,
+            "dev_mock": true
+        }),
+        "list_nodes" | "get_selected_nodes" => serde_json::json!({ "nodes": [], "dev_mock": true }),
+        "get_cameras" => serde_json::json!({ "cameras": [], "dev_mock": true }),
+        "get_camera_properties" | "get_node_properties" => serde_json::json!({
+            "position": { "x": 0.0, "y": 160.0, "z": 300.0 },
+            "target": { "x": 0.0, "y": 120.0, "z": 0.0 },
+            "focal_length": 50.0,
+            "dev_mock": true
+        }),
+        "capture_viewport" => serde_json::json!({
+            "result": "base64",
+            "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+            "dev_mock": true
+        }),
+        "play_timeline" => serde_json::json!({ "playing": true, "dev_mock": true }),
+        "pause_timeline" => serde_json::json!({ "playing": false, "dev_mock": true }),
+        "stop_timeline" => serde_json::json!({ "frame": 0, "dev_mock": true }),
+        "seek_to_frame" => {
+            serde_json::json!({ "frame": args.get("frame").unwrap_or(&Value::from(0)), "dev_mock": true })
+        },
+        "get_timeline_state" => serde_json::json!({
+            "current_frame": 0,
+            "start_frame": 0,
+            "end_frame": 300,
+            "fps": 30.0,
+            "is_playing": false,
+            "dev_mock": true
+        }),
+        "get_figure_morphs" => serde_json::json!({
+            "morphs": [{"id":"testMorph","label":"Test Morph","value":0.0,"min":0.0,"max":1.0,"type":"morph"}],
+            "dev_mock": true
+        }),
+        "get_fitted_items" => serde_json::json!({ "items": [], "dev_mock": true }),
+        "get_active_expressions" => serde_json::json!({ "expressions": [], "dev_mock": true }),
+        "get_material_zones" => serde_json::json!({ "materials": [], "dev_mock": true }),
+        "apply_morph" | "apply_expression" | "apply_pose" | "run_script" => {
+            serde_json::json!({ "set": true, "dev_mock": true })
+        },
+        "list_poses" => serde_json::json!({ "poses": [], "dev_mock": true }),
+        "run_dforce_simulation" | "simulate_physics" => serde_json::json!({
+            "simulated": true,
+            "start_frame": args.get("start_frame").unwrap_or(&Value::from(0)),
+            "end_frame": args.get("end_frame").unwrap_or(&Value::from(250)),
+            "dev_mock": true
+        }),
+        _ => serde_json::json!({ "command": command, "args": args, "dev_mock": true }),
+    };
+
+    Ok(McpResponse {
+        status: "ok".to_string(),
+        result: Some(format!("Dev mock executed '{}'", command)),
+        commands: if command == "get_commands" {
+            Some(get_mcp_command_list())
+        } else {
+            None
+        },
+        data: Some(data),
+        error: None,
+    })
 }
 
 fn uuid_simple() -> String {
@@ -1849,5 +1939,50 @@ mod tests {
         assert!(names.contains(&"load_asset"));
         assert!(names.contains(&"run_script"));
         assert!(names.contains(&"export_scene"));
+    }
+
+    /// Every command implemented in `DazPilotBridgePlugin.cpp` must have a Rust schema.
+    /// Regenerate `plugins/daz3d-bridge/bridge_commands.manifest` with:
+    /// `scripts/sync-bridge-manifest.ps1`
+    #[test]
+    fn bridge_schema_parity_with_cpp_manifest() {
+        let manifest = include_str!("../../plugins/daz3d-bridge/bridge_commands.manifest");
+        let cpp_commands: Vec<&str> = manifest
+            .lines()
+            .map(|line| line.trim_start_matches('\u{feff}').trim())
+            .filter(|line| !line.is_empty() && !line.starts_with('#'))
+            .collect();
+
+        let rust_names: std::collections::HashSet<&str> =
+            COMMAND_SCHEMAS.iter().map(|s| s.name).collect();
+
+        let mut missing_in_rust = Vec::new();
+        for cmd in &cpp_commands {
+            if !rust_names.contains(cmd) {
+                missing_in_rust.push(*cmd);
+            }
+        }
+
+        let cpp_set: std::collections::HashSet<&str> = cpp_commands.iter().copied().collect();
+        let rust_only: Vec<&str> = rust_names
+            .iter()
+            .copied()
+            .filter(|name| !cpp_set.contains(name))
+            .filter(|name| !matches!(*name, "chat"))
+            .collect();
+
+        assert!(
+            missing_in_rust.is_empty(),
+            "C++ bridge commands missing Rust schema: {:?}",
+            missing_in_rust
+        );
+        assert_eq!(
+            cpp_commands.len(),
+            rust_names.len(),
+            "Rust schema count ({}) should match C++ manifest ({}); Rust-only (non-chat): {:?}",
+            rust_names.len(),
+            cpp_commands.len(),
+            rust_only
+        );
     }
 }

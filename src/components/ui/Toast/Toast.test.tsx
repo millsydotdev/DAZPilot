@@ -4,8 +4,7 @@ import '@testing-library/jest-dom';
 import { Toast } from './Toast';
 
 vi.mock('../../../store/toastStore', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useToastStore: (selector?: any) => {
+  useToastStore: (selector?: (state: { removeToast: ReturnType<typeof vi.fn> }) => unknown) => {
     const state = { removeToast: vi.fn() };
     return selector ? selector(state) : state;
   },

@@ -18,7 +18,7 @@
     margin: 0;
     padding: 0;
   }
-  
+
   /* HTML defaults */
   html {
     font-family: var(--font-sans);
@@ -27,7 +27,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   /* Body */
   body {
     background-color: var(--color-background);
@@ -35,63 +35,81 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
-  
+
   /* Links */
   a {
     color: var(--color-primary);
     text-decoration: none;
     transition: color var(--transition-fast);
   }
-  
+
   a:hover {
     color: var(--color-primary-hover);
   }
-  
+
   /* Headings */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-weight: var(--font-weight-semibold);
     line-height: 1.25;
     color: var(--color-text);
   }
-  
-  h1 { font-size: var(--font-size-3xl); }
-  h2 { font-size: var(--font-size-2xl); }
-  h3 { font-size: var(--font-size-xl); }
-  h4 { font-size: var(--font-size-lg); }
-  h5 { font-size: var(--font-size-base); }
-  h6 { font-size: var(--font-size-sm); }
-  
+
+  h1 {
+    font-size: var(--font-size-3xl);
+  }
+  h2 {
+    font-size: var(--font-size-2xl);
+  }
+  h3 {
+    font-size: var(--font-size-xl);
+  }
+  h4 {
+    font-size: var(--font-size-lg);
+  }
+  h5 {
+    font-size: var(--font-size-base);
+  }
+  h6 {
+    font-size: var(--font-size-sm);
+  }
+
   /* Form elements */
   button {
     font-family: inherit;
     cursor: pointer;
   }
-  
+
   input,
   textarea,
   select {
     font-family: inherit;
     font-size: inherit;
   }
-  
+
   /* Code */
   code,
   pre {
     font-family: var(--font-mono);
   }
-  
+
   /* Images */
   img {
     max-width: 100%;
     height: auto;
     display: block;
   }
-  
+
   /* Lists */
-  ul, ol {
+  ul,
+  ol {
     list-style: none;
   }
-  
+
   /* Focus styles */
   :focus-visible {
     outline: 2px solid var(--color-primary);
@@ -108,24 +126,24 @@
            font-medium rounded-lg transition-all duration-200
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
-  
+
   .btn-primary {
     @apply bg-primary text-primary-foreground hover:bg-primary-hover;
   }
-  
+
   .btn-secondary {
     @apply bg-surface border border-border text-text 
            hover:bg-surface-elevated hover:border-border-hover;
   }
-  
+
   .btn-ghost {
     @apply bg-transparent text-muted hover:bg-surface hover:text-text;
   }
-  
+
   .btn-danger {
     @apply bg-error text-white hover:bg-error/90;
   }
-  
+
   /* Input base */
   .input {
     @apply w-full px-3 py-2 bg-background border border-border-subtle rounded-lg
@@ -133,53 +151,53 @@
            focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
-  
+
   /* Card */
   .card {
     @apply bg-surface border border-border-subtle rounded-lg p-4;
   }
-  
+
   /* Badge */
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
-  
+
   .badge-primary {
     @apply bg-primary/20 text-primary;
   }
-  
+
   .badge-success {
     @apply bg-success/20 text-success;
   }
-  
+
   .badge-warning {
     @apply bg-warning/20 text-warning;
   }
-  
+
   .badge-error {
     @apply bg-error/20 text-error;
   }
-  
+
   /* Scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: #444 transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: #444;
     border-radius: 3px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: #555;
   }
@@ -189,56 +207,83 @@
 
 @layer utilities {
   /* Text utilities */
-  .text-primary { color: var(--color-primary); }
-  .text-muted { color: var(--color-muted); }
-  .text-success { color: var(--color-success); }
-  .text-warning { color: var(--color-warning); }
-  .text-error { color: var(--color-error); }
-  
+  .text-primary {
+    color: var(--color-primary);
+  }
+  .text-muted {
+    color: var(--color-muted);
+  }
+  .text-success {
+    color: var(--color-success);
+  }
+  .text-warning {
+    color: var(--color-warning);
+  }
+  .text-error {
+    color: var(--color-error);
+  }
+
   /* Background utilities */
-  .bg-background { background-color: var(--color-background); }
-  .bg-surface { background-color: var(--color-surface); }
-  .bg-surface-elevated { background-color: var(--color-surface-elevated); }
-  
+  .bg-background {
+    background-color: var(--color-background);
+  }
+  .bg-surface {
+    background-color: var(--color-surface);
+  }
+  .bg-surface-elevated {
+    background-color: var(--color-surface-elevated);
+  }
+
   /* Border utilities */
-  .border-default { border-color: var(--color-border); }
-  
+  .border-default {
+    border-color: var(--color-border);
+  }
+
   /* Animation utilities */
   .animate-spin {
     animation: spin 1s linear infinite;
   }
-  
+
   @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
-  
+
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-  
+
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
-  
+
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  
+
   /* Truncate text */
   .truncate {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  
+
   /* Flex center */
   .flex-center {
     display: flex;
@@ -274,7 +319,8 @@
   }
 
   @keyframes borderGlow {
-    0%, 100% {
+    0%,
+    100% {
       border-color: var(--color-border-subtle);
       box-shadow: 0 0 8px rgba(0, 212, 255, 0);
     }

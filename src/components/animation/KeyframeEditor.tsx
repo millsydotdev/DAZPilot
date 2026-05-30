@@ -4,8 +4,14 @@ import { Trash2, Edit } from 'lucide-react';
 import { Button, Input, HStack, VStack, Text, Separator } from '../ui';
 import styles from './KeyframeEditor.module.css';
 
-export function KeyframeEditor() {
+interface KeyframeEditorProps {
+  embedded?: boolean;
+  onOpenPoseLibrary?: () => void;
+}
+
+export function KeyframeEditor({ embedded = false, onOpenPoseLibrary }: KeyframeEditorProps) {
   const { timeline, selectedPose, togglePoseLibrary } = useViewportStore();
+  const openPoseLibrary = onOpenPoseLibrary ?? togglePoseLibrary;
 
   const [editingKeyframe, setEditingKeyframe] = useState<{
     nodeId: string;
@@ -95,20 +101,36 @@ export function KeyframeEditor() {
     selectedPose?.keyframes.filter((kf) => kf.frame === Math.floor(timeline.currentFrame)) || [];
 
   return (
-    <div className={styles.keyframeEditor}>
-      <div className={styles.header}>
-        <h3>Keyframe Editor</h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={togglePoseLibrary}
-          className={`${styles.toggleButton} ${selectedPose ? styles.active : ''}`}
-        >
-          {selectedPose ? 'Close Pose' : 'Open Pose Library'}
-        </Button>
-      </div>
+    <div className={embedded ? styles.embedded : styles.keyframeEditor}>
+      {!embedded && (
+        <>
+          <div className={styles.header}>
+            <h3>Keyframe Editor</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openPoseLibrary}
+              className={`${styles.toggleButton} ${selectedPose ? styles.active : ''}`}
+            >
+              {selectedPose ? 'Close Pose' : 'Open Pose Library'}
+            </Button>
+          </div>
+          <Separator />
+        </>
+      )}
 
-      <Separator />
+      {embedded && (
+        <div className={styles.embeddedToolbar}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={openPoseLibrary}
+            className={`${styles.toggleButton} ${selectedPose ? styles.active : ''}`}
+          >
+            {selectedPose ? 'Change pose' : 'Pose Library'}
+          </Button>
+        </div>
+      )}
 
       <div className={styles.timelineInfo}>
         <Text variant="muted" size="xs">

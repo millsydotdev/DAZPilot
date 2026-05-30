@@ -122,8 +122,24 @@ jobs:
       - name: Build C++ Bridge Plugin
         if: matrix.os == 'windows-latest'
         run: |
-          cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release
+          cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release -A x64
           cmake --build plugins/daz3d-bridge/build --config Release
+
+      - name: Sync bridge command manifest
+        if: matrix.os == 'windows-latest'
+        run: powershell -ExecutionPolicy Bypass -File scripts/sync-bridge-manifest.ps1
+
+      - name: Stage arch-specific bridge plugin
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $dll = "plugins/daz3d-bridge/dist/DazPilotBridge.dll"
+          if (-not (Test-Path $dll)) {
+            $dll = Get-ChildItem -Recurse -Filter "DazPilotBridge.dll" plugins/daz3d-bridge/build | Select-Object -First 1 -ExpandProperty FullName
+          }
+          if (Test-Path $dll) {
+            Copy-Item $dll "src-tauri/resources/DazPilotBridge-${{ matrix.arch-label }}.dll"
+          }
 
       # ── Run C++ Unit Tests (Windows Only) ────────────────────────────
       - name: Run C++ Bridge Plugin Unit Tests
@@ -168,6 +184,7 @@ jobs:
             src-tauri/target/**/release/bundle/rpm/*.sig
             src-tauri/target/**/release/bundle/macos/*.sig
             src-tauri/resources/DazPilotBridge.dll
+            src-tauri/resources/DazPilotBridge-*.dll
             src-tauri/resources/libDazPilotBridge.dylib
             src-tauri/resources/libDazPilotBridge.so
           if-no-files-found: warn

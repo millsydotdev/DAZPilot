@@ -14,7 +14,7 @@ import {
 import { useLearningStore } from '../../store/learningStore';
 import type { TutorialCategory } from '../../data/tutorials';
 import { tutorials } from '../../data/tutorials';
-import styles from './TutorialPanel.module.css';
+import styles from './LearningDashboard.module.css';
 
 const CATEGORY_META: Record<
   TutorialCategory,

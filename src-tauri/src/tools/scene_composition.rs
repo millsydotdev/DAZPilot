@@ -951,7 +951,7 @@ fn convert_agent_action_to_structured(
         command: action.command.clone(),
         args,
         confidence,
-        sdk_refs: vec![], // TODO: populate based on command
+        sdk_refs: crate::ai_action::sdk_refs_for_command(&action.command),
         requires_confirmation: mcp_client::command_requires_confirmation(&action.command),
     })
 }

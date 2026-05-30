@@ -74,7 +74,29 @@ impl AssetKnowledgeBase {
         let mut use_cases = Vec::new();
         let mut compatibility_notes = String::new();
         let mut typical_setup = Vec::new();
-        let alternatives = Vec::new();
+        let mut alternatives: Vec<String> = self
+            .find_compatible_assets(
+                asset_info
+                    .compatibility_base
+                    .first()
+                    .map(|s| s.as_str())
+                    .unwrap_or("Genesis 8 Female"),
+                Some(&asset_info.category),
+            )
+            .into_iter()
+            .filter(|a| a.path != asset_info.path)
+            .take(5)
+            .map(|a| a.name)
+            .collect();
+        if alternatives.is_empty() && asset_info.category == "poses" {
+            alternatives = self
+                .daz_knowledge
+                .get_poses_for_figure("Genesis 8 Female")
+                .iter()
+                .take(3)
+                .map(|p| p.name.clone())
+                .collect();
+        }
         let complexity;
         let popularity;
 

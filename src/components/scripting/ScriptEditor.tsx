@@ -116,13 +116,29 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({
   };
 
   const requestAISuggestion = async () => {
-    // This would integrate with your AI service to generate script suggestions
-    // For now, we'll show a placeholder
-    setAISuggestion(
-      `// AI-generated script suggestion based on context\n// Describe what you want to achieve and I'll generate the DazScript for you\n\n// Example: Load a Genesis 8 female figure\nApp.getContentMgr().openFile("C:/Users/Public/Documents/My DAZ 3D Library/Genesis 8 Female/Genesis8Female.dsf", true);\n\n// Example: Apply a pose\nApp.getContentMgr().openFile("C:/Users/Public/Documents/My DAZ 3D Library/Poses/MyPose.dsf", true);`
-    );
+    if (!invoke) {
+      toast.error('Backend not ready', 3000);
+      return;
+    }
 
-    toast.info('AI suggestion generated! Check the suggestions panel.', 3000);
+    setIsLoading(true);
+    try {
+      const task =
+        script.trim() ||
+        'Generate a useful DazScript snippet for common scene operations (load figure, apply pose, select node)';
+      const result = (await invoke('suggest_script_for_task', {
+        task_description: task,
+        current_script: script.trim() || null,
+      })) as { script?: string; explanation?: string };
+      const suggestion =
+        result.script || '// No script generated — try describing your task in the editor first';
+      setAISuggestion(suggestion);
+      toast.info(result.explanation || 'AI suggestion generated', 3000);
+    } catch (error) {
+      toast.error(`Failed to generate suggestion: ${error}`, 5000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

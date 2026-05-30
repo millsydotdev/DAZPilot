@@ -184,6 +184,20 @@
   font-family: monospace;
 }
 
+.messageContextBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 /* Spinner and processing indicators */
 .processing {
   color: var(--color-text-muted);

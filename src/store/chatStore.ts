@@ -14,6 +14,19 @@ export interface StructuredAiAction {
   teach?: string;
 }
 
+export type ChatContextScope =
+  | 'current'
+  | 'worktree'
+  | 'daz-session'
+  | 'viewport'
+  | 'asset-library';
+
+export interface ChatContextTag {
+  scope: ChatContextScope;
+  label: string;
+  payloadId?: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -25,6 +38,7 @@ export interface ChatMessage {
   teach?: string;
   manualSteps?: string;
   feedback?: 'up' | 'down';
+  context?: ChatContextTag;
 }
 
 export interface ChatHistory {
@@ -57,7 +71,8 @@ export interface ChatActions {
     images?: string[],
     provider?: string,
     model?: string,
-    forceConfirmation?: boolean
+    forceConfirmation?: boolean,
+    context?: ChatContextTag
   ) => Promise<void>;
   createHistory: (title: string) => Promise<string>;
   loadHistory: (id: string) => Promise<void>;
@@ -119,10 +134,17 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 
-  sendMessage: async (content, images, provider, model, forceConfirmation?: boolean) => {
+  sendMessage: async (
+    content,
+    images,
+    provider,
+    model,
+    forceConfirmation?: boolean,
+    context?: ChatContextTag
+  ) => {
     const { addMessage, setLoading, setError } = get();
 
-    addMessage({ role: 'user', content, images, loading: false });
+    addMessage({ role: 'user', content, images, context, loading: false });
     setLoading(true);
     setError(null);
 
@@ -138,6 +160,9 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
         images,
         provider: provider || null,
         model: model || null,
+        contextScope: context?.scope || null,
+        contextLabel: context?.label || null,
+        contextPayloadId: context?.payloadId || null,
       });
 
       // Force confirmation if in Guide Me mode

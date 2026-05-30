@@ -394,6 +394,11 @@ if (figure) {
         explanation,
     )
 }
+
+pub fn suggest_script_for_task(request: ToolRequest) -> ToolResponse {
+    handle_suggest_script_for_task(request)
+}
+
 fn handle_record_user_macro(request: ToolRequest) -> ToolResponse {
     let macro_name = request.get_str("macro_name").unwrap_or_default();
     if macro_name.is_empty() {

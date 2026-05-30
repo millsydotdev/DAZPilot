@@ -117,6 +117,22 @@ fn task_planner_routes_camera_prompts_through_render_parent() {
 }
 
 #[test]
+fn capability_matching_handles_synonyms_and_plurals() {
+    assert!(registry::input_matches_capability(
+        "configure the lighting setup",
+        "light"
+    ));
+    assert!(registry::input_matches_capability(
+        "start rendering a preview",
+        "render"
+    ));
+    assert!(registry::input_matches_capability(
+        "apply a facial expression",
+        "morph"
+    ));
+}
+
+#[test]
 fn unrelated_prompts_do_not_trigger_render_from_substrings() {
     ensure_agents();
 

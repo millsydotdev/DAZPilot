@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { useViewportStore, type Pose } from '../../store';
+import { useToastStore } from '../../store/toastStore';
 import { Search, Plus, Trash2, Edit, Copy, Download, Play } from 'lucide-react';
 import { Button, Input, VStack, HStack, Text, Badge, Separator, ScrollArea } from '../ui';
 import styles from './PoseLibrary.module.css';
 
-export function PoseLibrary() {
+interface PoseLibraryProps {
+  embedded?: boolean;
+}
+
+export function PoseLibrary({ embedded = false }: PoseLibraryProps) {
   const {
     poses,
     selectedPose,
@@ -12,7 +17,10 @@ export function PoseLibrary() {
     togglePoseLibrary,
     selectedFigure,
     setSelectedFigure,
+    loadState,
   } = useViewportStore();
+
+  const toast = useToastStore();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
@@ -44,8 +52,10 @@ export function PoseLibrary() {
 
   const handleSelectPose = (pose: Pose) => {
     setSelectedPose(pose);
-    setSelectedFigure(pose.name); // Set as active figure for reference
-    togglePoseLibrary(); // Close library after selection
+    setSelectedFigure(pose.name);
+    if (!embedded) {
+      togglePoseLibrary();
+    }
   };
 
   const handleApplyPose = async (pose: Pose) => {
@@ -77,17 +87,73 @@ export function PoseLibrary() {
     if (!uploadData.name || !uploadData.file) return;
 
     try {
-      // In a real implementation, we would upload the file and get a path back
-      // For now, we'll simulate by adding to the pose library
-
-      // Update local state (in reality, this would come from backend)
-      setTimeout(() => {
-        setShowUpload(false);
-        setUploadData({ name: '', file: null });
-        // Would normally refresh pose list from backend
-      }, 500);
+      const { invoke } = await import('@tauri-apps/api/core');
+      const bytes = new Uint8Array(await uploadData.file.arrayBuffer());
+      await invoke('save_uploaded_pose', {
+        name: uploadData.name,
+        category: 'basic',
+        file_bytes: Array.from(bytes),
+        original_filename: uploadData.file.name,
+      });
+      await loadState();
+      setShowUpload(false);
+      setUploadData({ name: '', file: null });
+      toast.success(`Pose "${uploadData.name}" saved to library`);
     } catch (error) {
       console.error('Failed to save pose:', error);
+      toast.error(`Failed to save pose: ${error}`);
+    }
+  };
+
+  const handleCopyPose = async (pose: Pose) => {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const copyName = `${pose.name} Copy`;
+      await invoke('duplicate_pose', {
+        pose_file: pose.file_path,
+        new_name: copyName,
+      });
+      await loadState();
+      toast.success(`Copied pose as "${copyName}"`);
+    } catch (error) {
+      toast.error(`Failed to copy pose: ${error}`);
+    }
+  };
+
+  const handleDownloadPose = async (pose: Pose) => {
+    if (!pose.file_path) {
+      toast.warning('No file path available for this pose');
+      return;
+    }
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const dest = await invoke<string | null>('select_directory', {
+        title: 'Select folder to save pose file',
+      });
+      if (!dest) return;
+      await invoke('copy_file_to_directory', {
+        source_path: pose.file_path,
+        dest_directory: dest,
+      });
+      toast.success(`Pose saved to ${dest}`);
+    } catch (error) {
+      toast.error(`Failed to download pose: ${error}`);
+    }
+  };
+
+  const handleEditPose = async (pose: Pose) => {
+    const newName = window.prompt('Enter new name for pose:', pose.name);
+    if (!newName || newName === pose.name || !pose.file_path) return;
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('rename_pose', {
+        pose_file: pose.file_path,
+        new_name: newName,
+      });
+      await loadState();
+      toast.success(`Pose renamed to "${newName}"`);
+    } catch (error) {
+      toast.error(`Failed to rename pose: ${error}`);
     }
   };
 
@@ -98,34 +164,55 @@ export function PoseLibrary() {
         pose_file: pose.file_path,
       });
 
-      // Remove from local state
-      // Would normally refresh pose list from backend
+      await loadState();
+      toast.success(`Deleted pose "${pose.name}"`);
     } catch (error) {
       console.error('Failed to delete pose:', error);
     }
   };
 
   return (
-    <div className={styles.poseLibraryContainer}>
-      <div className={styles.header}>
-        <h2>Pose Library</h2>
-        <div className={styles.headerActions}>
+    <div className={embedded ? styles.embedded : styles.poseLibraryContainer}>
+      {!embedded && (
+        <>
+          <div className={styles.header}>
+            <h2>Pose Library</h2>
+            <div className={styles.headerActions}>
+              <Button
+                icon={<Search size={16} />}
+                variant="outline"
+                size="sm"
+                onClick={() => setShowUpload(!showUpload)}
+                disabled={showUpload}
+              >
+                {showUpload ? 'Cancel' : 'Upload Pose'}
+              </Button>
+              <Button
+                icon={<Plus size={16} />}
+                variant="ghost"
+                size="sm"
+                onClick={togglePoseLibrary}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+          <Separator />
+        </>
+      )}
+
+      {embedded && (
+        <div className={styles.embeddedToolbar}>
           <Button
-            icon={<Search size={16} />}
             variant="outline"
             size="sm"
             onClick={() => setShowUpload(!showUpload)}
             disabled={showUpload}
           >
-            {showUpload ? 'Cancel' : 'Upload Pose'}
-          </Button>
-          <Button icon={<Plus size={16} />} variant="ghost" size="sm" onClick={togglePoseLibrary}>
-            Close
+            {showUpload ? 'Cancel upload' : 'Upload pose'}
           </Button>
         </div>
-      </div>
-
-      <Separator />
+      )}
 
       {/* Search and Filter */}
       <div className={styles.controlsSection}>
@@ -259,7 +346,7 @@ export function PoseLibrary() {
                     size="xs"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Copy pose functionality would go here
+                      void handleCopyPose(pose);
                     }}
                     title="Copy Pose"
                   />
@@ -269,7 +356,7 @@ export function PoseLibrary() {
                     size="xs"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Download pose functionality would go here
+                      void handleDownloadPose(pose);
                     }}
                     title="Download Pose"
                   />
@@ -279,7 +366,7 @@ export function PoseLibrary() {
                     size="xs"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Edit pose functionality would go here
+                      void handleEditPose(pose);
                     }}
                     title="Edit Pose"
                   />

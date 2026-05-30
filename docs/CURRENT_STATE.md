@@ -25,13 +25,17 @@ All planned implementation phases are complete. Remaining work is acceptance val
 | Agent hierarchy | 14 agents in 3-level tree with registry, orchestration, and delegation |
 | Sub-agent system | 7 sub-agents under 4 parent agents (animation, render, asset_selection, scene_composer) |
 | Agent management | 8 Tauri commands for agent querying, testing, registration, and unregistration |
-| Agent UI | 3 React components: AgentTreeView, AgentDetailPanel, AgentTester |
+| Agent UI | 3 React components: AgentTreeView, AgentDetailPanel, AgentTester + AgentsPanel with analytics and custom sub-agent registration |
+| Scene presets UI | Scene Presets tab in Scene panel (save/load/delete via SQLite) |
+| Render queue UI | RenderQueuePanel in viewport with queue_render / cancel_render |
+| Asset recommendations | `recommend_scene_assets` Tauri command + Suggest button in Asset Browser |
 | Conflict resolution pipeline | Integrated auto-fix for shell zone, morph ID, and UV set conflicts via `asset_fixer`, `conflict_resolution` agent, `vision_service`, and pre-load checks |
 | Pre-load conflict detection | `load_asset_in_daz` auto-runs `check_before_load` and warns about potential conflicts |
 | `get_geoshells` integration | Bridge command used for accurate geoshell detection instead of substring matching |
 | Agent intent parsing | `conflict_resolution` agent respects input intent (scan/fix/status) and uses heuristic prefix detection |
-
-`check_connection_status()` now reports `connected` or `disconnected`; the old production `mock` status is gone.
+| Connection status | `check_connection_status()` reports `connected` or `disconnected` (no production mock) |
+| Platform matrix | Win/Mac/Linux × x64/ARM64 documented in [PLATFORM_MATRIX.md](PLATFORM_MATRIX.md); app CI builds all 6 targets |
+| Schema parity | `bridge_schema_parity_with_cpp_manifest` test + manifest sync script; enforced in CI |
 
 ## Verified
 
@@ -40,7 +44,7 @@ npm run check
 cargo test
 ```
 
-Both pass in the current workspace. `npm run check` completes with lint warnings for existing `no-explicit-any` usage, but no lint errors. 119 Rust tests pass (up from 115).
+Both pass in the current workspace. `npm run check` completes with lint warnings for existing `no-explicit-any` usage, but no lint errors. 71+ Rust lib tests pass including bridge schema parity.
 
 ## Acceptance
 

@@ -1,15 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  MessageSquare,
-  FolderOpen,
-  View,
-  Layers,
-  StickyNote,
-  Settings,
-  FileText,
-  BookOpen,
-  Wand2,
-} from 'lucide-react';
+import { MessageSquare, FolderOpen, View, Layers, StickyNote, Settings } from 'lucide-react';
 import { useHotkeys } from './hooks/useHotkey';
 import {
   useAppStore,
@@ -23,10 +13,7 @@ import ChatWindow from './components/chat/ChatWindow';
 import AssetBrowser from './components/assets/AssetBrowser';
 import ViewportCanvas from './components/viewport/ViewportCanvas';
 import ScenePanel from './components/scene/ScenePanel';
-import ScratchpadPanel from './components/scratchpad/ScratchpadPanel';
 import SettingsPanel from './components/settings/SettingsPanel';
-import PresetPanel from './components/preset/PresetPanel';
-import TutorialPanel from './components/tutorial/TutorialPanel';
 import { FirstLaunchWizard } from './components/FirstLaunchWizard';
 import { ScriptApprovalPanel } from './components/ScriptApprovalPanel';
 import { Launcher } from './components/Launcher';
@@ -34,17 +21,14 @@ import { AppLayout } from './components/layout/AppLayout';
 import type { SidebarTab } from './components/layout/AppSidebar';
 import type { AppTab } from './types/app';
 
-import VibeCodingPanel from './components/compose/VibeCodingPanel';
+import ScriptsTab from './components/scripts/ScriptsTab';
 
 const tabs: SidebarTab[] = [
   { id: 'chat', label: 'AI Chat', icon: <MessageSquare size={20} /> },
   { id: 'assets', label: 'Assets', icon: <FolderOpen size={20} /> },
   { id: 'viewport', label: 'Viewport', icon: <View size={20} /> },
   { id: 'scene', label: 'Scene', icon: <Layers size={20} /> },
-  { id: 'scratchpad', label: 'Scratchpad', icon: <StickyNote size={20} /> },
-  { id: 'presets', label: 'Presets', icon: <FileText size={20} /> },
-  { id: 'tutorial', label: 'Tutorial', icon: <BookOpen size={20} /> },
-  { id: 'compose', label: 'Vibe Coding', icon: <Wand2 size={20} /> },
+  { id: 'scripts', label: 'Scripts', icon: <StickyNote size={20} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
 ];
 
@@ -54,8 +38,6 @@ function App() {
   const {
     wizardCompleted: storeWizardCompleted,
     setWizardCompleted,
-    sidebarCollapsed,
-    toggleSidebar,
     loadAiSettings,
     theme,
   } = useAppStore();
@@ -127,9 +109,8 @@ function App() {
     { key: 'a', ctrl: true, handler: () => setTab('assets') },
     { key: 'v', ctrl: true, handler: () => setTab('viewport') },
     { key: 's', ctrl: true, shift: true, handler: () => setTab('scene') },
-    { key: 'p', ctrl: true, handler: () => setTab('scratchpad') },
+    { key: 'p', ctrl: true, shift: true, handler: () => setTab('scripts') },
     { key: ',', ctrl: true, handler: () => setTab('settings') },
-    { key: 'b', ctrl: true, handler: toggleSidebar },
   ]);
 
   const wizardCompleted =
@@ -152,14 +133,8 @@ function App() {
         return <ViewportCanvas />;
       case 'scene':
         return <ScenePanel />;
-      case 'scratchpad':
-        return <ScratchpadPanel />;
-      case 'presets':
-        return <PresetPanel />;
-      case 'compose':
-        return <VibeCodingPanel />;
-      case 'tutorial':
-        return <TutorialPanel />;
+      case 'scripts':
+        return <ScriptsTab />;
       case 'settings':
         return <SettingsPanel />;
       default:
@@ -181,14 +156,7 @@ function App() {
   return (
     <>
       {!wizardCompleted && <FirstLaunchWizard onComplete={handleWizardComplete} />}
-      <AppLayout
-        tabs={tabs}
-        activeTab={activeTab}
-        sidebarCollapsed={sidebarCollapsed}
-        onTabChange={setActiveTab}
-        onToggleSidebar={toggleSidebar}
-        onSceneRefresh={() => void checkStatus()}
-      >
+      <AppLayout tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab}>
         {renderContent()}
       </AppLayout>
       <ToastContainer />

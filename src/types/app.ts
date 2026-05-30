@@ -1,13 +1,4 @@
-export type AppTab =
-  | 'chat'
-  | 'assets'
-  | 'viewport'
-  | 'scene'
-  | 'scratchpad'
-  | 'presets'
-  | 'compose'
-  | 'settings'
-  | 'tutorial';
+export type AppTab = 'chat' | 'assets' | 'viewport' | 'scene' | 'scripts' | 'settings';
 
 export interface LauncherCompleteOptions {
   tab?: AppTab;

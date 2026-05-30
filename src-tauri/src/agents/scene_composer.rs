@@ -108,7 +108,7 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
     // Step 3: Get scene understanding for enrichment
     let scene_understanding = scene_type
         .as_ref()
-        .and_then(|st| scene_kb.get_scene_understanding(*st));
+        .and_then(|st| scene_kb.get_scene_understanding(*st, None));
 
     // Step 4: Determine what type of workflow to generate
     let workflow = {
@@ -375,6 +375,12 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
         None => vec![],
     };
 
+    let figure_count: u32 = params
+        .get("figure_count")
+        .and_then(|c| c.parse().ok())
+        .unwrap_or(1);
+    let steps = expand_multi_figure_steps(steps, figure_count);
+
     if steps.is_empty() {
         return AgentResponse {
             success: false,
@@ -417,4 +423,29 @@ pub fn execute(request: AgentRequest) -> AgentResponse {
         actions: steps.into_iter().map(|s| s.action).collect(),
         sub_results: vec![],
     }
+}
+
+/// Duplicate figure-loading steps when the user requests multiple characters.
+fn expand_multi_figure_steps(
+    steps: Vec<CompositionStep>,
+    figure_count: u32,
+) -> Vec<CompositionStep> {
+    if figure_count <= 1 {
+        return steps;
+    }
+    let mut expanded = Vec::new();
+    for step in steps {
+        if step.action.command == "add_figure" {
+            for i in 1..=figure_count {
+                let mut dup = step.clone();
+                if i > 1 {
+                    dup.description = format!("{} (figure {i})", step.description);
+                }
+                expanded.push(dup);
+            }
+        } else {
+            expanded.push(step);
+        }
+    }
+    expanded
 }

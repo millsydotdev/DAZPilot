@@ -23,8 +23,18 @@ permissions:
 
 jobs:
   build-plugin:
-    name: Build Plugin
+    name: Build Plugin (${{ matrix.arch-label }})
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            arch-label: x64
+            cmake-args: -A x64
+          - arch: arm64
+            arch-label: arm64
+            cmake-args: -A ARM64
 
     steps:
       - name: Checkout repository
@@ -32,24 +42,41 @@ jobs:
         with:
           submodules: true
           lfs: true
+          token: ${{ secrets.GH_PAT || github.token }}
 
-      # ── Build C++ Bridge Plugin ──────────────────────────────────────
       - name: Build C++ Bridge Plugin
         run: |
-          cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release
+          cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build `
+            -DCMAKE_BUILD_TYPE=Release `
+            ${{ matrix.cmake-args }}
           cmake --build plugins/daz3d-bridge/build --config Release
 
-      # ── Run C++ Unit Tests ───────────────────────────────────────────
       - name: Run C++ Bridge Plugin Unit Tests
+        if: matrix.arch == 'x64'
         run: |
           ctest --test-dir plugins/daz3d-bridge/build -C Release --output-on-failure
 
-      # ── Upload built binary as runner artifact ───────────────────────
-      - name: Upload built binary
+      - name: Sync bridge command manifest
+        run: powershell -ExecutionPolicy Bypass -File scripts/sync-bridge-manifest.ps1
+
+      - name: Stage release artifacts
+        shell: pwsh
+        run: |
+          $dll = "plugins/daz3d-bridge/dist/DazPilotBridge.dll"
+          if (-not (Test-Path $dll)) {
+            $dll = Get-ChildItem -Recurse -Filter "DazPilotBridge.dll" plugins/daz3d-bridge/build | Select-Object -First 1 -ExpandProperty FullName
+          }
+          if (-not $dll -or -not (Test-Path $dll)) { throw "DazPilotBridge.dll not found after build" }
+          New-Item -ItemType Directory -Force -Path plugin-staging | Out-Null
+          Copy-Item $dll "plugin-staging/DazPilotBridge-${{ matrix.arch-label }}.dll"
+          Copy-Item $dll "plugin-staging/DazPilotBridge.dll"
+          Copy-Item plugins/daz3d-bridge/bridge_commands.manifest plugin-staging/
+
+      - name: Upload built binaries
         uses: actions/upload-artifact@v4
         with:
-          name: plugin-windows
-          path: src-tauri/resources/DazPilotBridge.dll
+          name: plugin-windows-${{ matrix.arch-label }}
+          path: plugin-staging/*
           if-no-files-found: error
 
   publish-plugin-release:
@@ -74,7 +101,16 @@ jobs:
           allowUpdates: true
           name: "DazPilot Bridge Plugin ${{ env.RELEASE_TAG }}"
           tag: ${{ env.RELEASE_TAG }}
-          body: "Pre-compiled Daz Studio bridge plugin binaries for Windows."
+          body: |
+            Pre-compiled Daz Studio bridge plugin for Windows.
+
+            | Asset | Architecture |
+            | --- | --- |
+            | `DazPilotBridge-x64.dll` | Windows x64 |
+            | `DazPilotBridge-arm64.dll` | Windows ARM64 |
+            | `DazPilotBridge.dll` | Generic (x64 build) |
+
+            Install: copy the correct DLL into your Daz Studio plugins folder and restart Daz.
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "plugin-assets/**/*"
           artifactErrorsFailBuild: true

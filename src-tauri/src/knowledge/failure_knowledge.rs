@@ -73,6 +73,7 @@ impl FailureKnowledgeBase {
         );
 
         // Create failure case
+        let tags = extract_failure_tags(&context, error);
         let failure = FailureCase {
             id: id.clone(),
             context,
@@ -85,7 +86,7 @@ impl FailureKnowledgeBase {
                 .as_secs()
                 .to_string(),
             occurrence_count: 1,
-            tags: Vec::new(), // TODO: extract tags from context/error
+            tags,
         };
 
         // Store the failure
@@ -167,12 +168,26 @@ impl FailureKnowledgeBase {
     /// Get suggested alternatives based on past failures
     pub fn get_suggested_alternatives(
         &self,
-        _context: &FailureContext,
-        _action: &str,
+        context: &FailureContext,
+        action: &str,
     ) -> Vec<String> {
-        // This would ideally look at what actions succeeded in similar contexts
-        // For now, return empty - would need success tracking integrated
-        Vec::new()
+        let pattern = self.extract_success_pattern(context, action);
+        let patterns = self.success_patterns.lock().unwrap();
+        if let Some(success_ids) = patterns.get(&pattern) {
+            if !success_ids.is_empty() {
+                return vec![format!(
+                    "Try a similar approach that succeeded {} time(s) in comparable contexts",
+                    success_ids.len()
+                )];
+            }
+        }
+
+        let related = self.get_related_failures(context, 5);
+        related
+            .into_iter()
+            .filter_map(|f| f.resolution)
+            .take(3)
+            .collect()
     }
 
     /// Extract a pattern from a failure for categorization
@@ -327,6 +342,41 @@ impl FailureKnowledgeBase {
             0.0
         }
     }
+}
+
+fn extract_failure_tags(context: &FailureContext, error: &str) -> Vec<String> {
+    let mut tags = Vec::new();
+    let err_lower = error.to_lowercase();
+
+    if err_lower.contains("not found") {
+        tags.push("not_found".to_string());
+    }
+    if err_lower.contains("incompatible") {
+        tags.push("incompatible".to_string());
+    }
+    if err_lower.contains("timeout") || err_lower.contains("timed out") {
+        tags.push("timeout".to_string());
+    }
+    if err_lower.contains("permission") {
+        tags.push("permission".to_string());
+    }
+    if err_lower.contains("failed") {
+        tags.push("failed".to_string());
+    }
+
+    if let Some(ref figure) = context
+        .scene_state
+        .as_ref()
+        .and_then(|s| s.active_figure.as_ref())
+    {
+        tags.push(format!("figure:{}", figure));
+    }
+
+    for asset in &context.assets_involved {
+        tags.push(format!("asset:{}", asset));
+    }
+
+    tags
 }
 
 impl Default for FailureKnowledgeBase {

@@ -590,15 +590,47 @@ export const useSceneStore = create<SceneState & SceneActions>((set, get) => ({
             color: '#ffffff',
           });
         } else if (nodeType === 'Camera') {
-          // For cameras, we need to get more detailed information
-          // For now, we'll create a basic camera object
-          // In a real implementation, we'd fetch the camera properties
+          let position = { x: 0, y: 160, z: 300 };
+          let target = { x: 0, y: 120, z: 0 };
+          let focalLength = 50;
+
+          if (connected) {
+            try {
+              const props = await invoke<{ data?: Record<string, unknown> }>('execute_command', {
+                command: 'get_camera_properties',
+                args: { node_id: node.id },
+              });
+              const data = props.data ?? (props as Record<string, unknown>);
+              const pos = data.position as { x?: number; y?: number; z?: number } | undefined;
+              const tgt = data.target as { x?: number; y?: number; z?: number } | undefined;
+              if (pos) {
+                position = {
+                  x: Number(pos.x ?? 0),
+                  y: Number(pos.y ?? 160),
+                  z: Number(pos.z ?? 300),
+                };
+              }
+              if (tgt) {
+                target = {
+                  x: Number(tgt.x ?? 0),
+                  y: Number(tgt.y ?? 120),
+                  z: Number(tgt.z ?? 0),
+                };
+              }
+              if (data.focal_length != null) {
+                focalLength = Number(data.focal_length);
+              }
+            } catch (e) {
+              console.warn('Could not fetch camera properties:', e);
+            }
+          }
+
           cameras.push({
             id: node.id,
             name: node.name,
-            position: { x: 0, y: 0, z: 0 },
-            target: { x: 0, y: 0, z: -1 },
-            focalLength: 50,
+            position,
+            target,
+            focalLength,
             enabled: true,
           });
         } else {

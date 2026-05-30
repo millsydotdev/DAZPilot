@@ -22,6 +22,24 @@
 #include <QtCore/QByteArray>
 #include <cstdlib>
 
+// Windows and DirectX headers for ImGui backends
+#ifdef _WIN32
+#include <windows.h>
+#include <d3d9.h>
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
+#include <tchar.h>
+#endif
+
+// ImGui includes
+#include "imgui.h"
+#include "imgui_impl_dx9.h"
+#include "imgui_impl_win32.h"
+#include "imgui_internal.h"
+
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 #include <atomic>
 #include <sstream>
 #include <string>
@@ -33,12 +51,19 @@
 #include <QtCore/QEvent>
 
 #include "dzpane.h"
+#include <QtGui/QApplication>
+#include <QtGui/QClipboard>
+#include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
+#include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QTextEdit>
 
 static DazPilotBridgeState g_state = {nullptr, QList<QTcpSocket*>(), "127.0.0.1", 8765, ""};
 static std::atomic<bool> g_serverRunning(false);
+static QString g_lastAppInboxStatus = "No context sent yet.";
+
+static QString SendViewportContextToAppInbox();
 
 class DazPilotPane : public DzPane {
     Q_OBJECT
@@ -64,6 +89,13 @@ public:
         QTimer* timer = new QTimer(this);
         connect(timer, SIGNAL(timeout()), this, SLOT(updateStatus()));
         timer->start(1000);
+        
+        // Initialize ImGui context (will be properly initialized in customEvent)
+        m_showImGuiDebug = true;
+    }
+    
+    ~DazPilotPane() {
+        // ImGui cleanup would happen here if needed
     }
 
 public slots:
@@ -77,10 +109,139 @@ public slots:
             m_statusLabel->setStyleSheet("color: #ff0000;");
         }
     }
+    
+    // Custom slot to show ImGui debug window
+    void showImGuiDebugWindow() {
+        m_showImGuiDebug = true;
+    }
+
+protected:
+    // Override customEvent to handle ImGui rendering
+    void customEvent(QEvent* e) override {
+        if (e->type() == QEvent::UpdateRequest) {
+            // Render ImGui debug window
+            if (m_showImGuiDebug) {
+                ImGui::Begin("DazPilot Debug", &m_showImGuiDebug);
+                ImGui::Text("Server Status: %s", g_serverRunning.load() ? "Running" : "Stopped");
+                ImGui::Text("Host: %s", g_state.host.toStdString().c_str());
+                ImGui::Text("Port: %d", g_state.port);
+                
+                if (ImGui::Button("Clear Last Error")) {
+                    g_state.lastError = "";
+                }
+                
+                ImGui::Separator();
+                ImGui::Text("Last Error: %s", 
+                    g_state.lastError.isEmpty() ? "(none)" : g_state.lastError.toStdString().c_str());
+                
+                ImGui::End();
+            }
+            
+            // Request next frame
+            QTimer::singleShot(16, this, [this]() {
+                QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
+            });
+        } else if (e->type() == QEvent::WinIdChange) {
+            // Initialize ImGui when we get a valid window ID
+            InitializeImGui();
+        }
+        
+        // Call base class implementation
+        DzPane::customEvent(e);
+    }
 
 private:
+    void InitializeImGui() {
+        // Get the native window handle
+        WId winId = this->winId();
+        if (!winId) return;
+        
+        // Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+        
+        // Setup Dear ImGui style
+        ImGui::StyleColorsDark();
+        //ImGui::StyleColorsLight();
+        
+        // Setup Platform/Renderer backends
+        HWND hwnd = (HWND)winId;
+        ImGui_ImplWin32_Init(hwnd);
+        ImGui_ImplDX9_Init(GetD3D9DeviceFromHwnd(hwnd));
+        
+        m_imguiInitialized = true;
+    }
+    
+    // Helper to get D3D9 device from window handle (simplified)
+    // In a real implementation, you'd need to get this from Dz3DView or similar
+    LPDIRECT3DDEVICE9 GetD3D9DeviceFromHwnd(HWND hwnd) {
+        // This is a simplified version - in practice you'd need to get the device from DAZ
+        // For now, we'll return null and handle it gracefully
+        return nullptr;
+    }
+    
     QLabel* m_statusLabel;
     QTextEdit* m_logArea;
+    bool m_showImGuiDebug = false;
+    bool m_imguiInitialized = false;
+};
+
+public slots:
+    void updateStatus() {
+        if (g_serverRunning.load()) {
+            m_bridgeStatusLabel->setText(QString("Bridge: Listening on %1:%2")
+                .arg(g_state.host).arg(g_state.port));
+            m_bridgeStatusLabel->setStyleSheet("color: #00aa55;");
+        } else {
+            m_bridgeStatusLabel->setText("Bridge: Stopped");
+            m_bridgeStatusLabel->setStyleSheet("color: #cc3333;");
+        }
+        m_appStatusLabel->setText(g_lastAppInboxStatus.startsWith("Sent")
+            ? "DazPilot app: Connected"
+            : "DazPilot app: Waiting for handoff");
+        m_lastResultLabel->setText(g_lastAppInboxStatus);
+    }
+
+    void refreshStatus() {
+        updateStatus();
+        m_logArea->append("Status refreshed.");
+    }
+
+    void sendViewportToDazPilot() {
+        g_lastAppInboxStatus = SendViewportContextToAppInbox();
+        updateStatus();
+        m_logArea->append(g_lastAppInboxStatus);
+    }
+
+    void copyDiagnostics() {
+        QString diagnostics = QString("DazPilot Bridge\nBridge running: %1\nHost: %2\nPort: %3\nApp inbox: 127.0.0.1:8766\nLast result: %4")
+            .arg(g_serverRunning.load() ? "yes" : "no")
+            .arg(g_state.host)
+            .arg(g_state.port)
+            .arg(g_lastAppInboxStatus);
+        QApplication::clipboard()->setText(diagnostics);
+        m_logArea->append("Diagnostics copied.");
+    }
+
+private:
+    QLabel* m_bridgeStatusLabel;
+    QLabel* m_appStatusLabel;
+    QLabel* m_lastResultLabel;
+    QTextEdit* m_logArea;
+};
+
+class DazPilotPaneAction : public DzPaneAction {
+    Q_OBJECT
+public:
+    DazPilotPaneAction() : DzPaneAction("DazPilotPane") {}
+
+    QString getActionGroup() const override { return tr("DazPilot"); }
+    QString getDefaultMenuPath() const override { return tr("&DazPilot"); }
+    QString getDefaultToolBar() const override { return tr("DazPilot"); }
 };
 
 #include "DazPilotBridgePlugin.moc"
@@ -463,6 +624,63 @@ static std::string CaptureActiveViewport(const QString& path) {
         if (image.save(path)) return path.toStdString();
     }
     return "";
+}
+
+static QString SendViewportContextToAppInbox() {
+    QString capturePath = QDir::temp().filePath(
+        QString("dazpilot_viewport_%1.png").arg(QDateTime::currentMSecsSinceEpoch()));
+    std::string captureJson = CaptureActiveViewport(capturePath);
+    bool captured = !captureJson.empty();
+
+    QString sceneInfo = QString::fromUtf8(SceneInfoData().c_str());
+    QString payload = QString(
+        "{\"request_type\":\"analyze_context\","
+        "\"context_scope\":\"viewport\","
+        "\"context_label\":\"Viewport\","
+        "\"payload_id\":\"%1\","
+        "\"summary\":\"Viewport context from DAZ Studio\","
+        "\"payload\":{"
+            "\"scene\":%2,"
+            "\"viewport_capture_path\":\"%3\","
+            "\"viewport_captured\":%4,"
+            "\"plugin_version\":\"%5\","
+            "\"bridge_host\":\"%6\","
+            "\"bridge_port\":%7"
+        "}}")
+        .arg(captured ? capturePath : QString("none"))
+        .arg(sceneInfo)
+        .arg(JsonEscape(captured ? capturePath : QString()).c_str())
+        .arg(captured ? "true" : "false")
+        .arg(GetPluginVersion())
+        .arg(g_state.host)
+        .arg(g_state.port);
+
+    BridgeSocket sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_BRIDGE_SOCKET) {
+        return "App inbox unavailable: could not create socket.";
+    }
+
+    sockaddr_in addr;
+    std::memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(8766);
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    if (::connect(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) != 0) {
+        CloseBridgeSocket(sock);
+        return "App inbox unavailable: start DazPilot desktop app.";
+    }
+
+    QByteArray bytes = payload.toUtf8();
+    int sent = send(sock, bytes.constData(), static_cast<int>(bytes.size()), 0);
+    CloseBridgeSocket(sock);
+    if (sent <= 0) {
+        return "App inbox unavailable: send failed.";
+    }
+
+    return captured
+        ? QString("Sent viewport context to DazPilot: %1").arg(capturePath)
+        : "Sent DAZ session context to DazPilot without viewport capture.";
 }
 
 static bool BeginUndoBatch() {
@@ -5204,6 +5422,7 @@ protected:
 
 DZ_CUSTOM_PLUGIN_DEFINITION(DazPilotBridgeDzPlugin);
 DZ_PLUGIN_CLASS_GUID(DazPilotPane, 2D5B8E01-A301-48CD-AF81-C3BB80EC4AA6);
+DZ_PLUGIN_CLASS_GUID(DazPilotPaneAction, 7A9B8C42-2E7C-4E6A-91B6-5D6F9F7A0C12);
 DZ_PLUGIN_CLASS_GUID(DazPilotPhyModifier, F9EC5E01-A301-48CD-AF81-C3BB80EC4AA6);
 DZ_PLUGIN_CLASS_GUID(DazPilotPhyModifierIO, 1C884DA8-6C3C-4364-81B4-272501D5DDD8);
 DZ_PLUGIN_REGISTER_MODIFIER_EXTRA_OBJECT_IO("dazpilot_phy", DazPilotPhyModifierIO, DazPilotPhyModifier);

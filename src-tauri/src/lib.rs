@@ -6,6 +6,7 @@ pub mod ai_service;
 pub mod ai_system;
 pub mod ai_tool_planner;
 pub mod animation;
+pub mod app_inbox;
 pub mod asset_fixer;
 pub mod asset_matcher;
 pub mod context;
@@ -20,6 +21,7 @@ pub mod mcp_client;
 pub mod model_download;
 pub mod ollama_service;
 pub mod physics;
+pub mod platform;
 pub mod reasoning;
 pub mod sdk_indexer;
 pub mod tools;
@@ -87,6 +89,7 @@ pub fn run() {
         }))
         .setup(|app| {
             info!("DazPilot App starting...");
+            app_inbox::start_listener(app.handle().clone());
 
             // 1. Create splash window
             let splash = tauri::WebviewWindowBuilder::new(app, "splash", tauri::WebviewUrl::App("splash.html".into()))
@@ -229,6 +232,7 @@ pub fn run() {
             get_app_setting,
             save_app_setting,
             select_directory,
+            copy_file_to_directory,
             select_plugins_directory,
             download_and_install_plugin,
             execute_agent,
@@ -246,6 +250,7 @@ pub fn run() {
             scan_library,
             get_assets_by_category,
             search_assets,
+            recommend_scene_assets,
             load_asset_in_daz,
             toggle_favourite,
             get_favourites,
@@ -259,6 +264,11 @@ pub fn run() {
             toggle_loop,
             apply_pose,
             get_pose_library,
+            save_uploaded_pose,
+            delete_pose,
+            duplicate_pose,
+            rename_pose,
+            suggest_script_for_task,
             set_active_figure,
             get_physics_settings,
             enable_dforce,
@@ -316,6 +326,8 @@ pub fn run() {
             local_ai_cmd::stop_local_server,
             local_ai_cmd::chat_with_local,
             local_ai_cmd::is_local_server_running,
+            app_inbox::get_dazpilot_inbox_items,
+            app_inbox::clear_dazpilot_inbox_items,
             local_ai_cmd::list_local_models,
             local_ai_cmd::get_models_dir,
             model_download::download_gguf_model,
@@ -458,13 +470,7 @@ fn get_ai_status() -> ai_service::ModelInfo {
 }
 
 fn bridge_plugin_filename() -> &'static str {
-    if cfg!(target_os = "windows") {
-        "DazPilotBridge.dll"
-    } else if cfg!(target_os = "macos") {
-        "libDazPilotBridge.dylib"
-    } else {
-        "libDazPilotBridge.so"
-    }
+    platform::bridge_plugin_installed_name()
 }
 
 fn default_daz_path() -> std::path::PathBuf {
@@ -652,6 +658,20 @@ fn select_directory(title: String) -> Result<Option<String>, String> {
 }
 
 #[tauri::command]
+fn copy_file_to_directory(source_path: String, dest_directory: String) -> Result<String, String> {
+    let source = std::path::Path::new(&source_path);
+    if !source.exists() {
+        return Err(format!("Source file not found: {}", source_path));
+    }
+    let file_name = source
+        .file_name()
+        .ok_or_else(|| "Invalid source path".to_string())?;
+    let dest = std::path::Path::new(&dest_directory).join(file_name);
+    std::fs::copy(source, &dest).map_err(|e| e.to_string())?;
+    Ok(dest.to_string_lossy().to_string())
+}
+
+#[tauri::command]
 fn select_plugins_directory() -> Result<Option<String>, String> {
     let folder = rfd::FileDialog::new()
         .set_title("Select Daz Studio Plugins Directory")
@@ -739,22 +759,25 @@ async fn download_and_install_plugin(
         ));
     }
 
-    // No local DLL found — download from GitHub Releases
+    // No local binary — download arch-specific asset from GitHub Releases (fallback to generic name)
     let dest_str = dest_path.to_string_lossy().to_string();
-    let url = format!(
-        "https://github.com/millsydotdev/DazPilot/releases/latest/download/{}",
-        plugin_name
-    );
-
-    crate::model_download::download_model(&app, &url, &dest_str).await?;
-
-    info!(
-        "Plugin downloaded and installed to Daz3D plugins folder: {}",
-        dest_path.display()
-    );
-    Ok(format!(
-        "Plugin successfully installed to: {}",
-        dest_path.display()
+    let urls = platform::bridge_plugin_download_urls(None);
+    let mut last_err = String::from("no download URLs configured");
+    for url in urls {
+        match crate::model_download::download_model(&app, &url, &dest_str).await {
+            Ok(()) => {
+                info!("Plugin downloaded from {}", url);
+                return Ok(format!(
+                    "Plugin successfully installed to: {}",
+                    dest_path.display()
+                ));
+            },
+            Err(e) => last_err = e,
+        }
+    }
+    Err(format!(
+        "Failed to download bridge plugin (tried arch-specific and generic assets): {}",
+        last_err
     ))
 }
 
@@ -1170,6 +1193,35 @@ fn search_assets(
 }
 
 #[tauri::command]
+fn recommend_scene_assets(
+    scene_theme: String,
+    category: Option<String>,
+    max_results: Option<usize>,
+) -> Result<serde_json::Value, String> {
+    if scene_theme.trim().is_empty() {
+        return Err("scene_theme is required".to_string());
+    }
+    let max = max_results.unwrap_or(5);
+    let compatible = figure_resolver::resolve_compatible_assets(&scene_theme, category.as_deref());
+    let suggestions: Vec<serde_json::Value> = compatible
+        .iter()
+        .take(max)
+        .map(|name| {
+            serde_json::json!({
+                "name": name,
+                "reason": format!("Fits the '{}' scene theme", scene_theme),
+                "category": category.clone().unwrap_or_else(|| "general".to_string()),
+            })
+        })
+        .collect();
+    Ok(serde_json::json!({
+        "scene_theme": scene_theme,
+        "category": category,
+        "suggestions": suggestions,
+    }))
+}
+
+#[tauri::command]
 fn load_asset_in_daz(path: String) -> Result<String, String> {
     // Auto-run pre-load conflict check
     let conflict_check = crate::agents::conflict_resolution::check_before_load(&path);
@@ -1362,6 +1414,61 @@ fn apply_pose(pose_file: String, figure_id: String) -> animation::AnimationResul
 #[tauri::command]
 fn get_pose_library() -> Vec<animation::Pose> {
     animation::get_pose_library()
+}
+
+#[tauri::command]
+fn save_uploaded_pose(
+    name: String,
+    category: String,
+    file_bytes: Vec<u8>,
+    original_filename: String,
+) -> Result<animation::Pose, String> {
+    animation::save_uploaded_pose(name, category, file_bytes, original_filename)
+}
+
+#[tauri::command]
+fn delete_pose(pose_file: String) -> animation::AnimationResult {
+    animation::delete_pose_file(&pose_file)
+}
+
+#[tauri::command]
+fn duplicate_pose(pose_file: String, new_name: String) -> Result<animation::Pose, String> {
+    animation::duplicate_pose(&pose_file, &new_name)
+}
+
+#[tauri::command]
+fn rename_pose(pose_file: String, new_name: String) -> Result<animation::Pose, String> {
+    animation::rename_pose_file(&pose_file, &new_name)
+}
+
+#[tauri::command]
+fn suggest_script_for_task(
+    task_description: String,
+    current_script: Option<String>,
+) -> Result<serde_json::Value, String> {
+    use crate::tools::ToolRequest;
+    use std::collections::HashMap;
+
+    let mut args = HashMap::new();
+    args.insert(
+        "task_description".to_string(),
+        serde_json::json!(task_description),
+    );
+    if let Some(script) = current_script.filter(|s| !s.trim().is_empty()) {
+        args.insert("current_script".to_string(), serde_json::json!(script));
+    }
+
+    let request = ToolRequest {
+        tool_name: "suggest_script_for_task".to_string(),
+        args,
+    };
+
+    let response = crate::tools::pipeline_tools::suggest_script_for_task(request);
+    if response.success {
+        Ok(response.data)
+    } else {
+        Err(response.message)
+    }
 }
 
 #[tauri::command]
@@ -1611,6 +1718,90 @@ pub struct ChatResponse {
     pub teach: Option<String>,
     #[serde(default)]
     pub manual_steps: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ChatContextScope {
+    Current,
+    Worktree,
+    DazSession,
+    Viewport,
+    AssetLibrary,
+}
+
+impl ChatContextScope {
+    fn from_option(value: Option<&str>) -> Self {
+        match value.unwrap_or("current") {
+            "worktree" => Self::Worktree,
+            "daz-session" => Self::DazSession,
+            "viewport" => Self::Viewport,
+            "asset-library" => Self::AssetLibrary,
+            _ => Self::Current,
+        }
+    }
+
+    fn label(&self, explicit: Option<&str>) -> String {
+        explicit
+            .filter(|value| !value.trim().is_empty())
+            .map(ToString::to_string)
+            .unwrap_or_else(|| {
+                match self {
+                    Self::Current => "Current",
+                    Self::Worktree => "Worktree",
+                    Self::DazSession => "DAZ Session",
+                    Self::Viewport => "Viewport",
+                    Self::AssetLibrary => "Asset Library",
+                }
+                .to_string()
+            })
+    }
+
+    fn uses_daz_scene(&self) -> bool {
+        matches!(self, Self::Current | Self::DazSession | Self::Viewport)
+    }
+
+    fn uses_sdk_context(&self) -> bool {
+        matches!(self, Self::Current | Self::Worktree | Self::DazSession)
+    }
+
+    fn uses_asset_context(&self) -> bool {
+        matches!(self, Self::Current | Self::AssetLibrary)
+    }
+}
+
+fn build_context_directive(
+    scope: &ChatContextScope,
+    label: &str,
+    payload_id: Option<&str>,
+) -> String {
+    format!(
+        "Message context target: {} ({:?}){}\nUse only context relevant to this target. Context tags guide retrieval and prompt construction; they do not bypass safety or confirmation.\n",
+        label,
+        scope,
+        payload_id
+            .map(|id| format!(", payload_id={}", id))
+            .unwrap_or_default()
+    )
+}
+
+#[cfg(test)]
+mod chat_context_tests {
+    use super::*;
+
+    #[test]
+    fn missing_chat_context_defaults_to_current() {
+        let scope = ChatContextScope::from_option(None);
+        assert_eq!(scope, ChatContextScope::Current);
+        assert!(scope.uses_daz_scene());
+    }
+
+    #[test]
+    fn worktree_context_avoids_daz_scene_context() {
+        let scope = ChatContextScope::from_option(Some("worktree"));
+        assert_eq!(scope, ChatContextScope::Worktree);
+        assert!(!scope.uses_daz_scene());
+        assert!(scope.uses_sdk_context());
+    }
 }
 
 #[tauri::command]
@@ -1945,9 +2136,35 @@ async fn process_chat_message(
     images: Option<Vec<String>>,
     provider: Option<String>,
     model: Option<String>,
+    context_scope: Option<String>,
+    context_label: Option<String>,
+    context_payload_id: Option<String>,
 ) -> Result<ChatResponse, String> {
-    let heuristic_action = ai_action::plan_validated_action(&message);
-    let scene_context = ai_system::build_scene_context();
+    let chat_scope = ChatContextScope::from_option(context_scope.as_deref());
+    let chat_context_label = chat_scope.label(context_label.as_deref());
+    let context_directive = build_context_directive(
+        &chat_scope,
+        &chat_context_label,
+        context_payload_id.as_deref(),
+    );
+    let use_daz_scene = chat_scope.uses_daz_scene();
+    let heuristic_action = if use_daz_scene {
+        ai_action::plan_validated_action(&message)
+    } else {
+        None
+    };
+    let scene_context = if use_daz_scene {
+        ai_system::build_scene_context()
+    } else {
+        ai_system::SceneContext {
+            active_figure: None,
+            selected_nodes: vec![],
+            selected_node_properties: vec![],
+            available_cameras: vec![],
+            available_lights: vec![],
+            current_material: None,
+        }
+    };
     let scene_summary = format!(
         "active_figure={:?}, selected={:?}, nodes={}",
         scene_context.active_figure,
@@ -1955,7 +2172,11 @@ async fn process_chat_message(
         scene_context.selected_nodes.len()
     );
 
-    let multi_step_result = try_execute_multi_step_scene_plan(&message, &scene_context).await;
+    let multi_step_result = if use_daz_scene {
+        try_execute_multi_step_scene_plan(&message, &scene_context).await
+    } else {
+        None
+    };
 
     let action = if let Some((_, ref first_action)) = multi_step_result {
         first_action.clone()
@@ -1968,7 +2189,7 @@ async fn process_chat_message(
             .unwrap_or(true);
 
         // Try the agent system as a middle tier before LLM
-        let agent_action = if needs_llm {
+        let agent_action = if needs_llm && use_daz_scene {
             try_agent_planning(&message, &scene_context)
         } else {
             None
@@ -1980,7 +2201,7 @@ async fn process_chat_message(
                 Some(agent_result)
             } else {
                 // Agent confidence is low, try LLM as well
-                let llm_plan = if needs_llm {
+                let llm_plan = if needs_llm && use_daz_scene {
                     let active_provider = provider
                         .clone()
                         .or_else(|| {
@@ -2027,7 +2248,7 @@ async fn process_chat_message(
             }
         } else {
             // No agent result, proceed with existing logic
-            let llm_plan = if needs_llm {
+            let llm_plan = if needs_llm && use_daz_scene {
                 let active_provider = provider
                     .clone()
                     .or_else(|| {
@@ -2081,7 +2302,11 @@ async fn process_chat_message(
         .as_ref()
         .and_then(|a| explainer.manual_steps_for_command(&a.command, &a.args));
 
-    let sdk_context = build_sdk_context_for_message(&message);
+    let sdk_context = if chat_scope.uses_sdk_context() {
+        build_sdk_context_for_message(&message)
+    } else {
+        String::new()
+    };
 
     let cleaned_images: Option<Vec<String>> = images.map(|imgs| {
         imgs.into_iter()
@@ -2096,9 +2321,12 @@ async fn process_chat_message(
     });
 
     let mut vision_context = String::new();
-    if message.to_lowercase().contains("look")
+    if matches!(
+        chat_scope,
+        ChatContextScope::Current | ChatContextScope::Viewport
+    ) && (message.to_lowercase().contains("look")
         || message.to_lowercase().contains("see")
-        || message.to_lowercase().contains("describe")
+        || message.to_lowercase().contains("describe"))
     {
         if let Ok(analysis) = vision_service::analyze_current_viewport().await {
             vision_context = format!(
@@ -2110,21 +2338,26 @@ async fn process_chat_message(
 
     let mut spatial_context = String::new();
     let lower_msg = message.to_lowercase();
-    if lower_msg.contains("left")
-        || lower_msg.contains("right")
-        || lower_msg.contains("behind")
-        || lower_msg.contains("front")
-        || lower_msg.contains("above")
-        || lower_msg.contains("below")
-        || lower_msg.contains("where")
-        || lower_msg.contains("spatial")
-        || lower_msg.contains("position")
-        || lower_msg.contains("near")
+    if use_daz_scene
+        && (lower_msg.contains("left")
+            || lower_msg.contains("right")
+            || lower_msg.contains("behind")
+            || lower_msg.contains("front")
+            || lower_msg.contains("above")
+            || lower_msg.contains("below")
+            || lower_msg.contains("where")
+            || lower_msg.contains("spatial")
+            || lower_msg.contains("position")
+            || lower_msg.contains("near"))
     {
         spatial_context = vision_service::fetch_spatial_context();
     }
 
-    let conflicts = ai_action::ConflictResolver::detect_geoshell_conflicts(&scene_context);
+    let conflicts = if use_daz_scene {
+        ai_action::ConflictResolver::detect_geoshell_conflicts(&scene_context)
+    } else {
+        vec![]
+    };
     let conflict_info = if !conflicts.is_empty() {
         format!("\nSCENE CONFLICTS DETECTED:\n{}\n", conflicts.join("\n"))
     } else {
@@ -2132,7 +2365,11 @@ async fn process_chat_message(
     };
 
     let mut rag_context = String::new();
-    let semantic_matches = crate::ai_system::vector_store::get_semantic_matches(&message);
+    let semantic_matches = if chat_scope.uses_asset_context() {
+        crate::ai_system::vector_store::get_semantic_matches(&message)
+    } else {
+        vec![]
+    };
     if !semantic_matches.is_empty() {
         let asset_lines: Vec<String> = semantic_matches
             .into_iter()
@@ -2192,8 +2429,9 @@ async fn process_chat_message(
     if std::env::var("DAZPILOT_DEV_MOCK_AI").ok().as_deref() == Some("1") {
         return Ok(ChatResponse {
             content: format!(
-                "Plan: {}\n{}{}{}{}{}",
+                "Plan: {}\n{}{}{}{}{}{}",
                 message,
+                context_directive,
                 execution_summary,
                 vision_context,
                 spatial_context,
@@ -2210,6 +2448,7 @@ async fn process_chat_message(
     let prompt = format!(
         "You are DazPilot, an expert AI co-pilot for Daz Studio.\n\n\
          User request: {}\n\n\
+         {}\n\
          Scene Context: {:?}\n\
          {}\n\
          {}\n\
@@ -2223,6 +2462,7 @@ async fn process_chat_message(
          {}\n\n\
          If the user's request requires a complex scene change, custom behavior, or is not covered by the Execution state, you MUST write a DazScript (Javascript) macro inside a ```javascript code block to accomplish it. Use the SDK Context provided. Otherwise, provide a concise summary of what was done and what the scene looks like.",
         message,
+        context_directive,
         scene_context,
         vision_context,
         spatial_context,

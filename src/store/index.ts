@@ -22,6 +22,8 @@ export {
   type ChatActions,
   type ChatMessage,
   type ChatHistory,
+  type ChatContextScope,
+  type ChatContextTag,
 } from './chatStore';
 
 export {

@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { useChatStore, useConnectionStore, useAppStore, useToastStore } from '../../store';
+import { PanelShell } from '../ui';
 import styles from './ChatWindow.module.css';
 
 type AIMode = 'create' | 'plan' | 'fix' | 'query';
@@ -523,556 +524,556 @@ export default function ChatWindow() {
   const ModeIcon = activeModeInfo.icon;
 
   return (
-    <div className={`${styles.container} ${getThemeClass(aiProvider)}`}>
-      {/* Lightbox for visual attachments */}
-      {lightboxImage && (
-        <div
-          className={styles.lightbox}
-          role="button"
-          tabIndex={0}
-          onClick={() => setLightboxImage(null)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') setLightboxImage(null);
-          }}
-        >
+    <PanelShell>
+      <div className={`${styles.container} ${getThemeClass(aiProvider)}`}>
+        {/* Lightbox for visual attachments */}
+        {lightboxImage && (
           <div
-            className={styles.lightboxContent}
-            role="presentation"
-            onClick={(e) => e.stopPropagation()}
+            className={styles.lightbox}
+            role="button"
+            tabIndex={0}
+            onClick={() => setLightboxImage(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') setLightboxImage(null);
+            }}
           >
-            <img src={lightboxImage} alt="lightbox-preview" className={styles.lightboxImg} />
-            <button
-              className={styles.lightboxClose}
-              onClick={() => setLightboxImage(null)}
-              aria-label="Close lightbox"
+            <div
+              className={styles.lightboxContent}
+              role="presentation"
+              onClick={(e) => e.stopPropagation()}
             >
-              <X size={20} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className={styles.header}>
-        <div className={styles.headerTitleContainer}>
-          <Sparkles className={styles.sparklesHeaderIcon} size={18} />
-          <h2 className={styles.headerTitle}>Command Console</h2>
-        </div>
-        <div className={styles.headerRight}>
-          <div className={`${styles.statusBadge} ${styles[status]}`}>
-            <div className={styles.statusDot} />
-            <span>{status === 'connected' ? 'Daz Active' : 'Disconnected'}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.messagesList} role="log" aria-label="Chat messages">
-        {messages.map((msg, index) => {
-          const isConfirmation =
-            msg.role === 'assistant' &&
-            (msg.content.includes('needs confirmation before execution') ||
-              msg.content.includes('[ACTION_REQUIRED]'));
-          let commandName = '';
-          if (isConfirmation) {
-            const commandMatch =
-              /(?:Planned action '|\[ACTION_REQUIRED\] Planned action ')([a-zA-Z0-9_]+)'/.exec(
-                msg.content
-              );
-            commandName = commandMatch ? commandMatch[1] : '';
-          }
-
-          return (
-            <div key={msg.id} className={`${styles.message} ${styles[msg.role]}`}>
-              <div className={styles.messageContent}>
-                {msg.loading ? (
-                  <span className={styles.processing}>Processing...</span>
-                ) : (
-                  <>
-                    {/* Render message attachments */}
-                    {msg.images && msg.images.length > 0 && (
-                      <div className={styles.msgAttachedImagesGrid}>
-                        {msg.images.map((imgUrl, i) => (
-                          <div
-                            key={i}
-                            className={styles.msgImageWrapper}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setLightboxImage(imgUrl)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') setLightboxImage(imgUrl);
-                            }}
-                            title="Click to enlarge"
-                          >
-                            <img src={imgUrl} alt={`attached-${i}`} className={styles.msgImage} />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="whitespace-pre-wrap">{parseMessageContent(msg.content)}</div>
-                    {isConfirmation && (
-                      <InteractiveActionCard
-                        action={msg.action}
-                        userQuery={getPreviousUserQuery(index)}
-                        commandName={commandName}
-                      />
-                    )}
-                    {(showTeaching || guideMe) && (msg.teach || msg.manualSteps) && (
-                      <TeachingCard
-                        teach={msg.teach}
-                        manualSteps={msg.manualSteps}
-                        defaultExpanded={guideMe}
-                      />
-                    )}
-                    {msg.role === 'assistant' && !msg.loading && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '8px',
-                          marginTop: '8px',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <button
-                          onClick={async () => {
-                            useChatStore
-                              .getState()
-                              .updateMessage(msg.id, {
-                                feedback: msg.feedback === 'up' ? undefined : 'up',
-                              });
-                            try {
-                              await invoke('record_feedback', {
-                                messageId: msg.id,
-                                command: msg.action?.command || 'general',
-                                accepted: true,
-                              });
-                            } catch (e) {
-                              console.error('Failed to record feedback:', e);
-                            }
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            color: msg.feedback === 'up' ? '#22c55e' : '#64748b',
-                            opacity: msg.feedback === 'down' ? 0.3 : 1,
-                          }}
-                          title="Helpful"
-                        >
-                          <ThumbsUp size={16} />
-                        </button>
-                        <button
-                          onClick={async () => {
-                            useChatStore
-                              .getState()
-                              .updateMessage(msg.id, {
-                                feedback: msg.feedback === 'down' ? undefined : 'down',
-                              });
-                            try {
-                              await invoke('record_feedback', {
-                                messageId: msg.id,
-                                command: msg.action?.command || 'general',
-                                accepted: false,
-                              });
-                            } catch (e) {
-                              console.error('Failed to record feedback:', e);
-                            }
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            color: msg.feedback === 'down' ? '#ef4444' : '#64748b',
-                            opacity: msg.feedback === 'up' ? 0.3 : 1,
-                          }}
-                          title="Not helpful"
-                        >
-                          <ThumbsDown size={16} />
-                        </button>
-                        <span style={{ fontSize: '11px', color: '#64748b' }}>
-                          {msg.feedback ? 'Feedback recorded' : ''}
-                        </span>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        {isLoading && (
-          <div className={`${styles.message} ${styles.assistant}`}>
-            <div className={styles.messageContent}>
-              <span className={styles.processing}>
-                <span className={styles.spinner} />
-                Thinking...
-              </span>
+              <img src={lightboxImage} alt="lightbox-preview" className={styles.lightboxImg} />
+              <button
+                className={styles.lightboxClose}
+                onClick={() => setLightboxImage(null)}
+                aria-label="Close lightbox"
+              >
+                <X size={20} />
+              </button>
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Modern custom input container with embedded widgets */}
-      <div className={styles.inputArea}>
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          ref={fileInputRef}
-          className={styles.hiddenFileInput}
-          onChange={handleFileAttach}
-        />
-
-        <div className={styles.inputContainerCard}>
-          {/* Thumbnails preview bar inside prompt card */}
-          {attachedImages.length > 0 && (
-            <div className={styles.attachmentsPreviewContainer}>
-              {attachedImages.map((img, idx) => (
-                <div key={idx} className={styles.previewImageChip}>
-                  <img
-                    src={img}
-                    alt={`upload-preview-${idx}`}
-                    className={styles.previewThumbnail}
-                  />
-                  <button
-                    className={styles.removePreviewBtn}
-                    onClick={() => removeAttachedImage(idx)}
-                    title="Remove attachment"
-                    aria-label="Remove attachment"
-                  >
-                    <X size={10} />
-                  </button>
-                </div>
-              ))}
+        <div className={styles.header}>
+          <div className={styles.headerTitleContainer}>
+            <Sparkles className={styles.sparklesHeaderIcon} size={18} />
+            <h2 className={styles.headerTitle}>Command Console</h2>
+          </div>
+          <div className={styles.headerRight}>
+            <div className={`${styles.statusBadge} ${styles[status]}`}>
+              <div className={styles.statusDot} />
+              <span>{status === 'connected' ? 'Daz Active' : 'Disconnected'}</span>
             </div>
-          )}
+          </div>
+        </div>
 
-          {/* Autogrow Prompt input */}
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className={styles.inputPromptTextarea}
-            aria-label="Chat input"
-            placeholder={`Ask ${activeModel || 'assistant'} in ${activeModeInfo.label} mode... (e.g., 'Rotate figure by 45deg')`}
-            disabled={isLoading}
-          />
+        <div className={styles.messagesList} role="log" aria-label="Chat messages">
+          {messages.map((msg, index) => {
+            const isConfirmation =
+              msg.role === 'assistant' &&
+              (msg.content.includes('needs confirmation before execution') ||
+                msg.content.includes('[ACTION_REQUIRED]'));
+            let commandName = '';
+            if (isConfirmation) {
+              const commandMatch =
+                /(?:Planned action '|\[ACTION_REQUIRED\] Planned action ')([a-zA-Z0-9_]+)'/.exec(
+                  msg.content
+                );
+              commandName = commandMatch ? commandMatch[1] : '';
+            }
 
-          {/* Advanced Bottom Toolbar containing widgets */}
-          <div className={styles.inputToolbar}>
-            <div className={styles.toolbarLeft}>
-              {/* Attach Plus Button */}
-              <button
-                className={styles.toolbarActionBtn}
-                onClick={() => fileInputRef.current?.click()}
-                title="Attach images (Vision)"
-                aria-label="Attach images"
-                disabled={isLoading}
-              >
-                <Plus size={16} />
-              </button>
-
-              {/* Context Dropdown Widget */}
-              <div className={styles.dropdownContainer}>
-                <button
-                  className={`${styles.toolbarDropdownTrigger} ${showContextDropdown ? styles.active : ''}`}
-                  onClick={() => {
-                    setShowContextDropdown(!showContextDropdown);
-                    setShowModelDropdown(false);
-                    setShowModeDropdown(false);
-                  }}
-                  title="Workspace context scope"
-                  disabled={isLoading}
-                >
-                  <GitBranch size={13} className={styles.widgetIcon} />
-                  <span>{activeContextInfo.label}</span>
-                </button>
-
-                {showContextDropdown && (
-                  <div className={styles.floatingMenuCard}>
-                    <div className={styles.menuHeader}>Workspace Scope</div>
-                    <div className={styles.menuOptionsList}>
-                      {contexts.map((ctx) => (
-                        <button
-                          key={ctx.id}
-                          className={`${styles.menuOptionRow} ${selectedContext === ctx.id ? styles.active : ''}`}
-                          onClick={() => {
-                            setSelectedContext(ctx.id);
-                            setShowContextDropdown(false);
+            return (
+              <div key={msg.id} className={`${styles.message} ${styles[msg.role]}`}>
+                <div className={styles.messageContent}>
+                  {msg.loading ? (
+                    <span className={styles.processing}>Processing...</span>
+                  ) : (
+                    <>
+                      {/* Render message attachments */}
+                      {msg.images && msg.images.length > 0 && (
+                        <div className={styles.msgAttachedImagesGrid}>
+                          {msg.images.map((imgUrl, i) => (
+                            <div
+                              key={i}
+                              className={styles.msgImageWrapper}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => setLightboxImage(imgUrl)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') setLightboxImage(imgUrl);
+                              }}
+                              title="Click to enlarge"
+                            >
+                              <img src={imgUrl} alt={`attached-${i}`} className={styles.msgImage} />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="whitespace-pre-wrap">{parseMessageContent(msg.content)}</div>
+                      {isConfirmation && (
+                        <InteractiveActionCard
+                          action={msg.action}
+                          userQuery={getPreviousUserQuery(index)}
+                          commandName={commandName}
+                        />
+                      )}
+                      {(showTeaching || guideMe) && (msg.teach || msg.manualSteps) && (
+                        <TeachingCard
+                          teach={msg.teach}
+                          manualSteps={msg.manualSteps}
+                          defaultExpanded={guideMe}
+                        />
+                      )}
+                      {msg.role === 'assistant' && !msg.loading && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: '8px',
+                            marginTop: '8px',
+                            alignItems: 'center',
                           }}
                         >
-                          <div className={styles.optionLabel}>{ctx.label}</div>
-                          <div className={styles.optionDesc}>{ctx.desc}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                          <button
+                            onClick={async () => {
+                              useChatStore.getState().updateMessage(msg.id, {
+                                feedback: msg.feedback === 'up' ? undefined : 'up',
+                              });
+                              try {
+                                await invoke('record_feedback', {
+                                  messageId: msg.id,
+                                  command: msg.action?.command || 'general',
+                                  accepted: true,
+                                });
+                              } catch (e) {
+                                console.error('Failed to record feedback:', e);
+                              }
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '4px',
+                              color: msg.feedback === 'up' ? '#22c55e' : '#64748b',
+                              opacity: msg.feedback === 'down' ? 0.3 : 1,
+                            }}
+                            title="Helpful"
+                          >
+                            <ThumbsUp size={16} />
+                          </button>
+                          <button
+                            onClick={async () => {
+                              useChatStore.getState().updateMessage(msg.id, {
+                                feedback: msg.feedback === 'down' ? undefined : 'down',
+                              });
+                              try {
+                                await invoke('record_feedback', {
+                                  messageId: msg.id,
+                                  command: msg.action?.command || 'general',
+                                  accepted: false,
+                                });
+                              } catch (e) {
+                                console.error('Failed to record feedback:', e);
+                              }
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '4px',
+                              color: msg.feedback === 'down' ? '#ef4444' : '#64748b',
+                              opacity: msg.feedback === 'up' ? 0.3 : 1,
+                            }}
+                            title="Not helpful"
+                          >
+                            <ThumbsDown size={16} />
+                          </button>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>
+                            {msg.feedback ? 'Feedback recorded' : ''}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {isLoading && (
+            <div className={`${styles.message} ${styles.assistant}`}>
+              <div className={styles.messageContent}>
+                <span className={styles.processing}>
+                  <span className={styles.spinner} />
+                  Thinking...
+                </span>
               </div>
             </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
 
-            <div className={styles.toolbarRight}>
-              {/* Model Selector Dropdown Widget */}
-              <div className={styles.dropdownContainer}>
+        {/* Modern custom input container with embedded widgets */}
+        <div className={styles.inputArea}>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            ref={fileInputRef}
+            className={styles.hiddenFileInput}
+            onChange={handleFileAttach}
+          />
+
+          <div className={styles.inputContainerCard}>
+            {/* Thumbnails preview bar inside prompt card */}
+            {attachedImages.length > 0 && (
+              <div className={styles.attachmentsPreviewContainer}>
+                {attachedImages.map((img, idx) => (
+                  <div key={idx} className={styles.previewImageChip}>
+                    <img
+                      src={img}
+                      alt={`upload-preview-${idx}`}
+                      className={styles.previewThumbnail}
+                    />
+                    <button
+                      className={styles.removePreviewBtn}
+                      onClick={() => removeAttachedImage(idx)}
+                      title="Remove attachment"
+                      aria-label="Remove attachment"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Autogrow Prompt input */}
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className={styles.inputPromptTextarea}
+              aria-label="Chat input"
+              placeholder={`Ask ${activeModel || 'assistant'} in ${activeModeInfo.label} mode... (e.g., 'Rotate figure by 45deg')`}
+              disabled={isLoading}
+            />
+
+            {/* Advanced Bottom Toolbar containing widgets */}
+            <div className={styles.inputToolbar}>
+              <div className={styles.toolbarLeft}>
+                {/* Attach Plus Button */}
                 <button
-                  className={`${styles.toolbarDropdownTrigger} ${showModelDropdown ? styles.active : ''}`}
-                  onClick={() => {
-                    setShowModelDropdown(!showModelDropdown);
-                    setShowContextDropdown(false);
-                    setShowModeDropdown(false);
-                  }}
-                  title="Change AI model"
+                  className={styles.toolbarActionBtn}
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach images (Vision)"
+                  aria-label="Attach images"
                   disabled={isLoading}
                 >
-                  <ModelIcon size={13} className={styles.widgetIcon} />
-                  <span>{activeModel || 'Select Model'}</span>
-                  <ChevronUp
-                    size={12}
-                    className={`${styles.chevron} ${showModelDropdown ? styles.open : ''}`}
-                  />
+                  <Plus size={16} />
                 </button>
 
-                {showModelDropdown && (
-                  <div
-                    className={styles.floatingMenuCard}
-                    style={{ width: '280px', maxHeight: '400px', overflowY: 'auto' }}
+                {/* Context Dropdown Widget */}
+                <div className={styles.dropdownContainer}>
+                  <button
+                    className={`${styles.toolbarDropdownTrigger} ${showContextDropdown ? styles.active : ''}`}
+                    onClick={() => {
+                      setShowContextDropdown(!showContextDropdown);
+                      setShowModelDropdown(false);
+                      setShowModeDropdown(false);
+                    }}
+                    title="Workspace context scope"
+                    disabled={isLoading}
                   >
-                    <div className={styles.menuHeader}>Active AI Provider</div>
+                    <GitBranch size={13} className={styles.widgetIcon} />
+                    <span>{activeContextInfo.label}</span>
+                  </button>
+
+                  {showContextDropdown && (
+                    <div className={styles.floatingMenuCard}>
+                      <div className={styles.menuHeader}>Workspace Scope</div>
+                      <div className={styles.menuOptionsList}>
+                        {contexts.map((ctx) => (
+                          <button
+                            key={ctx.id}
+                            className={`${styles.menuOptionRow} ${selectedContext === ctx.id ? styles.active : ''}`}
+                            onClick={() => {
+                              setSelectedContext(ctx.id);
+                              setShowContextDropdown(false);
+                            }}
+                          >
+                            <div className={styles.optionLabel}>{ctx.label}</div>
+                            <div className={styles.optionDesc}>{ctx.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.toolbarRight}>
+                {/* Model Selector Dropdown Widget */}
+                <div className={styles.dropdownContainer}>
+                  <button
+                    className={`${styles.toolbarDropdownTrigger} ${showModelDropdown ? styles.active : ''}`}
+                    onClick={() => {
+                      setShowModelDropdown(!showModelDropdown);
+                      setShowContextDropdown(false);
+                      setShowModeDropdown(false);
+                    }}
+                    title="Change AI model"
+                    disabled={isLoading}
+                  >
+                    <ModelIcon size={13} className={styles.widgetIcon} />
+                    <span>{activeModel || 'Select Model'}</span>
+                    <ChevronUp
+                      size={12}
+                      className={`${styles.chevron} ${showModelDropdown ? styles.open : ''}`}
+                    />
+                  </button>
+
+                  {showModelDropdown && (
                     <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        gap: '6px',
-                        padding: '8px',
-                      }}
+                      className={styles.floatingMenuCard}
+                      style={{ width: '280px', maxHeight: '400px', overflowY: 'auto' }}
                     >
-                      {[
-                        { id: 'local-gguf', label: 'Local GGUF' },
-                        { id: 'ollama', label: 'Ollama' },
-                        { id: 'openai', label: 'OpenAI' },
-                        { id: 'gemini', label: 'Gemini' },
-                        { id: 'anthropic', label: 'Anthropic' },
-                        { id: 'custom-openai', label: 'Custom' },
-                      ].map((p) => (
+                      <div className={styles.menuHeader}>Active AI Provider</div>
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: '6px',
+                          padding: '8px',
+                        }}
+                      >
+                        {[
+                          { id: 'local-gguf', label: 'Local GGUF' },
+                          { id: 'ollama', label: 'Ollama' },
+                          { id: 'openai', label: 'OpenAI' },
+                          { id: 'gemini', label: 'Gemini' },
+                          { id: 'anthropic', label: 'Anthropic' },
+                          { id: 'custom-openai', label: 'Custom' },
+                        ].map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => {
+                              setAiProvider(p.id);
+                              setAiModel(''); // Clear active model to force re-selection
+                              useToastStore.getState().info(`AI Provider switched to ${p.label}`);
+                            }}
+                            style={{
+                              padding: '6px 8px',
+                              background:
+                                aiProvider === p.id
+                                  ? 'var(--color-primary-bg)'
+                                  : 'rgba(255,255,255,0.02)',
+                              color:
+                                aiProvider === p.id
+                                  ? 'var(--color-primary)'
+                                  : 'var(--color-text-secondary)',
+                              border:
+                                '1px solid ' +
+                                (aiProvider === p.id
+                                  ? 'var(--color-primary)'
+                                  : 'rgba(255,255,255,0.05)'),
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div
+                        className={styles.menuHeader}
+                        style={{
+                          borderTop: '1px solid rgba(255,255,255,0.05)',
+                          paddingTop: '8px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span>Select Model ({providerInfo.label})</span>
                         <button
-                          key={p.id}
-                          onClick={() => {
-                            setAiProvider(p.id);
-                            setAiModel(''); // Clear active model to force re-selection
-                            useToastStore.getState().info(`AI Provider switched to ${p.label}`);
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            refreshModels();
                           }}
+                          disabled={isLoadingModels}
                           style={{
-                            padding: '6px 8px',
-                            background:
-                              aiProvider === p.id
-                                ? 'var(--color-primary-bg)'
-                                : 'rgba(255,255,255,0.02)',
-                            color:
-                              aiProvider === p.id
-                                ? 'var(--color-primary)'
-                                : 'var(--color-text-secondary)',
-                            border:
-                              '1px solid ' +
-                              (aiProvider === p.id
-                                ? 'var(--color-primary)'
-                                : 'rgba(255,255,255,0.05)'),
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 600,
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--color-text-secondary)',
                             cursor: 'pointer',
-                            textAlign: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '2px',
+                            borderRadius: '3px',
                             transition: 'all 0.15s',
                           }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.color = 'var(--color-primary)')
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.color = 'var(--color-text-secondary)')
+                          }
+                          title="Force reload models from API"
+                          aria-label="Reload models"
                         >
-                          {p.label}
+                          <RefreshCw size={12} className={isLoadingModels ? styles.spin : ''} />
                         </button>
-                      ))}
-                    </div>
+                      </div>
 
-                    <div
-                      className={styles.menuHeader}
-                      style={{
-                        borderTop: '1px solid rgba(255,255,255,0.05)',
-                        paddingTop: '8px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <span>Select Model ({providerInfo.label})</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          refreshModels();
-                        }}
-                        disabled={isLoadingModels}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: 'var(--color-text-secondary)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: '2px',
-                          borderRadius: '3px',
-                          transition: 'all 0.15s',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.color = 'var(--color-text-secondary)')
-                        }
-                        title="Force reload models from API"
-                        aria-label="Reload models"
+                      <div
+                        className={styles.menuOptionsList}
+                        style={{ maxHeight: '200px', overflowY: 'auto' }}
                       >
-                        <RefreshCw size={12} className={isLoadingModels ? styles.spin : ''} />
-                      </button>
+                        {isLoadingModels ? (
+                          <div
+                            style={{
+                              padding: '16px',
+                              textAlign: 'center',
+                              fontSize: '12px',
+                              color: 'var(--color-text-muted)',
+                            }}
+                          >
+                            <RefreshCw
+                              size={14}
+                              className={styles.spin}
+                              style={{ marginRight: '6px' }}
+                            />
+                            Fetching models...
+                          </div>
+                        ) : availableModels.length === 0 ? (
+                          <div
+                            style={{
+                              padding: '16px',
+                              textAlign: 'center',
+                              fontSize: '11px',
+                              color: 'var(--color-text-muted)',
+                            }}
+                          >
+                            No models found. Check keys in Settings.
+                          </div>
+                        ) : (
+                          availableModels.map((m) => {
+                            const info = getProviderInfo(aiProvider);
+                            const ItemIcon = info.icon;
+                            return (
+                              <button
+                                key={m}
+                                style={{ '--accent-color': info.color } as React.CSSProperties}
+                                className={`${styles.menuOptionRow} ${styles.modelOption} ${
+                                  activeModel === m ? styles.active : ''
+                                }`}
+                                onClick={() => {
+                                  setAiModel(m);
+                                  setShowModelDropdown(false);
+                                  useToastStore.getState().success(`Active AI model set to: ${m}`);
+                                }}
+                              >
+                                <div className={styles.optionRowHeader}>
+                                  <ItemIcon size={14} className={styles.modelIcon} />
+                                  <div className={styles.optionLabel}>{m}</div>
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
                     </div>
+                  )}
+                </div>
 
-                    <div
-                      className={styles.menuOptionsList}
-                      style={{ maxHeight: '200px', overflowY: 'auto' }}
-                    >
-                      {isLoadingModels ? (
-                        <div
-                          style={{
-                            padding: '16px',
-                            textAlign: 'center',
-                            fontSize: '12px',
-                            color: 'var(--color-text-muted)',
-                          }}
-                        >
-                          <RefreshCw
-                            size={14}
-                            className={styles.spin}
-                            style={{ marginRight: '6px' }}
-                          />
-                          Fetching models...
-                        </div>
-                      ) : availableModels.length === 0 ? (
-                        <div
-                          style={{
-                            padding: '16px',
-                            textAlign: 'center',
-                            fontSize: '11px',
-                            color: 'var(--color-text-muted)',
-                          }}
-                        >
-                          No models found. Check keys in Settings.
-                        </div>
-                      ) : (
-                        availableModels.map((m) => {
-                          const info = getProviderInfo(aiProvider);
-                          const ItemIcon = info.icon;
+                {/* Guide Me Toggle */}
+                <button
+                  onClick={() => setGuideMe(!guideMe)}
+                  title={
+                    guideMe
+                      ? 'Guide Me mode: step-by-step with explanations'
+                      : 'Auto mode: execute immediately'
+                  }
+                  className={`${styles.toolbarDropdownTrigger} ${guideMe ? styles.active : ''}`}
+                  style={{
+                    color: guideMe ? 'var(--color-primary, #22d3ee)' : undefined,
+                    border: guideMe ? '1px solid var(--color-primary, #22d3ee)' : undefined,
+                  }}
+                  disabled={isLoading}
+                >
+                  <GraduationCap size={13} className={styles.widgetIcon} />
+                  <span>{guideMe ? 'Guide Me' : 'Auto'}</span>
+                </button>
+
+                {/* Mode Dropdown Widget */}
+                <div className={styles.dropdownContainer}>
+                  <button
+                    className={`${styles.toolbarDropdownTrigger} ${showModeDropdown ? styles.active : ''}`}
+                    onClick={() => {
+                      setShowModeDropdown(!showModeDropdown);
+                      setShowContextDropdown(false);
+                      setShowModelDropdown(false);
+                    }}
+                    title="Change assistant execution mode"
+                    disabled={isLoading}
+                  >
+                    <ModeIcon size={13} className={styles.widgetIcon} />
+                    <span>{activeModeInfo.label}</span>
+                    <ChevronUp
+                      size={12}
+                      className={`${styles.chevron} ${showModeDropdown ? styles.open : ''}`}
+                    />
+                  </button>
+
+                  {showModeDropdown && (
+                    <div className={styles.floatingMenuCard}>
+                      <div className={styles.menuHeader}>Execution Mode</div>
+                      <div className={styles.menuOptionsList}>
+                        {modes.map((m) => {
+                          const ItemIcon = m.icon;
                           return (
                             <button
-                              key={m}
-                              style={{ '--accent-color': info.color } as React.CSSProperties}
-                              className={`${styles.menuOptionRow} ${styles.modelOption} ${
-                                activeModel === m ? styles.active : ''
-                              }`}
+                              key={m.id}
+                              className={`${styles.menuOptionRow} ${mode === m.id ? styles.active : ''}`}
                               onClick={() => {
-                                setAiModel(m);
-                                setShowModelDropdown(false);
-                                useToastStore.getState().success(`Active AI model set to: ${m}`);
+                                setMode(m.id as AIMode);
+                                setShowModeDropdown(false);
                               }}
                             >
                               <div className={styles.optionRowHeader}>
-                                <ItemIcon size={14} className={styles.modelIcon} />
-                                <div className={styles.optionLabel}>{m}</div>
+                                <ItemIcon size={14} className={styles.modeIcon} />
+                                <div className={styles.optionLabel}>{m.label}</div>
                               </div>
+                              <div className={styles.optionDesc}>{m.desc}</div>
                             </button>
                           );
-                        })
-                      )}
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              {/* Guide Me Toggle */}
-              <button
-                onClick={() => setGuideMe(!guideMe)}
-                title={
-                  guideMe
-                    ? 'Guide Me mode: step-by-step with explanations'
-                    : 'Auto mode: execute immediately'
-                }
-                className={`${styles.toolbarDropdownTrigger} ${guideMe ? styles.active : ''}`}
-                style={{
-                  color: guideMe ? 'var(--color-primary, #22d3ee)' : undefined,
-                  border: guideMe ? '1px solid var(--color-primary, #22d3ee)' : undefined,
-                }}
-                disabled={isLoading}
-              >
-                <GraduationCap size={13} className={styles.widgetIcon} />
-                <span>{guideMe ? 'Guide Me' : 'Auto'}</span>
-              </button>
-
-              {/* Mode Dropdown Widget */}
-              <div className={styles.dropdownContainer}>
+                {/* Send Button */}
                 <button
-                  className={`${styles.toolbarDropdownTrigger} ${showModeDropdown ? styles.active : ''}`}
-                  onClick={() => {
-                    setShowModeDropdown(!showModeDropdown);
-                    setShowContextDropdown(false);
-                    setShowModelDropdown(false);
-                  }}
-                  title="Change assistant execution mode"
-                  disabled={isLoading}
+                  className={styles.promptSendBtn}
+                  onClick={handleSend}
+                  disabled={isLoading || (!input.trim() && attachedImages.length === 0)}
+                  title="Send query"
+                  aria-label="Send message"
                 >
-                  <ModeIcon size={13} className={styles.widgetIcon} />
-                  <span>{activeModeInfo.label}</span>
-                  <ChevronUp
-                    size={12}
-                    className={`${styles.chevron} ${showModeDropdown ? styles.open : ''}`}
-                  />
+                  <Send size={14} />
                 </button>
-
-                {showModeDropdown && (
-                  <div className={styles.floatingMenuCard}>
-                    <div className={styles.menuHeader}>Execution Mode</div>
-                    <div className={styles.menuOptionsList}>
-                      {modes.map((m) => {
-                        const ItemIcon = m.icon;
-                        return (
-                          <button
-                            key={m.id}
-                            className={`${styles.menuOptionRow} ${mode === m.id ? styles.active : ''}`}
-                            onClick={() => {
-                              setMode(m.id as AIMode);
-                              setShowModeDropdown(false);
-                            }}
-                          >
-                            <div className={styles.optionRowHeader}>
-                              <ItemIcon size={14} className={styles.modeIcon} />
-                              <div className={styles.optionLabel}>{m.label}</div>
-                            </div>
-                            <div className={styles.optionDesc}>{m.desc}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
-
-              {/* Send Button */}
-              <button
-                className={styles.promptSendBtn}
-                onClick={handleSend}
-                disabled={isLoading || (!input.trim() && attachedImages.length === 0)}
-                title="Send query"
-                aria-label="Send message"
-              >
-                <Send size={14} />
-              </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </PanelShell>
   );
 }

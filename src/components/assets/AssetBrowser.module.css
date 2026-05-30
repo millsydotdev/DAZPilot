@@ -326,3 +326,33 @@
 .mx2 {
   margin: 0 var(--spacing-sm);
 }
+
+.recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.625rem var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-subtle);
+}
+
+.recommendationList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.recommendationChip {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.recommendationChip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}

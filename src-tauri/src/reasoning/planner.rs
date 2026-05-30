@@ -112,7 +112,7 @@ impl Planner {
     }
 
     /// Analyze a goal to understand what needs to be achieved
-    fn analyze_goal(&self, goal: &Goal, _context: &PlanningContext) -> GoalAnalysis {
+    fn analyze_goal(&self, goal: &Goal, context: &PlanningContext) -> GoalAnalysis {
         let mut analysis = GoalAnalysis {
             goal: goal.clone(),
             required_assets: Vec::new(),
@@ -132,14 +132,33 @@ impl Planner {
                     }
                 },
                 crate::ai_system::EntityType::Asset => {
-                    // TODO: look up asset by name in knowledge base
-                    analysis.required_assets.push(entity.value.clone());
+                    if let Some(path) = resolve_asset_path(&entity.value, None, context) {
+                        analysis.required_assets.push(path);
+                    } else {
+                        analysis.required_assets.push(entity.value.clone());
+                    }
                 },
                 crate::ai_system::EntityType::Pose => {
-                    // TODO: handle pose entities
+                    if let Some(path) = resolve_asset_path(&entity.value, Some("poses"), context)
+                        .or_else(|| resolve_asset_path(&entity.value, Some("pose"), context))
+                    {
+                        analysis.required_assets.push(path);
+                    } else {
+                        analysis.constraints.push(format!(
+                            "Pose '{}' may need manual library selection",
+                            entity.value
+                        ));
+                    }
                 },
                 crate::ai_system::EntityType::Material => {
-                    // TODO: handle material entities
+                    if let Some(path) =
+                        resolve_asset_path(&entity.value, Some("materials"), context)
+                            .or_else(|| resolve_asset_path(&entity.value, Some("mat"), context))
+                    {
+                        analysis.required_assets.push(path);
+                    } else {
+                        analysis.required_assets.push(entity.value.clone());
+                    }
                 },
                 _ => {},
             }
@@ -262,6 +281,8 @@ impl Planner {
         for workflow_step in workflow.steps {
             // Convert WorkflowStep to StructuredAiAction
             let action = self.workflow_step_to_action(&workflow_step, context)?;
+            let step_confidence = action.confidence;
+            let alternatives = self.generate_step_alternatives(&action);
 
             plan_steps.push(PlanStep {
                 id: workflow_step.id.clone(),
@@ -269,8 +290,8 @@ impl Planner {
                 action,
                 prerequisites: workflow_step.prerequisites.clone(),
                 estimated_time_seconds: workflow_step.estimated_time_seconds,
-                confidence: 0.8,          // TODO: calculate based on knowledge
-                alternatives: Vec::new(), // TODO: generate alternatives
+                confidence: step_confidence,
+                alternatives,
             });
         }
 
@@ -282,6 +303,21 @@ impl Planner {
         } else {
             plan_steps.iter().map(|s| s.confidence).sum::<f32>() / plan_steps.len() as f32
         };
+
+        let has_high_risk = plan_steps
+            .iter()
+            .any(|s| s.action.requires_confirmation || s.confidence < 0.5);
+        let risk_level = if has_high_risk {
+            RiskLevel::High
+        } else if plan_steps.iter().any(|s| s.confidence < 0.7) {
+            RiskLevel::Medium
+        } else {
+            RiskLevel::Low
+        };
+
+        let fallback_plan = self
+            .build_intent_plan(goal.intent.clone(), goal, context)
+            .map(Box::new);
 
         Some(Plan {
             id: format!(
@@ -298,8 +334,8 @@ impl Planner {
             steps: plan_steps,
             estimated_total_time_seconds: estimated_time,
             confidence,
-            risk_level: RiskLevel::Medium, // TODO: calculate
-            fallback_plan: None,           // TODO: generate fallback
+            risk_level,
+            fallback_plan,
         })
     }
 
@@ -312,7 +348,10 @@ impl Planner {
     ) -> Option<Plan> {
         // Analyze the goal to understand what's needed
         let analysis = self.analyze_goal(goal, context);
-        let scene_understanding = self.scene_knowledge.get_scene_understanding(scene_type)?;
+        let scene_understanding = self.scene_knowledge.get_scene_understanding(
+            scene_type,
+            context.user_preferences.as_ref().map(|p| p.skill_level),
+        )?;
 
         // Convert scene understanding to plan steps
         let mut plan_steps = Vec::new();
@@ -370,12 +409,14 @@ impl Planner {
 
         // Step 3: Load required assets
         for asset in &analysis.required_assets {
+            let resolved_path =
+                resolve_asset_path(asset, None, context).unwrap_or_else(|| asset.clone());
             plan_steps.push(PlanStep {
                 id: format!("load_asset_{}", step_counter),
                 description: format!("Load asset {}", asset),
                 action: StructuredAiAction {
                     command: "load_asset".to_string(),
-                    args: serde_json::json!({ "path": asset }), // TODO: resolve asset name to path
+                    args: serde_json::json!({ "path": resolved_path }),
                     confidence: 0.7,
                     sdk_refs: vec!["DzContentMgr".to_string(), "DzAsset".to_string()],
                     requires_confirmation: false,
@@ -650,11 +691,12 @@ impl Planner {
                     },
                 };
 
+                let sdk_refs = crate::ai_action::sdk_refs_for_command(&command_str);
                 Some(StructuredAiAction {
                     command: command_str,
                     args: args_json,
                     confidence: conf,
-                    sdk_refs: vec![], // TODO: populate based on command
+                    sdk_refs,
                     requires_confirmation: false,
                 })
             },
@@ -687,12 +729,18 @@ impl Planner {
             ActionType::AdjustProperty => {
                 let prop_default = "unknown".to_string();
                 let prop = step.parameters.get("property").unwrap_or(&prop_default);
+                let value = step
+                    .parameters
+                    .get("value")
+                    .or_else(|| step.parameters.get("amount"))
+                    .cloned()
+                    .unwrap_or_else(|| "1.0".to_string());
                 Some(StructuredAiAction {
                     command: "set_property".to_string(),
                     args: serde_json::json!({
                         "node_id": "selected",
                         "property": prop,
-                        "value": "1.0" // TODO: get actual value
+                        "value": value
                     }),
                     confidence: 0.7,
                     sdk_refs: vec!["DzProperty".to_string()],
@@ -1134,6 +1182,43 @@ impl Planner {
                 }
             },
         }
+    }
+
+    /// Generate alternative actions for a plan step when the primary may fail
+    fn generate_step_alternatives(&self, action: &StructuredAiAction) -> Vec<StructuredAiAction> {
+        let mut alts = Vec::new();
+        match action.command.as_str() {
+            "load_asset" => {
+                if let Some(query) = action.args.get("path").and_then(|p| p.as_str()) {
+                    if let Some(path) = crate::ai_action::search_best_matching_asset(query) {
+                        if path != query {
+                            alts.push(StructuredAiAction {
+                                command: "load_asset".to_string(),
+                                args: serde_json::json!({ "path": path }),
+                                confidence: action.confidence * 0.9,
+                                sdk_refs: crate::ai_action::sdk_refs_for_command("load_asset"),
+                                requires_confirmation: false,
+                            });
+                        }
+                    }
+                }
+            },
+            "apply_pose" => {
+                alts.push(StructuredAiAction {
+                    command: "search_content".to_string(),
+                    args: serde_json::json!({
+                        "query": "pose",
+                        "type": "pose",
+                        "max_results": "10"
+                    }),
+                    confidence: 0.55,
+                    sdk_refs: crate::ai_action::sdk_refs_for_command("search_content"),
+                    requires_confirmation: false,
+                });
+            },
+            _ => {},
+        }
+        alts
     }
 
     /// Validate and refine a plan

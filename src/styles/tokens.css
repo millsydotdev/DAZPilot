@@ -9,10 +9,10 @@
   --color-primary-hover: #60a5fa;
   --color-primary-foreground: #ffffff;
 
-  /* Backgrounds */
-  --color-background: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-elevated: #334155;
+  /* Backgrounds — deeper DAW-style stack */
+  --color-background: #0a0a0f;
+  --color-surface: #12121a;
+  --color-surface-elevated: #1a1a24;
 
   /* Borders */
   --color-border: #262626;
@@ -30,9 +30,9 @@
   --color-info: #60a5fa;
 
   /* ==================== UNIFIED APP-WIDE CSS MODULE TOKENS ==================== */
-  --color-bg-primary: #0f172a;
-  --color-bg-elevated: #1e293b;
-  --color-bg-subtle: #334155;
+  --color-bg-primary: #0a0a0f;
+  --color-bg-elevated: #12121a;
+  --color-bg-subtle: #1a1a24;
   --color-border-subtle: rgba(255, 255, 255, 0.08);
   --color-primary-bg: rgba(59, 130, 246, 0.12);
   --color-primary-glow: rgba(59, 130, 246, 0.35);
@@ -113,6 +113,7 @@
   --transition-fast: 150ms ease;
   --transition-normal: 200ms ease;
   --transition-slow: 300ms ease;
+  --transition-panel: 280ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ==================== Z-INDEX ==================== */
 
@@ -121,6 +122,15 @@
   --z-modal: 300;
   --z-popover: 400;
   --z-tooltip: 500;
+
+  /* ==================== PANEL SPECIFIC ==================== */
+  --panel-header-height: 48px;
+  --sidebar-width: 48px;
+  --panel-border: 1px solid var(--color-border-subtle);
+  --panel-border-radius: var(--radius-lg);
+  --panel-bg: var(--color-bg-elevated);
+  --panel-header-bg: var(--color-bg-subtle);
+  --panel-section-border: var(--color-border-subtle);
 }
 
 [data-theme='light'] {

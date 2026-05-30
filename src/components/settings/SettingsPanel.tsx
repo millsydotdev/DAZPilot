@@ -18,6 +18,7 @@ import {
   Camera,
   CheckCircle,
   XCircle,
+  Network,
 } from 'lucide-react';
 import {
   useAppStore,
@@ -44,6 +45,8 @@ import {
   FRAMERATE_PRESETS,
   testCamera,
 } from '../../utils/webcam';
+import { PanelShell } from '../ui';
+import { AgentsPanel } from '../agents';
 import styles from './SettingsPanel.module.css';
 
 type SettingsTab =
@@ -54,6 +57,7 @@ type SettingsTab =
   | 'logger'
   | 'shortcuts'
   | 'diagnostics'
+  | 'agents'
   | 'about';
 
 const tabs = [
@@ -64,6 +68,7 @@ const tabs = [
   { id: 'logger' as const, label: 'Log Console', icon: Terminal },
   { id: 'shortcuts' as const, label: 'Shortcuts', icon: Keyboard },
   { id: 'diagnostics' as const, label: 'Diagnostics', icon: Activity },
+  { id: 'agents' as const, label: 'Agents', icon: Network },
   { id: 'about' as const, label: 'About', icon: Info },
 ];
 
@@ -476,1244 +481,1265 @@ export default function SettingsPanel() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.sidebar}>
-        <VStack gap="xs">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <tab.icon size={16} />
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </VStack>
-      </div>
+    <PanelShell title="Settings">
+      <div className={styles.container}>
+        <div className={styles.sidebar}>
+          <VStack gap="xs">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <tab.icon size={16} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </VStack>
+        </div>
 
-      <div className={styles.content}>
-        {activeTab === 'general' && (
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.title}>General Settings</h2>
-              <p className={styles.subtitle}>
-                Configure main application settings, workspace intervals, and reset flags.
-              </p>
-            </div>
+        <div className={styles.content}>
+          {activeTab === 'general' && (
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <h2 className={styles.title}>General Settings</h2>
+                <p className={styles.subtitle}>
+                  Configure main application settings, workspace intervals, and reset flags.
+                </p>
+              </div>
 
-            <div className={styles.cardLayout}>
-              <Card>
-                <CardHeader title="Appearance & Diagnostics" />
-                <CardContent>
-                  <div className={styles.group}>
-                    <label className={styles.label} htmlFor="settings-app-theme">
-                      App Theme
-                    </label>
-                    <select
-                      className={styles.select}
-                      id="settings-app-theme"
-                      value={theme}
-                      onChange={handleThemeChange}
-                    >
-                      <option value="dark">Dark Theme (Premium Obsidian)</option>
-                      <option value="light">Light Theme (Classic Slate)</option>
-                    </select>
-                  </div>
-
-                  <div className={styles.group}>
-                    <label className={styles.label} htmlFor="settings-app-log-threshold">
-                      App Log Threshold
-                    </label>
-                    <select
-                      className={styles.select}
-                      id="settings-app-log-threshold"
-                      value={logLevel}
-                      onChange={handleLogLevelChange}
-                    >
-                      <option value="debug">Debug (All events)</option>
-                      <option value="info">Info (Standard operations)</option>
-                      <option value="warn">Warning (Important issues)</option>
-                      <option value="error">Error (Failures only)</option>
-                    </select>
-                  </div>
-
-                  <div className={styles.group}>
-                    <label className={styles.label} htmlFor="settings-window-startup-mode">
-                      Window Startup Mode
-                    </label>
-                    <select
-                      className={styles.select}
-                      id="settings-window-startup-mode"
-                      value={startupWindowMode}
-                      onChange={(e) =>
-                        setStartupWindowMode(e.target.value as 'windowed' | 'fullscreen')
-                      }
-                    >
-                      <option value="windowed">Centered Windowed Mode (1200x800)</option>
-                      <option value="fullscreen">Borderless Fullscreen</option>
-                    </select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader title="Workspace Sync Options" />
-                <CardContent>
-                  <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={autoSave}
-                        onChange={(e) => setAutoSave(e.target.checked)}
-                      />
-                      Enable Scene Auto-Save
-                    </label>
-                  </div>
-
-                  {autoSave && (
+              <div className={styles.cardLayout}>
+                <Card>
+                  <CardHeader title="Appearance & Diagnostics" />
+                  <CardContent>
                     <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-auto-save-interval">
-                        Auto-Save Interval: {autoSaveInterval} minutes
+                      <label className={styles.label} htmlFor="settings-app-theme">
+                        App Theme
                       </label>
-                      <input
-                        type="range"
-                        id="settings-auto-save-interval"
-                        min="1"
-                        max="30"
-                        value={autoSaveInterval}
-                        onChange={(e) => setAutoSaveInterval(parseInt(e.target.value))}
-                        className={styles.slider}
-                      />
+                      <select
+                        className={styles.select}
+                        id="settings-app-theme"
+                        value={theme}
+                        onChange={handleThemeChange}
+                      >
+                        <option value="dark">Dark Theme (Premium Obsidian)</option>
+                        <option value="light">Light Theme (Classic Slate)</option>
+                      </select>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader title="Daz Studio C++ SDK Include Directory" />
-                <CardContent>
-                  <p
-                    style={{
-                      fontSize: '12px',
-                      color: 'var(--color-text-secondary)',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    Choose the folder containing the Daz Studio SDK C++ include headers to index
-                    class symbols for autocomplete scripting co-pilot actions.
-                  </p>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <code
+                    <div className={styles.group}>
+                      <label className={styles.label} htmlFor="settings-app-log-threshold">
+                        App Log Threshold
+                      </label>
+                      <select
+                        className={styles.select}
+                        id="settings-app-log-threshold"
+                        value={logLevel}
+                        onChange={handleLogLevelChange}
+                      >
+                        <option value="debug">Debug (All events)</option>
+                        <option value="info">Info (Standard operations)</option>
+                        <option value="warn">Warning (Important issues)</option>
+                        <option value="error">Error (Failures only)</option>
+                      </select>
+                    </div>
+
+                    <div className={styles.group}>
+                      <label className={styles.label} htmlFor="settings-window-startup-mode">
+                        Window Startup Mode
+                      </label>
+                      <select
+                        className={styles.select}
+                        id="settings-window-startup-mode"
+                        value={startupWindowMode}
+                        onChange={(e) =>
+                          setStartupWindowMode(e.target.value as 'windowed' | 'fullscreen')
+                        }
+                      >
+                        <option value="windowed">Centered Windowed Mode (1200x800)</option>
+                        <option value="fullscreen">Borderless Fullscreen</option>
+                      </select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader title="Workspace Sync Options" />
+                  <CardContent>
+                    <div className={styles.checkboxGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={autoSave}
+                          onChange={(e) => setAutoSave(e.target.checked)}
+                        />
+                        Enable Scene Auto-Save
+                      </label>
+                    </div>
+
+                    {autoSave && (
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-auto-save-interval">
+                          Auto-Save Interval: {autoSaveInterval} minutes
+                        </label>
+                        <input
+                          type="range"
+                          id="settings-auto-save-interval"
+                          min="1"
+                          max="30"
+                          value={autoSaveInterval}
+                          onChange={(e) => setAutoSaveInterval(parseInt(e.target.value))}
+                          className={styles.slider}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader title="Daz Studio C++ SDK Include Directory" />
+                  <CardContent>
+                    <p
                       style={{
-                        flexGrow: 1,
-                        padding: '8px 12px',
-                        fontSize: '11px',
-                        background: '#060609',
-                        border: '1px solid rgba(255,255,255,0.03)',
-                        borderRadius: 'var(--radius-sm)',
-                        color: '#10b981',
-                        fontFamily: 'monospace',
-                        wordBreak: 'break-all',
+                        fontSize: '12px',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '12px',
                       }}
                     >
-                      {dazSdkPath || 'Auto-searching workspaces/env...'}
-                    </code>
-                    <Button
-                      onClick={handleBrowseSdkPath}
-                      variant="ghost"
-                      size="sm"
-                      style={{
-                        flexShrink: 0,
-                        padding: '4px 8px',
-                        height: 'auto',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                      }}
-                    >
-                      Browse...
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card style={{ gridColumn: 'span 2' }}>
-                <CardHeader title="Indexed Daz Studio Library folders" />
-                <CardContent>
-                  <p
-                    style={{
-                      fontSize: '12px',
-                      color: 'var(--color-text-secondary)',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    Index folders containing poses, environments, light presets, clothing, or
-                    figures to make them searchable in the Asset library browser.
-                  </p>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '8px',
-                      marginBottom: '16px',
-                    }}
-                  >
-                    {contentPaths.map((p) => (
-                      <div
-                        key={p.id}
+                      Choose the folder containing the Daz Studio SDK C++ include headers to index
+                      class symbols for autocomplete scripting co-pilot actions.
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <code
                         style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
+                          flexGrow: 1,
                           padding: '8px 12px',
-                          background: 'rgba(255,255,255,0.02)',
+                          fontSize: '11px',
+                          background: '#060609',
                           border: '1px solid rgba(255,255,255,0.03)',
                           borderRadius: 'var(--radius-sm)',
+                          color: '#10b981',
+                          fontFamily: 'monospace',
+                          wordBreak: 'break-all',
                         }}
                       >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span
+                        {dazSdkPath || 'Auto-searching workspaces/env...'}
+                      </code>
+                      <Button
+                        onClick={handleBrowseSdkPath}
+                        variant="ghost"
+                        size="sm"
+                        style={{
+                          flexShrink: 0,
+                          padding: '4px 8px',
+                          height: 'auto',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                        }}
+                      >
+                        Browse...
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card style={{ gridColumn: 'span 2' }}>
+                  <CardHeader title="Indexed Daz Studio Library folders" />
+                  <CardContent>
+                    <p
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      Index folders containing poses, environments, light presets, clothing, or
+                      figures to make them searchable in the Asset library browser.
+                    </p>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        marginBottom: '16px',
+                      }}
+                    >
+                      {contentPaths.map((p) => (
+                        <div
+                          key={p.id}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '8px 12px',
+                            background: 'rgba(255,255,255,0.02)',
+                            border: '1px solid rgba(255,255,255,0.03)',
+                            borderRadius: 'var(--radius-sm)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span
+                              style={{
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: 'var(--color-text-primary)',
+                              }}
+                            >
+                              {p.name}{' '}
+                              {p.isDefault && (
+                                <span
+                                  style={{
+                                    fontSize: '9px',
+                                    padding: '2px 6px',
+                                    background: 'rgba(16,185,129,0.15)',
+                                    color: '#10b981',
+                                    borderRadius: '4px',
+                                    marginLeft: '6px',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                  }}
+                                >
+                                  Registry Default
+                                </span>
+                              )}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                color: 'var(--color-text-secondary)',
+                                fontFamily: 'monospace',
+                                wordBreak: 'break-all',
+                              }}
+                            >
+                              {p.path}
+                            </span>
+                          </div>
+                          {!p.isDefault && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveLibraryFolder(p.id, p.name)}
+                              style={{ color: '#ef4444', padding: '4px' }}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '8px',
+                        alignItems: 'center',
+                        borderTop: '1px solid rgba(255,255,255,0.05)',
+                        paddingTop: '16px',
+                      }}
+                    >
+                      <Input
+                        placeholder="Library Name (e.g. My Custom Content)"
+                        value={newLibName}
+                        onChange={(e) => setNewLibName(e.target.value)}
+                        style={{ flexGrow: 1 }}
+                      />
+                      <Button
+                        onClick={handleAddLibraryFolder}
+                        variant="primary"
+                        style={{ flexShrink: 0 }}
+                      >
+                        <HardDrive size={14} style={{ marginRight: '6px' }} />
+                        Add custom folder
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className={styles.dangerCard}>
+                  <CardHeader title="Danger Zone" />
+                  <CardContent>
+                    <p className={styles.dangerText}>
+                      Performing a factory reset will erase all local databases, undo stacks, model
+                      settings, and cached assets. This action is irreversible.
+                    </p>
+                    <Button
+                      variant="danger"
+                      onClick={handleFactoryReset}
+                      className={styles.resetButton}
+                    >
+                      <Trash2 size={16} />
+                      Factory Reset DazPilot
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'ai' && (
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <h2 className={styles.title}>AI Scripting Co-Pilot Settings</h2>
+                <p className={styles.subtitle}>
+                  Configure dynamic models, providers, credentials, and tuning parameters for
+                  DazPilot.
+                </p>
+              </div>
+
+              <div className={styles.cardLayout}>
+                <Card>
+                  <CardHeader title="AI Provider & Model Selection" />
+                  <CardContent>
+                    <div className={styles.group}>
+                      <label className={styles.label} htmlFor="settings-ai-provider">
+                        Active AI Provider
+                      </label>
+                      <select
+                        className={styles.select}
+                        id="settings-ai-provider"
+                        value={aiProvider}
+                        onChange={(e) => {
+                          setAiProvider(e.target.value);
+                          setAiModel(''); // Clear active model to force re-selection
+                        }}
+                      >
+                        <option value="local-gguf">Local GGUF (llama.cpp Offline)</option>
+                        <option value="ollama">Ollama Server (Local / Self-hosted)</option>
+                        <option value="openai">OpenAI Cloud API (GPT-4o, GPT-3.5)</option>
+                        <option value="gemini">Google Gemini API (Gemini 1.5, etc.)</option>
+                        <option value="anthropic">Anthropic Claude API (Claude 3.5)</option>
+                        <option value="custom-openai">
+                          OpenAI-Compatible Custom (LM Studio, OpenRouter, Groq)
+                        </option>
+                      </select>
+                    </div>
+
+                    <div className={styles.group}>
+                      <label className={styles.label} htmlFor="settings-ai-model">
+                        Active AI Model
+                      </label>
+                      {isLoadingModels ? (
+                        <div
+                          style={{
+                            fontSize: '13px',
+                            color: 'var(--color-text-muted)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px 0',
+                          }}
+                        >
+                          <RefreshCw size={14} className={styles.spin} />
+                          Fetching available models from provider API...
+                        </div>
+                      ) : (
+                        <select
+                          className={styles.select}
+                          id="settings-ai-model"
+                          value={selectedAiModel}
+                          onChange={(e) => setAiModel(e.target.value)}
+                        >
+                          <option value="">-- Select a Model --</option>
+                          {availableModels.map((m) => (
+                            <option key={m} value={m}>
+                              {m}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <div className={styles.group}>
+                      <label className={styles.label} htmlFor="settings-custom-model-override">
+                        Custom Model Override (Optional)
+                      </label>
+                      <Input
+                        id="settings-custom-model-override"
+                        placeholder="Type custom model name if not listed above"
+                        value={selectedAiModel}
+                        onChange={(e) => setAiModel(e.target.value)}
+                      />
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '8px',
+                        alignItems: 'center',
+                        marginTop: '16px',
+                      }}
+                    >
+                      <Button
+                        onClick={() => fetchProviderModels(aiProvider)}
+                        variant="primary"
+                        size="sm"
+                        disabled={isLoadingModels}
+                      >
+                        <RefreshCw
+                          size={14}
+                          style={{ marginRight: '6px' }}
+                          className={isLoadingModels ? styles.spin : ''}
+                        />
+                        Test Connection & Load Models
+                      </Button>
+
+                      {connStatus === 'success' && (
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--color-success)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          ● Connected successfully. Loaded {availableModels.length} models.
+                        </span>
+                      )}
+                      {connStatus === 'failed' && (
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--color-error)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          ● Connection failed. Check keys/endpoints.
+                        </span>
+                      )}
+                    </div>
+                    {connError && (
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          fontSize: '11px',
+                          color: 'var(--color-error)',
+                          background: 'rgba(239, 68, 68, 0.05)',
+                          border: '1px solid rgba(239, 68, 68, 0.1)',
+                          padding: '8px 12px',
+                          borderRadius: '4px',
+                          fontFamily: 'monospace',
+                          wordBreak: 'break-all',
+                        }}
+                      >
+                        {connError}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Conditional Credentials Card */}
+                {(aiProvider === 'openai' || aiProvider === 'custom-openai') && (
+                  <Card>
+                    <CardHeader
+                      title={
+                        aiProvider === 'openai'
+                          ? 'OpenAI API Credentials'
+                          : 'Custom OpenAI-Compatible API Connection'
+                      }
+                    />
+                    <CardContent>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-api-secret-key">
+                          API Secret Key
+                        </label>
+                        <Input
+                          type="password"
+                          id="settings-api-secret-key"
+                          placeholder={
+                            aiProvider === 'openai'
+                              ? 'sk-proj-...'
+                              : 'Enter API Key or token (leave empty if none)'
+                          }
+                          value={openaiApiKey}
+                          onChange={(e) => handleSaveOpenaiApiKey(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-api-base-url">
+                          API Base Endpoint URL
+                        </label>
+                        <Input
+                          id="settings-api-base-url"
+                          placeholder={
+                            aiProvider === 'openai'
+                              ? 'https://api.openai.com/v1'
+                              : 'e.g. http://localhost:1234/v1 or https://openrouter.ai/api/v1'
+                          }
+                          value={openaiBaseUrl}
+                          onChange={(e) => handleSaveOpenaiBaseUrl(e.target.value)}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {aiProvider === 'gemini' && (
+                  <Card>
+                    <CardHeader title="Google Gemini API Credentials" />
+                    <CardContent>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-gemini-api-key">
+                          Gemini API Key
+                        </label>
+                        <Input
+                          type="password"
+                          id="settings-gemini-api-key"
+                          placeholder="Enter your Gemini API key (AIzaSy...)"
+                          value={geminiApiKey}
+                          onChange={(e) => handleSaveGeminiApiKey(e.target.value)}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {aiProvider === 'anthropic' && (
+                  <Card>
+                    <CardHeader title="Anthropic Claude API Credentials" />
+                    <CardContent>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-anthropic-api-key">
+                          Anthropic API Key
+                        </label>
+                        <Input
+                          type="password"
+                          id="settings-anthropic-api-key"
+                          placeholder="Enter your Anthropic API key (sk-ant-...)"
+                          value={anthropicApiKey}
+                          onChange={(e) => handleSaveAnthropicApiKey(e.target.value)}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {aiProvider === 'ollama' && (
+                  <Card>
+                    <CardHeader title="Ollama API Server Settings" />
+                    <CardContent>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-ollama-host">
+                          Ollama Host Address
+                        </label>
+                        <Input
+                          id="settings-ollama-host"
+                          placeholder="http://localhost:11434"
+                          value={ollamaHost}
+                          onChange={(e) => handleSaveOllamaHost(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-ollama-vision-model">
+                          Ollama Vision Model (Screenshot Eyes)
+                        </label>
+                        <Input
+                          id="settings-ollama-vision-model"
+                          placeholder="llava"
+                          value={ollamaVisionModel}
+                          onChange={(e) => handleSaveOllamaVisionModel(e.target.value)}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {aiProvider === 'local-gguf' && (
+                  <Card>
+                    <CardHeader title="Local llama.cpp Server Settings" />
+                    <CardContent>
+                      <div className={styles.group}>
+                        <span className={styles.label}>Custom GGUF Models Folder</span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <code
                             style={{
-                              fontSize: '13px',
-                              fontWeight: 600,
-                              color: 'var(--color-text-primary)',
-                            }}
-                          >
-                            {p.name}{' '}
-                            {p.isDefault && (
-                              <span
-                                style={{
-                                  fontSize: '9px',
-                                  padding: '2px 6px',
-                                  background: 'rgba(16,185,129,0.15)',
-                                  color: '#10b981',
-                                  borderRadius: '4px',
-                                  marginLeft: '6px',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                }}
-                              >
-                                Registry Default
-                              </span>
-                            )}
-                          </span>
-                          <span
-                            style={{
+                              flexGrow: 1,
+                              padding: '8px 12px',
                               fontSize: '11px',
-                              color: 'var(--color-text-secondary)',
+                              background: '#060609',
+                              border: '1px solid rgba(255,255,255,0.03)',
+                              borderRadius: 'var(--radius-sm)',
+                              color: '#38bdf8',
                               fontFamily: 'monospace',
                               wordBreak: 'break-all',
                             }}
                           >
-                            {p.path}
-                          </span>
-                        </div>
-                        {!p.isDefault && (
+                            {modelsDir || 'Using default app directory...'}
+                          </code>
                           <Button
+                            onClick={handleBrowseModelsDir}
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleRemoveLibraryFolder(p.id, p.name)}
-                            style={{ color: '#ef4444', padding: '4px' }}
+                            style={{
+                              flexShrink: 0,
+                              padding: '4px 8px',
+                              height: 'auto',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                            }}
                           >
-                            <Trash2 size={16} />
+                            Browse...
                           </Button>
-                        )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                      borderTop: '1px solid rgba(255,255,255,0.05)',
-                      paddingTop: '16px',
-                    }}
-                  >
-                    <Input
-                      placeholder="Library Name (e.g. My Custom Content)"
-                      value={newLibName}
-                      onChange={(e) => setNewLibName(e.target.value)}
-                      style={{ flexGrow: 1 }}
-                    />
-                    <Button
-                      onClick={handleAddLibraryFolder}
-                      variant="primary"
-                      style={{ flexShrink: 0 }}
-                    >
-                      <HardDrive size={14} style={{ marginRight: '6px' }} />
-                      Add custom folder
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className={styles.dangerCard}>
-                <CardHeader title="Danger Zone" />
-                <CardContent>
-                  <p className={styles.dangerText}>
-                    Performing a factory reset will erase all local databases, undo stacks, model
-                    settings, and cached assets. This action is irreversible.
-                  </p>
-                  <Button
-                    variant="danger"
-                    onClick={handleFactoryReset}
-                    className={styles.resetButton}
-                  >
-                    <Trash2 size={16} />
-                    Factory Reset DazPilot
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'ai' && (
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.title}>AI Scripting Co-Pilot Settings</h2>
-              <p className={styles.subtitle}>
-                Configure dynamic models, providers, credentials, and tuning parameters for
-                DazPilot.
-              </p>
-            </div>
-
-            <div className={styles.cardLayout}>
-              <Card>
-                <CardHeader title="AI Provider & Model Selection" />
-                <CardContent>
-                  <div className={styles.group}>
-                    <label className={styles.label} htmlFor="settings-ai-provider">
-                      Active AI Provider
-                    </label>
-                    <select
-                      className={styles.select}
-                      id="settings-ai-provider"
-                      value={aiProvider}
-                      onChange={(e) => {
-                        setAiProvider(e.target.value);
-                        setAiModel(''); // Clear active model to force re-selection
-                      }}
-                    >
-                      <option value="local-gguf">Local GGUF (llama.cpp Offline)</option>
-                      <option value="ollama">Ollama Server (Local / Self-hosted)</option>
-                      <option value="openai">OpenAI Cloud API (GPT-4o, GPT-3.5)</option>
-                      <option value="gemini">Google Gemini API (Gemini 1.5, etc.)</option>
-                      <option value="anthropic">Anthropic Claude API (Claude 3.5)</option>
-                      <option value="custom-openai">
-                        OpenAI-Compatible Custom (LM Studio, OpenRouter, Groq)
-                      </option>
-                    </select>
-                  </div>
-
-                  <div className={styles.group}>
-                    <label className={styles.label} htmlFor="settings-ai-model">
-                      Active AI Model
-                    </label>
-                    {isLoadingModels ? (
-                      <div
-                        style={{
-                          fontSize: '13px',
-                          color: 'var(--color-text-muted)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '8px 0',
-                        }}
-                      >
-                        <RefreshCw size={14} className={styles.spin} />
-                        Fetching available models from provider API...
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-llama-port">
+                          llama-server TCP Port
+                        </label>
+                        <Input
+                          type="number"
+                          id="settings-llama-port"
+                          value={localAiPort}
+                          onChange={(e) => handleSavePort(parseInt(e.target.value) || 8080)}
+                        />
                       </div>
-                    ) : (
-                      <select
-                        className={styles.select}
-                        id="settings-ai-model"
-                        value={selectedAiModel}
-                        onChange={(e) => setAiModel(e.target.value)}
-                      >
-                        <option value="">-- Select a Model --</option>
-                        {availableModels.map((m) => (
-                          <option key={m} value={m}>
-                            {m}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
 
-                  <div className={styles.group}>
-                    <label className={styles.label} htmlFor="settings-custom-model-override">
-                      Custom Model Override (Optional)
-                    </label>
-                    <Input
-                      id="settings-custom-model-override"
-                      placeholder="Type custom model name if not listed above"
-                      value={selectedAiModel}
-                      onChange={(e) => setAiModel(e.target.value)}
-                    />
-                  </div>
+                      <div className={styles.statusGrid} style={{ marginTop: '16px' }}>
+                        <div className={styles.statusRow}>
+                          <span className={styles.statusLabel}>Engine Loaded:</span>
+                          <span
+                            className={`${styles.statusValue} ${aiModel.loaded ? styles.ready : styles.loading}`}
+                          >
+                            {aiModel.loaded ? 'Ready (llama.cpp Local)' : 'Offline'}
+                          </span>
+                        </div>
+                        <div className={styles.statusRow}>
+                          <span className={styles.statusLabel}>Active GGUF:</span>
+                          <span className={styles.statusValue}>{aiModel.name}</span>
+                        </div>
+                        <div className={styles.statusRow}>
+                          <span className={styles.statusLabel}>Model Memory Size:</span>
+                          <span className={styles.statusValue}>
+                            {aiModel.size > 0
+                              ? `${(aiModel.size / (1024 * 1024)).toFixed(1)} MB`
+                              : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-                  <div
-                    style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '16px' }}
-                  >
-                    <Button
-                      onClick={() => fetchProviderModels(aiProvider)}
-                      variant="primary"
-                      size="sm"
-                      disabled={isLoadingModels}
-                    >
-                      <RefreshCw
-                        size={14}
-                        style={{ marginRight: '6px' }}
-                        className={isLoadingModels ? styles.spin : ''}
-                      />
-                      Test Connection & Load Models
-                    </Button>
-
-                    {connStatus === 'success' && (
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          color: 'var(--color-success)',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        ● Connected successfully. Loaded {availableModels.length} models.
-                      </span>
-                    )}
-                    {connStatus === 'failed' && (
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          color: 'var(--color-error)',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        ● Connection failed. Check keys/endpoints.
-                      </span>
-                    )}
-                  </div>
-                  {connError && (
-                    <div
-                      style={{
-                        marginTop: '8px',
-                        fontSize: '11px',
-                        color: 'var(--color-error)',
-                        background: 'rgba(239, 68, 68, 0.05)',
-                        border: '1px solid rgba(239, 68, 68, 0.1)',
-                        padding: '8px 12px',
-                        borderRadius: '4px',
-                        fontFamily: 'monospace',
-                        wordBreak: 'break-all',
-                      }}
-                    >
-                      {connError}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Conditional Credentials Card */}
-              {(aiProvider === 'openai' || aiProvider === 'custom-openai') && (
+                {/* Tuning Parameters Card */}
                 <Card>
-                  <CardHeader
-                    title={
-                      aiProvider === 'openai'
-                        ? 'OpenAI API Credentials'
-                        : 'Custom OpenAI-Compatible API Connection'
-                    }
-                  />
+                  <CardHeader title="Prompt Tuning & Parameters" />
                   <CardContent>
                     <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-api-secret-key">
-                        API Secret Key
+                      <label className={styles.label} htmlFor="settings-system-prompt">
+                        Custom System Co-Pilot Prompt
                       </label>
-                      <Input
-                        type="password"
-                        id="settings-api-secret-key"
-                        placeholder={
-                          aiProvider === 'openai'
-                            ? 'sk-proj-...'
-                            : 'Enter API Key or token (leave empty if none)'
-                        }
-                        value={openaiApiKey}
-                        onChange={(e) => handleSaveOpenaiApiKey(e.target.value)}
+                      <textarea
+                        className={styles.textarea}
+                        id="settings-system-prompt"
+                        value={systemPrompt}
+                        onChange={(e) => setSystemPrompt(e.target.value)}
+                        placeholder="Define the prompt instruction set for script generation..."
+                        rows={5}
                       />
                     </div>
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-api-base-url">
-                        API Base Endpoint URL
+
+                    <div className={styles.row}>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-temperature">
+                          Temperature: {temperature}
+                        </label>
+                        <input
+                          type="range"
+                          id="settings-temperature"
+                          min="0.1"
+                          max="1.5"
+                          step="0.1"
+                          value={temperature}
+                          onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                          className={styles.slider}
+                        />
+                      </div>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-max-tokens">
+                          Max Tokens Limit
+                        </label>
+                        <Input
+                          type="number"
+                          id="settings-max-tokens"
+                          value={maxTokens}
+                          onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+                          min={128}
+                          max={8192}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={styles.checkboxGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={mockAiMode}
+                          onChange={(e) => setMockAiMode(e.target.checked)}
+                        />
+                        Force Mock Replies (Local Offline Debugging)
                       </label>
-                      <Input
-                        id="settings-api-base-url"
-                        placeholder={
-                          aiProvider === 'openai'
-                            ? 'https://api.openai.com/v1'
-                            : 'e.g. http://localhost:1234/v1 or https://openrouter.ai/api/v1'
-                        }
-                        value={openaiBaseUrl}
-                        onChange={(e) => handleSaveOpenaiBaseUrl(e.target.value)}
-                      />
+                    </div>
+
+                    <div className={styles.checkboxGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={showTeaching}
+                          onChange={(e) => setShowTeaching(e.target.checked)}
+                        />
+                        Show DAZ3D Teaching Tips (explains each action)
+                      </label>
+                    </div>
+
+                    <div className={styles.checkboxGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={guideMe}
+                          onChange={(e) => setGuideMe(e.target.checked)}
+                        />
+                        Guide Me Mode (requires confirmation for each action)
+                      </label>
                     </div>
                   </CardContent>
                 </Card>
-              )}
-
-              {aiProvider === 'gemini' && (
-                <Card>
-                  <CardHeader title="Google Gemini API Credentials" />
-                  <CardContent>
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-gemini-api-key">
-                        Gemini API Key
-                      </label>
-                      <Input
-                        type="password"
-                        id="settings-gemini-api-key"
-                        placeholder="Enter your Gemini API key (AIzaSy...)"
-                        value={geminiApiKey}
-                        onChange={(e) => handleSaveGeminiApiKey(e.target.value)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {aiProvider === 'anthropic' && (
-                <Card>
-                  <CardHeader title="Anthropic Claude API Credentials" />
-                  <CardContent>
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-anthropic-api-key">
-                        Anthropic API Key
-                      </label>
-                      <Input
-                        type="password"
-                        id="settings-anthropic-api-key"
-                        placeholder="Enter your Anthropic API key (sk-ant-...)"
-                        value={anthropicApiKey}
-                        onChange={(e) => handleSaveAnthropicApiKey(e.target.value)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {aiProvider === 'ollama' && (
-                <Card>
-                  <CardHeader title="Ollama API Server Settings" />
-                  <CardContent>
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-ollama-host">
-                        Ollama Host Address
-                      </label>
-                      <Input
-                        id="settings-ollama-host"
-                        placeholder="http://localhost:11434"
-                        value={ollamaHost}
-                        onChange={(e) => handleSaveOllamaHost(e.target.value)}
-                      />
-                    </div>
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-ollama-vision-model">
-                        Ollama Vision Model (Screenshot Eyes)
-                      </label>
-                      <Input
-                        id="settings-ollama-vision-model"
-                        placeholder="llava"
-                        value={ollamaVisionModel}
-                        onChange={(e) => handleSaveOllamaVisionModel(e.target.value)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {aiProvider === 'local-gguf' && (
-                <Card>
-                  <CardHeader title="Local llama.cpp Server Settings" />
-                  <CardContent>
-                    <div className={styles.group}>
-                      <span className={styles.label}>Custom GGUF Models Folder</span>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <code
-                          style={{
-                            flexGrow: 1,
-                            padding: '8px 12px',
-                            fontSize: '11px',
-                            background: '#060609',
-                            border: '1px solid rgba(255,255,255,0.03)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: '#38bdf8',
-                            fontFamily: 'monospace',
-                            wordBreak: 'break-all',
-                          }}
-                        >
-                          {modelsDir || 'Using default app directory...'}
-                        </code>
-                        <Button
-                          onClick={handleBrowseModelsDir}
-                          variant="ghost"
-                          size="sm"
-                          style={{
-                            flexShrink: 0,
-                            padding: '4px 8px',
-                            height: 'auto',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                          }}
-                        >
-                          Browse...
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-llama-port">
-                        llama-server TCP Port
-                      </label>
-                      <Input
-                        type="number"
-                        id="settings-llama-port"
-                        value={localAiPort}
-                        onChange={(e) => handleSavePort(parseInt(e.target.value) || 8080)}
-                      />
-                    </div>
-
-                    <div className={styles.statusGrid} style={{ marginTop: '16px' }}>
-                      <div className={styles.statusRow}>
-                        <span className={styles.statusLabel}>Engine Loaded:</span>
-                        <span
-                          className={`${styles.statusValue} ${aiModel.loaded ? styles.ready : styles.loading}`}
-                        >
-                          {aiModel.loaded ? 'Ready (llama.cpp Local)' : 'Offline'}
-                        </span>
-                      </div>
-                      <div className={styles.statusRow}>
-                        <span className={styles.statusLabel}>Active GGUF:</span>
-                        <span className={styles.statusValue}>{aiModel.name}</span>
-                      </div>
-                      <div className={styles.statusRow}>
-                        <span className={styles.statusLabel}>Model Memory Size:</span>
-                        <span className={styles.statusValue}>
-                          {aiModel.size > 0
-                            ? `${(aiModel.size / (1024 * 1024)).toFixed(1)} MB`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Tuning Parameters Card */}
-              <Card>
-                <CardHeader title="Prompt Tuning & Parameters" />
-                <CardContent>
-                  <div className={styles.group}>
-                    <label className={styles.label} htmlFor="settings-system-prompt">
-                      Custom System Co-Pilot Prompt
-                    </label>
-                    <textarea
-                      className={styles.textarea}
-                      id="settings-system-prompt"
-                      value={systemPrompt}
-                      onChange={(e) => setSystemPrompt(e.target.value)}
-                      placeholder="Define the prompt instruction set for script generation..."
-                      rows={5}
-                    />
-                  </div>
-
-                  <div className={styles.row}>
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-temperature">
-                        Temperature: {temperature}
-                      </label>
-                      <input
-                        type="range"
-                        id="settings-temperature"
-                        min="0.1"
-                        max="1.5"
-                        step="0.1"
-                        value={temperature}
-                        onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                        className={styles.slider}
-                      />
-                    </div>
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-max-tokens">
-                        Max Tokens Limit
-                      </label>
-                      <Input
-                        type="number"
-                        id="settings-max-tokens"
-                        value={maxTokens}
-                        onChange={(e) => setMaxTokens(parseInt(e.target.value))}
-                        min={128}
-                        max={8192}
-                      />
-                    </div>
-                  </div>
-
-                  <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={mockAiMode}
-                        onChange={(e) => setMockAiMode(e.target.checked)}
-                      />
-                      Force Mock Replies (Local Offline Debugging)
-                    </label>
-                  </div>
-
-                  <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={showTeaching}
-                        onChange={(e) => setShowTeaching(e.target.checked)}
-                      />
-                      Show DAZ3D Teaching Tips (explains each action)
-                    </label>
-                  </div>
-
-                  <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={guideMe}
-                        onChange={(e) => setGuideMe(e.target.checked)}
-                      />
-                      Guide Me Mode (requires confirmation for each action)
-                    </label>
-                  </div>
-                </CardContent>
-              </Card>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'connection' && (
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.title}>Daz Studio Bridge Port Settings</h2>
-              <p className={styles.subtitle}>
-                Manage connection status and configure TCP port parameters with the
-                VibeBridgePlugin.
-              </p>
-            </div>
-
-            <div className={styles.cardLayout}>
-              <Card className={styles.bridgeHeroCard}>
-                <CardHeader title="Bridge Status & Control" />
-                <CardContent>
-                  <HStack gap="md" align="center">
-                    <div className={`${styles.indicator} ${getStatusIndicator()}`} />
-                    <span>
-                      {status === 'connected'
-                        ? 'Active connection established with Daz Studio'
-                        : status === 'connecting'
-                          ? 'Locating Daz Studio bridge socket...'
-                          : 'Not Connected to Daz Studio'}
-                    </span>
-                    {status === 'connected' ? (
-                      <Button variant="danger" size="sm" onClick={disconnect}>
-                        Disconnect Socket
-                      </Button>
-                    ) : (
-                      <Button variant="primary" size="sm" onClick={connect} disabled={isConnecting}>
-                        {isConnecting ? 'Connecting...' : 'Connect to Bridge'}
-                      </Button>
-                    )}
-                  </HStack>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader title="Connection Socket Configurations" />
-                <CardContent>
-                  <div className={styles.group}>
-                    <label className={styles.label} htmlFor="settings-bridge-host">
-                      Bridge Target Hostname / IP
-                    </label>
-                    <Input
-                      id="settings-bridge-host"
-                      value={settings.host}
-                      onChange={(e) => setSettings({ host: e.target.value })}
-                    />
-                  </div>
-
-                  <div className={styles.row}>
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-bridge-port">
-                        Bridge TCP Port
-                      </label>
-                      <Input
-                        type="number"
-                        id="settings-bridge-port"
-                        value={settings.port}
-                        onChange={(e) => setSettings({ port: parseInt(e.target.value) })}
-                      />
-                    </div>
-
-                    <div className={styles.group}>
-                      <label className={styles.label} htmlFor="settings-bridge-timeout">
-                        Socket Connection Timeout (seconds)
-                      </label>
-                      <Input
-                        type="number"
-                        id="settings-bridge-timeout"
-                        value={settings.timeout}
-                        onChange={(e) => setSettings({ timeout: parseInt(e.target.value) })}
-                        min={5}
-                        max={120}
-                      />
-                    </div>
-                  </div>
-
-                  <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={settings.autoConnect}
-                        onChange={(e) => setSettings({ autoConnect: e.target.checked })}
-                      />
-                      Auto-connect socket on startup
-                    </label>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'webcam' && <WebcamSettingsContent />}
-
-        {activeTab === 'logger' && (
-          <div className={styles.panelFull}>
-            <div className={styles.terminalHeader}>
-              <div>
-                <h2 className={styles.title}>System Log Console</h2>
+          {activeTab === 'connection' && (
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <h2 className={styles.title}>Daz Studio Bridge Port Settings</h2>
                 <p className={styles.subtitle}>
-                  Real-time streaming console capture of all DazPilot frontend events, compiler
-                  scripts, and local ports.
+                  Manage connection status and configure TCP port parameters with the
+                  VibeBridgePlugin.
                 </p>
               </div>
-              <HStack gap="sm">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    handleCopyLogs();
-                    useToastStore.getState().success('Logs copied to clipboard.');
-                  }}
-                >
-                  <Copy size={14} />
-                  Copy Logs
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    exportLogs();
-                    useToastStore.getState().success('Logs exported to file.');
-                  }}
-                >
-                  <Download size={14} />
-                  Export .txt File
-                </Button>
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => {
-                    clearLogs();
-                    useToastStore.getState().info('Log console buffer cleared.');
-                  }}
-                >
-                  <Trash size={14} />
-                  Clear Console
-                </Button>
-              </HStack>
-            </div>
 
-            {/* Logs Filtering Bar */}
-            <div className={styles.filterBar}>
-              <div className={styles.searchGroup}>
-                <Input
-                  placeholder="Filter logs by keyword..."
-                  value={logSearch}
-                  onChange={(e) => setLogSearch(e.target.value)}
-                  className={styles.logSearch}
-                />
-              </div>
-
-              {/* Levels Filter */}
-              <div className={styles.filterSection}>
-                <span className={styles.filterTitle}>Levels:</span>
-                <HStack gap="xs">
-                  {['info', 'warn', 'error', 'debug'].map((lvl) => (
-                    <button
-                      key={lvl}
-                      className={`${styles.filterTag} ${selectedLevels.includes(lvl) ? styles.tagActive : ''}`}
-                      onClick={() => handleLevelToggle(lvl)}
-                    >
-                      {lvl.toUpperCase()}
-                    </button>
-                  ))}
-                </HStack>
-              </div>
-
-              {/* Categories Filter */}
-              <div className={styles.filterSection}>
-                <span className={styles.filterTitle}>Categories:</span>
-                <HStack gap="xs">
-                  {['system', 'ai', 'connection', 'database', 'viewport'].map((cat) => (
-                    <button
-                      key={cat}
-                      className={`${styles.filterTag} ${selectedCategories.includes(cat) ? styles.tagActive : ''}`}
-                      onClick={() => handleCategoryToggle(cat)}
-                    >
-                      {cat.toUpperCase()}
-                    </button>
-                  ))}
-                </HStack>
-              </div>
-
-              <div className={styles.scrollToggle}>
-                <label className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={autoScroll}
-                    onChange={(e) => setAutoScroll(e.target.checked)}
-                  />
-                  Auto-Scroll
-                </label>
-              </div>
-            </div>
-
-            {/* Terminal Screen */}
-            <div className={styles.terminal}>
-              <div className={styles.terminalScreen}>
-                {filteredLogs.length === 0 ? (
-                  <div className={styles.emptyTerminal}>
-                    <span>No matching log traces found.</span>
-                  </div>
-                ) : (
-                  filteredLogs.map((log) => (
-                    <div key={log.id} className={`${styles.logRow} ${styles[log.level]}`}>
-                      <span className={styles.logTime}>[{log.timestamp}]</span>
-                      <span className={`${styles.logTag} ${styles[`tag-${log.category}`]}`}>
-                        [{log.category.toUpperCase()}]
+              <div className={styles.cardLayout}>
+                <Card className={styles.bridgeHeroCard}>
+                  <CardHeader title="Bridge Status & Control" />
+                  <CardContent>
+                    <HStack gap="md" align="center">
+                      <div className={`${styles.indicator} ${getStatusIndicator()}`} />
+                      <span>
+                        {status === 'connected'
+                          ? 'Active connection established with Daz Studio'
+                          : status === 'connecting'
+                            ? 'Locating Daz Studio bridge socket...'
+                            : 'Not Connected to Daz Studio'}
                       </span>
-                      <span className={styles.logMsg}>{log.message}</span>
+                      {status === 'connected' ? (
+                        <Button variant="danger" size="sm" onClick={disconnect}>
+                          Disconnect Socket
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={connect}
+                          disabled={isConnecting}
+                        >
+                          {isConnecting ? 'Connecting...' : 'Connect to Bridge'}
+                        </Button>
+                      )}
+                    </HStack>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader title="Connection Socket Configurations" />
+                  <CardContent>
+                    <div className={styles.group}>
+                      <label className={styles.label} htmlFor="settings-bridge-host">
+                        Bridge Target Hostname / IP
+                      </label>
+                      <Input
+                        id="settings-bridge-host"
+                        value={settings.host}
+                        onChange={(e) => setSettings({ host: e.target.value })}
+                      />
                     </div>
-                  ))
-                )}
-                <div ref={consoleEndRef} />
+
+                    <div className={styles.row}>
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-bridge-port">
+                          Bridge TCP Port
+                        </label>
+                        <Input
+                          type="number"
+                          id="settings-bridge-port"
+                          value={settings.port}
+                          onChange={(e) => setSettings({ port: parseInt(e.target.value) })}
+                        />
+                      </div>
+
+                      <div className={styles.group}>
+                        <label className={styles.label} htmlFor="settings-bridge-timeout">
+                          Socket Connection Timeout (seconds)
+                        </label>
+                        <Input
+                          type="number"
+                          id="settings-bridge-timeout"
+                          value={settings.timeout}
+                          onChange={(e) => setSettings({ timeout: parseInt(e.target.value) })}
+                          min={5}
+                          max={120}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={styles.checkboxGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={settings.autoConnect}
+                          onChange={(e) => setSettings({ autoConnect: e.target.checked })}
+                        />
+                        Auto-connect socket on startup
+                      </label>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'shortcuts' && (
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.title}>Custom Keyboard Shortcuts</h2>
-              <p className={styles.subtitle}>
-                Overview of core hotkey combinations mapped for high-speed operation inside the
-                viewport and workspace.
-              </p>
-            </div>
+          {activeTab === 'webcam' && <WebcamSettingsContent />}
 
-            <Card>
-              <CardHeader title="Active Workspace Mappings" />
-              <CardContent>
-                <div className={styles.shortcutsTable}>
-                  <div className={styles.shortcutHeader}>
-                    <span>Action Description</span>
-                    <span>Mapped Hotkey Binding</span>
-                  </div>
-                  <div className={styles.shortcutRow}>
-                    <span>Open AI Chat Window Panel</span>
-                    <span className={styles.kbd}>Ctrl + Shift + C</span>
-                  </div>
-                  <div className={styles.shortcutRow}>
-                    <span>Switch to Viewport Streaming Canvas</span>
-                    <span className={styles.kbd}>Ctrl + Shift + V</span>
-                  </div>
-                  <div className={styles.shortcutRow}>
-                    <span>Perform Instant Scene Parity Save</span>
-                    <span className={styles.kbd}>Ctrl + Shift + S</span>
-                  </div>
-                  <div className={styles.shortcutRow}>
-                    <span>Play / Pause Animation Timeline</span>
-                    <span className={styles.kbd}>Spacebar</span>
-                  </div>
-                  <div className={styles.shortcutRow}>
-                    <span>Reset / Stop Animation Timeline Scrubber</span>
-                    <span className={styles.kbd}>Esc</span>
-                  </div>
-                  <div className={styles.shortcutRow}>
-                    <span>Wipe local chat memory threads</span>
-                    <span className={styles.kbd}>Ctrl + D</span>
-                  </div>
+          {activeTab === 'logger' && (
+            <div className={styles.panelFull}>
+              <div className={styles.terminalHeader}>
+                <div>
+                  <h2 className={styles.title}>System Log Console</h2>
+                  <p className={styles.subtitle}>
+                    Real-time streaming console capture of all DazPilot frontend events, compiler
+                    scripts, and local ports.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === 'diagnostics' && (
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.title}>System Diagnostics & Health Checks</h2>
-              <p className={styles.subtitle}>
-                Run comprehensive diagnostic checks on SQLite local engines, local port bindings,
-                and external C++ DLL plugins.
-              </p>
-            </div>
-
-            <VStack gap="md">
-              <Button onClick={runDiagnostics} disabled={isCheckingDiagnostics}>
-                <RefreshCw size={14} className={isCheckingDiagnostics ? styles.spin : ''} />
-                {isCheckingDiagnostics ? 'Checking Systems...' : 'Run Diagnostics Check'}
-              </Button>
-
-              <div className={styles.diagnosticsGrid}>
-                {/* SQLite Database Check */}
-                <Card>
-                  <CardContent className={styles.diagCard}>
-                    <div className={styles.diagHeader}>
-                      <HardDrive size={24} className={styles.diagIcon} />
-                      <div>
-                        <h4 className={styles.diagTitle}>SQLite Engine</h4>
-                        <span className={styles.diagMeta}>dazpilot.db file size</span>
-                      </div>
-                    </div>
-                    <div className={styles.diagStatusSection}>
-                      <span
-                        className={`${styles.statusBadge} ${dbStatus === 'healthy' ? styles.badgeSuccess : styles.badgeInfo}`}
-                      >
-                        {dbStatus === 'healthy' ? 'Database Healthy' : 'Verifying Tables...'}
-                      </span>
-                      <span className={styles.diagVal}>Size: {dbSize}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Port check */}
-                <Card>
-                  <CardContent className={styles.diagCard}>
-                    <div className={styles.diagHeader}>
-                      <Wifi size={24} className={styles.diagIcon} />
-                      <div>
-                        <h4 className={styles.diagTitle}>Active Ports</h4>
-                        <span className={styles.diagMeta}>Local port bindings</span>
-                      </div>
-                    </div>
-                    <div className={styles.diagStatusSection}>
-                      <HStack gap="xs">
-                        <span className={styles.statusBadge}>
-                          AI: 8080{' '}
-                          {portStatus.ai === 'listening' ? (
-                            <CheckCircle size={14} className="text-green-500" />
-                          ) : (
-                            <XCircle size={14} className="text-red-500" />
-                          )}
-                        </span>
-                        <span className={styles.statusBadge}>
-                          Bridge: 8765{' '}
-                          {portStatus.bridge === 'listening' ? (
-                            <CheckCircle size={14} className="text-green-500" />
-                          ) : (
-                            <XCircle size={14} className="text-red-500" />
-                          )}
-                        </span>
-                      </HStack>
-                      <span className={styles.diagVal}>Port bindings active</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Daz Studio Plugin check */}
-                <Card style={{ gridColumn: 'span 2' }}>
-                  <CardContent
-                    className={styles.diagCard}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '16px',
-                      alignItems: 'stretch',
+                <HStack gap="sm">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      handleCopyLogs();
+                      useToastStore.getState().success('Logs copied to clipboard.');
                     }}
                   >
-                    <div
+                    <Copy size={14} />
+                    Copy Logs
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      exportLogs();
+                      useToastStore.getState().success('Logs exported to file.');
+                    }}
+                  >
+                    <Download size={14} />
+                    Export .txt File
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => {
+                      clearLogs();
+                      useToastStore.getState().info('Log console buffer cleared.');
+                    }}
+                  >
+                    <Trash size={14} />
+                    Clear Console
+                  </Button>
+                </HStack>
+              </div>
+
+              {/* Logs Filtering Bar */}
+              <div className={styles.filterBar}>
+                <div className={styles.searchGroup}>
+                  <Input
+                    placeholder="Filter logs by keyword..."
+                    value={logSearch}
+                    onChange={(e) => setLogSearch(e.target.value)}
+                    className={styles.logSearch}
+                  />
+                </div>
+
+                {/* Levels Filter */}
+                <div className={styles.filterSection}>
+                  <span className={styles.filterTitle}>Levels:</span>
+                  <HStack gap="xs">
+                    {['info', 'warn', 'error', 'debug'].map((lvl) => (
+                      <button
+                        key={lvl}
+                        className={`${styles.filterTag} ${selectedLevels.includes(lvl) ? styles.tagActive : ''}`}
+                        onClick={() => handleLevelToggle(lvl)}
+                      >
+                        {lvl.toUpperCase()}
+                      </button>
+                    ))}
+                  </HStack>
+                </div>
+
+                {/* Categories Filter */}
+                <div className={styles.filterSection}>
+                  <span className={styles.filterTitle}>Categories:</span>
+                  <HStack gap="xs">
+                    {['system', 'ai', 'connection', 'database', 'viewport'].map((cat) => (
+                      <button
+                        key={cat}
+                        className={`${styles.filterTag} ${selectedCategories.includes(cat) ? styles.tagActive : ''}`}
+                        onClick={() => handleCategoryToggle(cat)}
+                      >
+                        {cat.toUpperCase()}
+                      </button>
+                    ))}
+                  </HStack>
+                </div>
+
+                <div className={styles.scrollToggle}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={autoScroll}
+                      onChange={(e) => setAutoScroll(e.target.checked)}
+                    />
+                    Auto-Scroll
+                  </label>
+                </div>
+              </div>
+
+              {/* Terminal Screen */}
+              <div className={styles.terminal}>
+                <div className={styles.terminalScreen}>
+                  {filteredLogs.length === 0 ? (
+                    <div className={styles.emptyTerminal}>
+                      <span>No matching log traces found.</span>
+                    </div>
+                  ) : (
+                    filteredLogs.map((log) => (
+                      <div key={log.id} className={`${styles.logRow} ${styles[log.level]}`}>
+                        <span className={styles.logTime}>[{log.timestamp}]</span>
+                        <span className={`${styles.logTag} ${styles[`tag-${log.category}`]}`}>
+                          [{log.category.toUpperCase()}]
+                        </span>
+                        <span className={styles.logMsg}>{log.message}</span>
+                      </div>
+                    ))
+                  )}
+                  <div ref={consoleEndRef} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'shortcuts' && (
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <h2 className={styles.title}>Custom Keyboard Shortcuts</h2>
+                <p className={styles.subtitle}>
+                  Overview of core hotkey combinations mapped for high-speed operation inside the
+                  viewport and workspace.
+                </p>
+              </div>
+
+              <Card>
+                <CardHeader title="Active Workspace Mappings" />
+                <CardContent>
+                  <div className={styles.shortcutsTable}>
+                    <div className={styles.shortcutHeader}>
+                      <span>Action Description</span>
+                      <span>Mapped Hotkey Binding</span>
+                    </div>
+                    <div className={styles.shortcutRow}>
+                      <span>Open AI Chat Window Panel</span>
+                      <span className={styles.kbd}>Ctrl + Shift + C</span>
+                    </div>
+                    <div className={styles.shortcutRow}>
+                      <span>Switch to Viewport Streaming Canvas</span>
+                      <span className={styles.kbd}>Ctrl + Shift + V</span>
+                    </div>
+                    <div className={styles.shortcutRow}>
+                      <span>Perform Instant Scene Parity Save</span>
+                      <span className={styles.kbd}>Ctrl + Shift + S</span>
+                    </div>
+                    <div className={styles.shortcutRow}>
+                      <span>Play / Pause Animation Timeline</span>
+                      <span className={styles.kbd}>Spacebar</span>
+                    </div>
+                    <div className={styles.shortcutRow}>
+                      <span>Reset / Stop Animation Timeline Scrubber</span>
+                      <span className={styles.kbd}>Esc</span>
+                    </div>
+                    <div className={styles.shortcutRow}>
+                      <span>Wipe local chat memory threads</span>
+                      <span className={styles.kbd}>Ctrl + D</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'diagnostics' && (
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <h2 className={styles.title}>System Diagnostics & Health Checks</h2>
+                <p className={styles.subtitle}>
+                  Run comprehensive diagnostic checks on SQLite local engines, local port bindings,
+                  and external C++ DLL plugins.
+                </p>
+              </div>
+
+              <VStack gap="md">
+                <Button onClick={runDiagnostics} disabled={isCheckingDiagnostics}>
+                  <RefreshCw size={14} className={isCheckingDiagnostics ? styles.spin : ''} />
+                  {isCheckingDiagnostics ? 'Checking Systems...' : 'Run Diagnostics Check'}
+                </Button>
+
+                <div className={styles.diagnosticsGrid}>
+                  {/* SQLite Database Check */}
+                  <Card>
+                    <CardContent className={styles.diagCard}>
+                      <div className={styles.diagHeader}>
+                        <HardDrive size={24} className={styles.diagIcon} />
+                        <div>
+                          <h4 className={styles.diagTitle}>SQLite Engine</h4>
+                          <span className={styles.diagMeta}>dazpilot.db file size</span>
+                        </div>
+                      </div>
+                      <div className={styles.diagStatusSection}>
+                        <span
+                          className={`${styles.statusBadge} ${dbStatus === 'healthy' ? styles.badgeSuccess : styles.badgeInfo}`}
+                        >
+                          {dbStatus === 'healthy' ? 'Database Healthy' : 'Verifying Tables...'}
+                        </span>
+                        <span className={styles.diagVal}>Size: {dbSize}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Port check */}
+                  <Card>
+                    <CardContent className={styles.diagCard}>
+                      <div className={styles.diagHeader}>
+                        <Wifi size={24} className={styles.diagIcon} />
+                        <div>
+                          <h4 className={styles.diagTitle}>Active Ports</h4>
+                          <span className={styles.diagMeta}>Local port bindings</span>
+                        </div>
+                      </div>
+                      <div className={styles.diagStatusSection}>
+                        <HStack gap="xs">
+                          <span className={styles.statusBadge}>
+                            AI: 8080{' '}
+                            {portStatus.ai === 'listening' ? (
+                              <CheckCircle size={14} className="text-green-500" />
+                            ) : (
+                              <XCircle size={14} className="text-red-500" />
+                            )}
+                          </span>
+                          <span className={styles.statusBadge}>
+                            Bridge: 8765{' '}
+                            {portStatus.bridge === 'listening' ? (
+                              <CheckCircle size={14} className="text-green-500" />
+                            ) : (
+                              <XCircle size={14} className="text-red-500" />
+                            )}
+                          </span>
+                        </HStack>
+                        <span className={styles.diagVal}>Port bindings active</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Daz Studio Plugin check */}
+                  <Card style={{ gridColumn: 'span 2' }}>
+                    <CardContent
+                      className={styles.diagCard}
                       style={{
                         display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        width: '100%',
+                        flexDirection: 'column',
+                        gap: '16px',
+                        alignItems: 'stretch',
                       }}
                     >
-                      <div className={styles.diagHeader}>
-                        <ShieldAlert size={24} className={styles.diagIcon} />
-                        <div>
-                          <h4 className={styles.diagTitle}>C++ Bridge Plugin</h4>
-                          <span className={styles.diagMeta}>Daz Studio DLL link</span>
-                        </div>
-                      </div>
-                      <div className={styles.diagStatusSection} style={{ textAlign: 'right' }}>
-                        <span
-                          className={`${styles.statusBadge} ${storePluginStatus === 'installed' ? styles.badgeSuccess : styles.badgeInfo}`}
-                        >
-                          {storePluginStatus === 'installed'
-                            ? 'Plugin Active'
-                            : storePluginStatus === 'checking'
-                              ? 'Checking...'
-                              : storePluginStatus === 'downloading'
-                                ? 'Downloading...'
-                                : 'Missing / Unlinked'}
-                        </span>
-                        <span
-                          className={styles.diagVal}
-                          style={{ display: 'block', marginTop: '4px' }}
-                        >
-                          DazPilotBridge.dll {storePluginStatus === 'installed' ? 'OK' : 'Missing'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        borderTop: '1px solid rgba(255,255,255,0.05)',
-                        paddingTop: '12px',
-                        width: '100%',
-                      }}
-                    >
-                      <span
+                      <div
                         style={{
-                          fontSize: '12px',
-                          color: 'var(--color-text-secondary)',
-                          marginBottom: '6px',
-                          display: 'block',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          width: '100%',
                         }}
                       >
-                        Active Daz Studio Plugins Directory
-                      </span>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <code
-                          style={{
-                            flexGrow: 1,
-                            padding: '8px 12px',
-                            fontSize: '11px',
-                            background: '#060609',
-                            border: '1px solid rgba(255,255,255,0.03)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: '#38bdf8',
-                            fontFamily: 'monospace',
-                            wordBreak: 'break-all',
-                          }}
-                        >
-                          {pluginCustomPath || 'Using Daz Studio default folder...'}
-                        </code>
-                        <Button
-                          onClick={browseCustomPath}
-                          variant="ghost"
-                          size="sm"
-                          style={{
-                            flexShrink: 0,
-                            padding: '4px 8px',
-                            height: 'auto',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                          }}
-                        >
-                          Browse...
-                        </Button>
+                        <div className={styles.diagHeader}>
+                          <ShieldAlert size={24} className={styles.diagIcon} />
+                          <div>
+                            <h4 className={styles.diagTitle}>C++ Bridge Plugin</h4>
+                            <span className={styles.diagMeta}>Daz Studio DLL link</span>
+                          </div>
+                        </div>
+                        <div className={styles.diagStatusSection} style={{ textAlign: 'right' }}>
+                          <span
+                            className={`${styles.statusBadge} ${storePluginStatus === 'installed' ? styles.badgeSuccess : styles.badgeInfo}`}
+                          >
+                            {storePluginStatus === 'installed'
+                              ? 'Plugin Active'
+                              : storePluginStatus === 'checking'
+                                ? 'Checking...'
+                                : storePluginStatus === 'downloading'
+                                  ? 'Downloading...'
+                                  : 'Missing / Unlinked'}
+                          </span>
+                          <span
+                            className={styles.diagVal}
+                            style={{ display: 'block', marginTop: '4px' }}
+                          >
+                            DazPilotBridge.dll{' '}
+                            {storePluginStatus === 'installed' ? 'OK' : 'Missing'}
+                          </span>
+                        </div>
                       </div>
 
-                      {storePluginStatus !== 'installed' && (
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                          <Button
-                            onClick={downloadAndInstallPlugin}
-                            variant="primary"
-                            size="sm"
-                            style={{ fontSize: '11px', padding: '6px 12px' }}
-                            disabled={
-                              storePluginStatus === 'downloading' ||
-                              storePluginStatus === 'checking'
-                            }
+                      <div
+                        style={{
+                          borderTop: '1px solid rgba(255,255,255,0.05)',
+                          paddingTop: '12px',
+                          width: '100%',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--color-text-secondary)',
+                            marginBottom: '6px',
+                            display: 'block',
+                          }}
+                        >
+                          Active Daz Studio Plugins Directory
+                        </span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <code
+                            style={{
+                              flexGrow: 1,
+                              padding: '8px 12px',
+                              fontSize: '11px',
+                              background: '#060609',
+                              border: '1px solid rgba(255,255,255,0.03)',
+                              borderRadius: 'var(--radius-sm)',
+                              color: '#38bdf8',
+                              fontFamily: 'monospace',
+                              wordBreak: 'break-all',
+                            }}
                           >
-                            {storePluginStatus === 'downloading'
-                              ? 'Downloading DLL...'
-                              : 'Download & Install from Releases'}
-                          </Button>
+                            {pluginCustomPath || 'Using Daz Studio default folder...'}
+                          </code>
                           <Button
-                            onClick={() => usePluginStore.getState().installLocal()}
-                            variant="secondary"
+                            onClick={browseCustomPath}
+                            variant="ghost"
                             size="sm"
-                            style={{ fontSize: '11px', padding: '6px 12px' }}
-                            disabled={
-                              storePluginStatus === 'downloading' ||
-                              storePluginStatus === 'checking'
-                            }
+                            style={{
+                              flexShrink: 0,
+                              padding: '4px 8px',
+                              height: 'auto',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                            }}
                           >
-                            Link Local DLL
+                            Browse...
                           </Button>
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </VStack>
 
-            <Card>
-              <CardHeader title="Asset Conflict Detector" />
-              <CardContent>
-                <ConflictDetector />
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                        {storePluginStatus !== 'installed' && (
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                            <Button
+                              onClick={downloadAndInstallPlugin}
+                              variant="primary"
+                              size="sm"
+                              style={{ fontSize: '11px', padding: '6px 12px' }}
+                              disabled={
+                                storePluginStatus === 'downloading' ||
+                                storePluginStatus === 'checking'
+                              }
+                            >
+                              {storePluginStatus === 'downloading'
+                                ? 'Downloading DLL...'
+                                : 'Download & Install from Releases'}
+                            </Button>
+                            <Button
+                              onClick={() => usePluginStore.getState().installLocal()}
+                              variant="secondary"
+                              size="sm"
+                              style={{ fontSize: '11px', padding: '6px 12px' }}
+                              disabled={
+                                storePluginStatus === 'downloading' ||
+                                storePluginStatus === 'checking'
+                              }
+                            >
+                              Link Local DLL
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </VStack>
 
-        {activeTab === 'about' && (
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.title}>About DazPilot</h2>
-              <p className={styles.subtitle}>System credits and release details.</p>
+              <Card>
+                <CardHeader title="Asset Conflict Detector" />
+                <CardContent>
+                  <ConflictDetector />
+                </CardContent>
+              </Card>
             </div>
+          )}
 
-            <Card>
-              <CardContent className={styles.aboutContent}>
-                <div className={styles.aboutIconContainer}>
-                  <Settings size={48} className={styles.aboutIcon} />
-                </div>
-                <h3>DazPilot v0.1.0</h3>
-                <p>A professional co-pilot desktop client for Daz3D workflows and AI automation.</p>
-                <div className={styles.aboutDetails}>
-                  <div className={styles.aboutRow}>
-                    <span>Framework Version:</span>
-                    <span>Tauri v2.1.1 (Rust backend)</span>
+          {activeTab === 'agents' && (
+            <div className={styles.panel}>
+              <AgentsPanel />
+            </div>
+          )}
+
+          {activeTab === 'about' && (
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <h2 className={styles.title}>About DazPilot</h2>
+                <p className={styles.subtitle}>System credits and release details.</p>
+              </div>
+
+              <Card>
+                <CardContent className={styles.aboutContent}>
+                  <div className={styles.aboutIconContainer}>
+                    <Settings size={48} className={styles.aboutIcon} />
                   </div>
-                  <div className={styles.aboutRow}>
-                    <span>UI Engine:</span>
-                    <span>React v18.3.1 (Zustand State)</span>
+                  <h3>DazPilot v0.1.0</h3>
+                  <p>
+                    A professional co-pilot desktop client for Daz3D workflows and AI automation.
+                  </p>
+                  <div className={styles.aboutDetails}>
+                    <div className={styles.aboutRow}>
+                      <span>Framework Version:</span>
+                      <span>Tauri v2.1.1 (Rust backend)</span>
+                    </div>
+                    <div className={styles.aboutRow}>
+                      <span>UI Engine:</span>
+                      <span>React v18.3.1 (Zustand State)</span>
+                    </div>
+                    <div className={styles.aboutRow}>
+                      <span>AI Backend:</span>
+                      <span>llama.cpp (TinyLlama / GGUF)</span>
+                    </div>
                   </div>
-                  <div className={styles.aboutRow}>
-                    <span>AI Backend:</span>
-                    <span>llama.cpp (TinyLlama / GGUF)</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </PanelShell>
   );
 }
 

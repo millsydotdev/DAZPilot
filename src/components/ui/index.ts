@@ -60,3 +60,6 @@ export type { TabsProps, Tab } from './Tabs';
 
 export { Select } from './Select';
 export type { SelectProps, SelectOption } from './Select';
+
+export { PanelShell } from './PanelShell/PanelShell';
+export type { PanelShellProps } from './PanelShell/PanelShell';

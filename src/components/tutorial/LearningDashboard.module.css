@@ -1,4 +1,4 @@
-.container {
+﻿.container {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -380,7 +380,7 @@
   background: rgba(34, 211, 238, 0.25);
 }
 
-/* ─── Sub-tabs (Browse / Dashboard) ─── */
+/* ÔöÇÔöÇÔöÇ Sub-tabs (Browse / Dashboard) ÔöÇÔöÇÔöÇ */
 
 .subTabRow {
   display: flex;
@@ -419,7 +419,7 @@
   color: #22d3ee;
 }
 
-/* ─── Dashboard ─── */
+/* ÔöÇÔöÇÔöÇ Dashboard ÔöÇÔöÇÔöÇ */
 
 .dashboard {
   display: flex;

@@ -154,14 +154,23 @@ pub fn toggle_loop() {
 pub fn apply_pose_to_figure(pose_file: &str, figure_id: &str) -> AnimationResult {
     log::info!("Applying pose {} to figure {}", pose_file, figure_id);
 
-    AnimationResult {
-        success: true,
-        message: format!("Applied pose {} to {}", pose_file, figure_id),
-        data: Some(serde_json::json!({
-            "pose": pose_file,
-            "figure": figure_id,
-            "frame": 0
-        })),
+    match crate::mcp_client::send_mcp_request(
+        "apply_pose",
+        serde_json::json!({ "pose_path": pose_file, "figure_id": figure_id }),
+    ) {
+        Ok(resp) => AnimationResult {
+            success: true,
+            message: format!("Applied pose {} to {}", pose_file, figure_id),
+            data: resp.data.or(Some(serde_json::json!({
+                "pose": pose_file,
+                "figure": figure_id,
+            }))),
+        },
+        Err(e) => AnimationResult {
+            success: false,
+            message: format!("Failed to apply pose: {}", e),
+            data: None,
+        },
     }
 }
 
@@ -336,6 +345,149 @@ fn load_poses_from_db() -> Result<Vec<Pose>, String> {
         .map_err(|e| e.to_string())?;
     rows.collect::<Result<Vec<_>, _>>()
         .map_err(|e| e.to_string())
+}
+
+fn poses_storage_dir() -> Result<std::path::PathBuf, String> {
+    let dir = dirs::data_dir()
+        .ok_or("Could not resolve app data directory")?
+        .join("dazpilot")
+        .join("poses");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    Ok(dir)
+}
+
+fn register_pose_in_db(
+    name: &str,
+    path: &str,
+    category: &str,
+    compatible_figures: &[String],
+) -> Result<(), String> {
+    let db_guard = crate::database::get_db()?;
+    let db = db_guard.as_ref().ok_or("Database not initialized")?;
+    let conn = rusqlite::Connection::open(db.path()).map_err(|e| e.to_string())?;
+    let figures_json = serde_json::to_string(compatible_figures).unwrap_or_else(|_| "[]".into());
+    conn.execute(
+        "INSERT OR REPLACE INTO user_assets (user_id, asset_path, asset_name, original_name, category, subcategory, compatible_figures, file_type) \
+         VALUES ('default', ?1, ?2, ?2, 'poses', ?3, ?4, 'pose')",
+        rusqlite::params![path, name, category, figures_json],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn save_uploaded_pose(
+    name: String,
+    category: String,
+    file_bytes: Vec<u8>,
+    original_filename: String,
+) -> Result<Pose, String> {
+    let dir = poses_storage_dir()?;
+    let ext = std::path::Path::new(&original_filename)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("dsf");
+    let safe_name = name.replace(['/', '\\', ':'], "_");
+    let file_path = dir.join(format!("{}.{}", safe_name, ext));
+    std::fs::write(&file_path, &file_bytes).map_err(|e| e.to_string())?;
+    let path_str = file_path.to_string_lossy().to_string();
+    let compatible = vec!["genesis_8_female".to_string(), "genesis_8_male".to_string()];
+    register_pose_in_db(&name, &path_str, &category, &compatible)?;
+    Ok(Pose {
+        name: name.clone(),
+        file_path: path_str,
+        compatible_figures: compatible,
+        category,
+    })
+}
+
+pub fn delete_pose_file(pose_file: &str) -> AnimationResult {
+    if let Ok(db_guard) = crate::database::get_db() {
+        if let Some(db) = db_guard.as_ref() {
+            if let Ok(conn) = rusqlite::Connection::open(db.path()) {
+                let _ = conn.execute(
+                    "DELETE FROM user_assets WHERE asset_path = ?1 AND category = 'poses'",
+                    [pose_file],
+                );
+            }
+        }
+    }
+    if std::path::Path::new(pose_file).exists() {
+        let _ = std::fs::remove_file(pose_file);
+    }
+    AnimationResult {
+        success: true,
+        message: format!("Deleted pose {}", pose_file),
+        data: None,
+    }
+}
+
+pub fn duplicate_pose(pose_file: &str, new_name: &str) -> Result<Pose, String> {
+    let source = std::path::Path::new(pose_file);
+    if !source.exists() {
+        return Err(format!("Pose file not found: {}", pose_file));
+    }
+    let dir = poses_storage_dir()?;
+    let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("dsf");
+    let safe_name = new_name.replace(['/', '\\', ':'], "_");
+    let dest = dir.join(format!("{}.{}", safe_name, ext));
+    std::fs::copy(source, &dest).map_err(|e| e.to_string())?;
+    let path_str = dest.to_string_lossy().to_string();
+    let category = load_poses_from_db()
+        .ok()
+        .and_then(|poses| {
+            poses
+                .into_iter()
+                .find(|p| p.file_path == pose_file)
+                .map(|p| p.category)
+        })
+        .unwrap_or_else(|| "basic".to_string());
+    let compatible = vec!["genesis_8_female".to_string(), "genesis_8_male".to_string()];
+    register_pose_in_db(new_name, &path_str, &category, &compatible)?;
+    Ok(Pose {
+        name: new_name.to_string(),
+        file_path: path_str,
+        compatible_figures: compatible,
+        category,
+    })
+}
+
+pub fn rename_pose_file(pose_file: &str, new_name: &str) -> Result<Pose, String> {
+    let source = std::path::Path::new(pose_file);
+    if !source.exists() {
+        return Err(format!("Pose file not found: {}", pose_file));
+    }
+    let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("dsf");
+    let safe_name = new_name.replace(['/', '\\', ':'], "_");
+    let dest = source
+        .parent()
+        .ok_or("Invalid pose path")?
+        .join(format!("{}.{}", safe_name, ext));
+    std::fs::rename(source, &dest).map_err(|e| e.to_string())?;
+    let path_str = dest.to_string_lossy().to_string();
+    let category = load_poses_from_db()
+        .ok()
+        .and_then(|poses| {
+            poses
+                .into_iter()
+                .find(|p| p.file_path == pose_file)
+                .map(|p| p.category)
+        })
+        .unwrap_or_else(|| "basic".to_string());
+    if let Ok(db_guard) = crate::database::get_db() {
+        if let Some(db) = db_guard.as_ref() {
+            if let Ok(conn) = rusqlite::Connection::open(db.path()) {
+                let _ = conn.execute("DELETE FROM user_assets WHERE asset_path = ?1", [pose_file]);
+            }
+        }
+    }
+    let compatible = vec!["genesis_8_female".to_string(), "genesis_8_male".to_string()];
+    register_pose_in_db(new_name, &path_str, &category, &compatible)?;
+    Ok(Pose {
+        name: new_name.to_string(),
+        file_path: path_str,
+        compatible_figures: compatible,
+        category,
+    })
 }
 
 #[cfg(test)]

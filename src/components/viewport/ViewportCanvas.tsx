@@ -11,6 +11,10 @@ import {
   FolderOpen,
   RefreshCw,
   AlertCircle,
+  Activity,
+  Upload,
+  X,
+  Clapperboard,
 } from 'lucide-react';
 import { useViewportStore } from '../../store';
 import { Button } from '../ui';
@@ -20,20 +24,11 @@ import LiveLinkPanel from './LiveLinkPanel';
 import { KeyframeEditor } from '../animation/KeyframeEditor';
 import { PoseLibrary } from '../animation/PoseLibrary';
 import { PhysicsControls } from '../physics/PhysicsControls';
+import RenderQueuePanel from './RenderQueuePanel';
 import styles from './ViewportCanvas.module.css';
 
 export default function ViewportCanvas() {
-  const {
-    timeline,
-    playback,
-    showPoseLibrary,
-    togglePoseLibrary,
-    play,
-    stop,
-    toggleLoop,
-    loadState,
-    syncFps,
-  } = useViewportStore();
+  const { timeline, playback, play, stop, toggleLoop, loadState, syncFps } = useViewportStore();
 
   const [zoom, setZoom] = useState(100);
   const [activeTool, setActiveTool] = useState('select');
@@ -43,6 +38,7 @@ export default function ViewportCanvas() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'connected' | 'error'>('idle');
   const [syncError, setSyncError] = useState<string | null>(null);
   const [isCapturingFrame, setIsCapturingFrame] = useState(false);
+  const [activePanel, setActivePanel] = useState<'keyframe' | 'physics' | 'pose' | null>(null);
   const loadStateRef = useRef(loadState);
 
   useEffect(() => {
@@ -111,10 +107,8 @@ export default function ViewportCanvas() {
     const rect = img.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-
     const scaleX = img.naturalWidth / rect.width;
     const scaleY = img.naturalHeight / rect.height;
-
     const imageX = Math.round(x * scaleX);
     const imageY = Math.round(y * scaleY);
 
@@ -180,6 +174,36 @@ export default function ViewportCanvas() {
 
         <div className={styles.toolGroup}>
           <button
+            className={`${styles.toolButton} ${activePanel === 'keyframe' ? styles.active : ''}`}
+            onClick={() => setActivePanel(activePanel === 'keyframe' ? null : 'keyframe')}
+            title="Keyframe Editor"
+            aria-label="Keyframe Editor"
+          >
+            <Clapperboard size={16} />
+            Keyframes
+          </button>
+          <button
+            className={`${styles.toolButton} ${activePanel === 'physics' ? styles.active : ''}`}
+            onClick={() => setActivePanel(activePanel === 'physics' ? null : 'physics')}
+            title="Physics Controls"
+            aria-label="Physics Controls"
+          >
+            <Activity size={16} />
+            Physics
+          </button>
+          <button
+            className={`${styles.toolButton} ${activePanel === 'pose' ? styles.active : ''}`}
+            onClick={() => setActivePanel(activePanel === 'pose' ? null : 'pose')}
+            title="Pose Library"
+            aria-label="Pose Library"
+          >
+            <Upload size={16} />
+            Poses
+          </button>
+        </div>
+
+        <div className={styles.toolGroup}>
+          <button
             className={styles.toolButton}
             onClick={() => setZoom((z) => Math.max(10, z - 10))}
           >
@@ -195,158 +219,183 @@ export default function ViewportCanvas() {
         </div>
       </div>
 
-      <div className={styles.viewport}>
-        {viewportImage ? (
-          <div className={styles.viewportImageContainer}>
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={handleImageClick}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  handleImageClick({
-                    ...e,
-                    clientX: rect.left + rect.width / 2,
-                    clientY: rect.top + rect.height / 2,
-                  } as unknown as React.MouseEvent<HTMLDivElement>);
-                }
-              }}
+      <div className={styles.mainRow}>
+        <div className={styles.viewportWrapper}>
+          <div className={styles.viewport}>
+            {viewportImage ? (
+              <div className={styles.viewportImageContainer}>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleImageClick}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      handleImageClick({
+                        ...e,
+                        clientX: rect.left + rect.width / 2,
+                        clientY: rect.top + rect.height / 2,
+                      } as unknown as React.MouseEvent<HTMLDivElement>);
+                    }
+                  }}
+                >
+                  <img
+                    src={viewportImage}
+                    className={styles.viewportImage}
+                    style={{
+                      transform: `scale(${zoom / 100})`,
+                      cursor: activeTool === 'select' ? 'crosshair' : 'default',
+                    }}
+                    alt="Daz Viewport"
+                    aria-label="Daz Studio viewport"
+                  />
+                </div>
+                {isSyncing && syncStatus === 'connected' && (
+                  <div className={styles.viewportStatusBadge}>
+                    <span className={styles.statusLiveDot} />
+                    Live
+                  </div>
+                )}
+                {isSyncing && syncStatus === 'error' && (
+                  <div className={styles.viewportStatusBadgeError}>
+                    <AlertCircle size={10} />
+                    Sync Error
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className={styles.syncHudContainer}>
+                <div className={styles.radarRing}>
+                  <div className={styles.radarPulse}></div>
+                  <FolderOpen size={36} className={styles.radarIcon} />
+                </div>
+                <h3 className={styles.hudTitle}>Viewport Streaming Offline</h3>
+                <p className={styles.hudSubtitle}>
+                  {syncStatus === 'error'
+                    ? 'Bridge connection error. Check Daz Studio is running with the plugin loaded.'
+                    : 'Parity sync between Daz Studio and DazPilot is currently inactive.'}
+                </p>
+
+                {syncStatus === 'error' && syncError && (
+                  <div className={styles.hudError}>
+                    <AlertCircle size={14} />
+                    {syncError}
+                  </div>
+                )}
+
+                <div className={styles.hudSteps}>
+                  <div className={styles.hudStep}>
+                    <span className={styles.hudStepNum}>1</span>
+                    <span>
+                      Load <strong>VibeBridgePlugin</strong> inside Daz Studio
+                    </span>
+                  </div>
+                  <div className={styles.hudStep}>
+                    <span className={styles.hudStepNum}>2</span>
+                    <span>Verify port connection in Settings (Default: localhost:8765)</span>
+                  </div>
+                  <div className={styles.hudStep}>
+                    <span className={styles.hudStepNum}>3</span>
+                    <span>
+                      Click <strong>Capture Frame</strong> to test, or{' '}
+                      <strong>Sync Viewport</strong> for live
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className={styles.syncOverlay}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={captureFrame}
+                disabled={isCapturingFrame}
+                aria-disabled={isCapturingFrame}
+                aria-label="Capture frame"
+                className={styles.captureButton}
+              >
+                <RefreshCw size={12} className={isCapturingFrame ? styles.spin : ''} />
+                {isCapturingFrame ? 'Capturing...' : 'Capture Frame'}
+              </Button>
+              <Button
+                size="sm"
+                variant={isSyncing ? 'primary' : 'secondary'}
+                onClick={toggleSync}
+                aria-label="Sync viewport"
+                className={styles.syncButton}
+              >
+                {isSyncing ? 'Syncing...' : 'Sync Viewport'}
+              </Button>
+            </div>
+
+            {showLiveLink && <LiveLinkPanel onClose={() => setShowLiveLink(false)} />}
+          </div>
+        </div>
+
+        <aside
+          className={`${styles.panelOverlay} ${activePanel ? styles.panelOverlayOpen : ''}`}
+          aria-hidden={!activePanel}
+        >
+          {activePanel && (
+            <div className={styles.rightPanelInner}>
+              <div className={styles.rightPanelHeader}>
+                <h3 className={styles.rightPanelTitle}>
+                  {activePanel === 'keyframe'
+                    ? 'Keyframe Editor'
+                    : activePanel === 'physics'
+                      ? 'Physics Controls'
+                      : 'Pose Library'}
+                </h3>
+                <button
+                  type="button"
+                  className={styles.rightPanelClose}
+                  onClick={() => setActivePanel(null)}
+                  aria-label="Close panel"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <div className={styles.rightPanelBody}>
+                {activePanel === 'keyframe' && (
+                  <KeyframeEditor embedded onOpenPoseLibrary={() => setActivePanel('pose')} />
+                )}
+                {activePanel === 'physics' && <PhysicsControls embedded />}
+                {activePanel === 'pose' && <PoseLibrary embedded />}
+              </div>
+            </div>
+          )}
+        </aside>
+      </div>
+
+      <div className={styles.timelineContainer}>
+        <div className={styles.timeline}>
+          <div className={styles.controls}>
+            <button className={styles.controlButton} onClick={stop} aria-label="Stop">
+              <Square size={14} />
+            </button>
+            <button className={styles.controlButton} onClick={play} aria-label="Play">
+              <Play size={14} />
+            </button>
+            <button
+              className={`${styles.controlButton} ${playback.isLooping ? styles.active : ''}`}
+              onClick={toggleLoop}
+              aria-label="Loop"
             >
-              <img
-                src={viewportImage}
-                className={styles.viewportImage}
-                style={{
-                  transform: `scale(${zoom / 100})`,
-                  cursor: activeTool === 'select' ? 'crosshair' : 'default',
-                }}
-                alt="Daz Viewport"
-                aria-label="Daz Studio viewport"
-              />
-            </div>
-            {isSyncing && syncStatus === 'connected' && (
-              <div className={styles.viewportStatusBadge}>
-                <span className={styles.statusLiveDot} />
-                Live
-              </div>
-            )}
-            {isSyncing && syncStatus === 'error' && (
-              <div className={styles.viewportStatusBadgeError}>
-                <AlertCircle size={10} />
-                Sync Error
-              </div>
-            )}
+              <Repeat size={14} />
+            </button>
           </div>
-        ) : (
-          <div className={styles.syncHudContainer}>
-            <div className={styles.radarRing}>
-              <div className={styles.radarPulse}></div>
-              <FolderOpen size={36} className={styles.radarIcon} />
-            </div>
-            <h3 className={styles.hudTitle}>Viewport Streaming Offline</h3>
-            <p className={styles.hudSubtitle}>
-              {syncStatus === 'error'
-                ? 'Bridge connection error. Check Daz Studio is running with the plugin loaded.'
-                : 'Parity sync between Daz Studio and DazPilot is currently inactive.'}
-            </p>
 
-            {syncStatus === 'error' && syncError && (
-              <div className={styles.hudError}>
-                <AlertCircle size={14} />
-                {syncError}
-              </div>
-            )}
-
-            <div className={styles.hudSteps}>
-              <div className={styles.hudStep}>
-                <span className={styles.hudStepNum}>1</span>
-                <span>
-                  Load <strong>VibeBridgePlugin</strong> inside Daz Studio
-                </span>
-              </div>
-              <div className={styles.hudStep}>
-                <span className={styles.hudStepNum}>2</span>
-                <span>Verify port connection in Settings (Default: localhost:8765)</span>
-              </div>
-              <div className={styles.hudStep}>
-                <span className={styles.hudStepNum}>3</span>
-                <span>
-                  Click <strong>Capture Frame</strong> to test, or <strong>Sync Viewport</strong>{' '}
-                  for live
-                </span>
-              </div>
-            </div>
+          <div className={styles.scrubber}>
+            <div className={styles.scrubberProgress} style={{ width: `${progress}%` }} />
+            <div className={styles.scrubberHandle} style={{ left: `${progress}%` }} />
           </div>
-        )}
 
-        <div className={styles.syncOverlay}>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={captureFrame}
-            disabled={isCapturingFrame}
-            aria-disabled={isCapturingFrame}
-            aria-label="Capture frame"
-            className={styles.captureButton}
-          >
-            <RefreshCw size={12} className={isCapturingFrame ? styles.spin : ''} />
-            {isCapturingFrame ? 'Capturing...' : 'Capture Frame'}
-          </Button>
-          <Button
-            size="sm"
-            variant={isSyncing ? 'primary' : 'secondary'}
-            onClick={toggleSync}
-            aria-label="Sync viewport"
-            className={styles.syncButton}
-          >
-            {isSyncing ? 'Syncing...' : 'Sync Viewport'}
-          </Button>
+          <div className={styles.timeDisplay}>
+            {formatTime(timeline.currentFrame)} / {formatTime(timeline.totalFrames)}
+          </div>
         </div>
-
-        {showPoseLibrary && <PoseLibrary />}
-
-        {showLiveLink && <LiveLinkPanel onClose={() => setShowLiveLink(false)} />}
-      </div>
-
-      {/* Physics Controls Panel */}
-      <div className={styles.physicsControlsPanel}>
-        <PhysicsControls />
-      </div>
-
-      {/* Keyframe Editor Panel */}
-      <div className={styles.keyframeEditorPanel}>
-        <KeyframeEditor />
-      </div>
-
-      <div className={styles.timeline}>
-        <div className={styles.controls}>
-          <button className={styles.controlButton} onClick={stop} aria-label="Stop">
-            <Square size={14} />
-          </button>
-          <button className={styles.controlButton} onClick={play} aria-label="Play">
-            <Play size={14} />
-          </button>
-          <button
-            className={`${styles.controlButton} ${playback.isLooping ? styles.active : ''}`}
-            onClick={toggleLoop}
-            aria-label="Loop"
-          >
-            <Repeat size={14} />
-          </button>
-        </div>
-
-        <div className={styles.scrubber}>
-          <div className={styles.scrubberProgress} style={{ width: `${progress}%` }} />
-          <div className={styles.scrubberHandle} style={{ left: `${progress}%` }} />
-        </div>
-
-        <div className={styles.timeDisplay}>
-          {formatTime(timeline.currentFrame)} / {formatTime(timeline.totalFrames)}
-        </div>
-
-        <Button size="sm" onClick={togglePoseLibrary}>
-          Poses
-        </Button>
+        <RenderQueuePanel />
       </div>
     </div>
   );

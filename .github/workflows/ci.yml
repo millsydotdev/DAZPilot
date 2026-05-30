@@ -73,6 +73,10 @@ jobs:
         working-directory: src-tauri
         run: cargo test --lib
 
+      - name: Verify bridge schema parity
+        working-directory: src-tauri
+        run: cargo test --lib bridge_schema_parity_with_cpp_manifest
+
   plugin-checks:
     name: Plugin checks
     runs-on: windows-latest

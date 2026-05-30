@@ -133,6 +133,30 @@ describe('chatStore', () => {
       images: ['img1.jpg'],
       provider: 'ollama',
       model: 'llava',
+      contextScope: null,
+      contextLabel: null,
+      contextPayloadId: null,
+    });
+  });
+
+  it('sendMessage passes context metadata', async () => {
+    act(() => useChatStore.setState(initialState));
+    const { invoke } = await import('@tauri-apps/api/core');
+    vi.mocked(invoke).mockResolvedValue({ content: 'ok', action: null });
+    await useChatStore.getState().sendMessage('explain this', [], 'local-gguf', 'phi-2-q4', false, {
+      scope: 'worktree',
+      label: 'Worktree',
+      payloadId: 'repo-root',
+    });
+    expect(useChatStore.getState().messages[0].context?.label).toBe('Worktree');
+    expect(vi.mocked(invoke)).toHaveBeenCalledWith('process_chat_message', {
+      message: 'explain this',
+      images: [],
+      provider: 'local-gguf',
+      model: 'phi-2-q4',
+      contextScope: 'worktree',
+      contextLabel: 'Worktree',
+      contextPayloadId: 'repo-root',
     });
   });
 

@@ -187,25 +187,61 @@ impl Learner {
     /// Update workflow knowledge based on what worked in a plan
     fn update_workflow_knowledge(
         &self,
-        _plan: &Plan,
-        _context: &PlanningContext,
-        _result: &ExecutionResult,
+        plan: &Plan,
+        context: &PlanningContext,
+        result: &ExecutionResult,
     ) {
-        // If the plan was based on a workflow template, update that template's success rate
-        // This would require tracking which workflow template was used
-        // For now, we'll skip this sophisticated tracking
+        let failure_ctx = self.create_failure_context(plan, context);
+        match result {
+            ExecutionResult::Success { .. } => {
+                self.failure_knowledge
+                    .record_success(failure_ctx, &plan.description);
+            },
+            ExecutionResult::PartialSuccess { .. } => {
+                self.failure_knowledge.record_failure(
+                    failure_ctx,
+                    &plan.description,
+                    "Workflow plan partially succeeded",
+                    Some("Retry failed steps or use fallback plan".to_string()),
+                );
+            },
+            ExecutionResult::Failed {
+                reason, details, ..
+            } => {
+                let message = format!("{}: {}", reason, details);
+                self.failure_knowledge.record_failure(
+                    failure_ctx,
+                    &plan.description,
+                    &message,
+                    None,
+                );
+            },
+        }
     }
 
-    /// Update asset knowledge if we discovered new things during execution
     fn update_asset_knowledge(
         &self,
-        _plan: &Plan,
-        _context: &PlanningContext,
-        _result: &ExecutionResult,
+        plan: &Plan,
+        context: &PlanningContext,
+        result: &ExecutionResult,
     ) {
-        // If we successfully loaded assets, we might have learned about their usability
-        // If we failed to load assets, we might have learned about compatibility issues
-        // This would require more detailed tracking of what assets were involved
+        let load_failed = matches!(
+            result,
+            ExecutionResult::Failed { .. } | ExecutionResult::PartialSuccess { .. }
+        );
+        if !load_failed {
+            return;
+        }
+
+        for step in &plan.steps {
+            if step.action.command != "load_asset" {
+                continue;
+            }
+            let step_ctx = self.create_step_failure_context(step, plan, context);
+            let message = format!("Asset load may have failed in step '{}'", step.description);
+            self.failure_knowledge
+                .record_failure(step_ctx, &step.action.command, &message, None);
+        }
     }
 
     /// Create a failure context from planning context

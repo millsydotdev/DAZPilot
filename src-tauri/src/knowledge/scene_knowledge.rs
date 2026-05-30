@@ -636,7 +636,11 @@ impl SceneKnowledgeBase {
     }
 
     /// Get understanding for a specific scene type
-    pub fn get_scene_understanding(&self, scene_type: SceneType) -> Option<SceneUnderstanding> {
+    pub fn get_scene_understanding(
+        &self,
+        scene_type: SceneType,
+        skill_level: Option<crate::reasoning::planner::SkillLevel>,
+    ) -> Option<SceneUnderstanding> {
         self.scene_templates
             .get(&scene_type)
             .map(|template| SceneUnderstanding {
@@ -645,7 +649,7 @@ impl SceneKnowledgeBase {
                 composition_rules: template.composition_guidelines.clone(),
                 recommended_assets: template.recommended_assets.clone(),
                 common_mistakes: template.common_mistakes.clone(),
-                complexity: ComplexityLevel::Beginner, // TODO: make this dynamic based on user skill
+                complexity: complexity_for_scene(scene_type, skill_level),
             })
     }
 
@@ -712,6 +716,32 @@ impl SceneKnowledgeBase {
         }
 
         None
+    }
+}
+
+fn complexity_for_scene(
+    scene_type: SceneType,
+    skill: Option<crate::reasoning::planner::SkillLevel>,
+) -> ComplexityLevel {
+    use crate::reasoning::planner::SkillLevel;
+
+    let base = match scene_type {
+        SceneType::Portrait | SceneType::Casual | SceneType::ProductRender => {
+            ComplexityLevel::Beginner
+        },
+        SceneType::FullBody | SceneType::Formal => ComplexityLevel::Intermediate,
+        SceneType::Action | SceneType::Fantasy | SceneType::SciFi | SceneType::AnimationTest => {
+            ComplexityLevel::Advanced
+        },
+    };
+
+    match skill {
+        Some(SkillLevel::Beginner) => ComplexityLevel::Beginner,
+        Some(SkillLevel::Intermediate) => match base {
+            ComplexityLevel::Advanced => ComplexityLevel::Intermediate,
+            other => other,
+        },
+        Some(SkillLevel::Advanced) | Some(SkillLevel::Expert) | None => base,
     }
 }
 
