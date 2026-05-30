@@ -91,7 +91,7 @@ jobs:
 
       - name: Build C++ Bridge Plugin
         run: |
-          cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release
+          cmake -S plugins/daz3d-bridge -B plugins/daz3d-bridge/build -DCMAKE_BUILD_TYPE=Release -A x64
           cmake --build plugins/daz3d-bridge/build --config Release
 
       - name: Run C++ Bridge Plugin Unit Tests

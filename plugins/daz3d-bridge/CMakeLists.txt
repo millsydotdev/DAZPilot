@@ -185,6 +185,15 @@ set_target_properties(DazPilotBridge PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/dist"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/dist"
 )
+if(MSVC)
+    # Visual Studio generators append Release/Debug; pin both to dist/ for CI scripts.
+    set_target_properties(DazPilotBridge PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/dist"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/dist"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/dist"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/dist"
+    )
+endif()
 
 # ── Unit Tests with doctest ────────────────────────────────────────────────
 option(BUILD_TESTS "Build unit tests" ON)

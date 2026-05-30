@@ -29,12 +29,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Daz Studio SDK ships x64 Windows libs only; ARM64 Studio uses the x64 plugin.
           - arch: x64
             arch-label: x64
             cmake-args: -A x64
-          - arch: arm64
-            arch-label: arm64
-            cmake-args: -A ARM64
 
     steps:
       - name: Checkout repository
@@ -62,14 +60,9 @@ jobs:
       - name: Stage release artifacts
         shell: pwsh
         run: |
-          $dll = "plugins/daz3d-bridge/dist/DazPilotBridge.dll"
-          if (-not (Test-Path $dll)) {
-            $dll = Get-ChildItem -Recurse -Filter "DazPilotBridge.dll" plugins/daz3d-bridge/build | Select-Object -First 1 -ExpandProperty FullName
-          }
-          if (-not $dll -or -not (Test-Path $dll)) { throw "DazPilotBridge.dll not found after build" }
           New-Item -ItemType Directory -Force -Path plugin-staging | Out-Null
-          Copy-Item $dll "plugin-staging/DazPilotBridge-${{ matrix.arch-label }}.dll"
-          Copy-Item $dll "plugin-staging/DazPilotBridge.dll"
+          & ./scripts/stage-bridge-dll.ps1 -Destination "plugin-staging/DazPilotBridge-${{ matrix.arch-label }}.dll"
+          & ./scripts/stage-bridge-dll.ps1 -Destination "plugin-staging/DazPilotBridge.dll"
           Copy-Item plugins/daz3d-bridge/bridge_commands.manifest plugin-staging/
 
       - name: Upload built binaries
@@ -106,9 +99,8 @@ jobs:
 
             | Asset | Architecture |
             | --- | --- |
-            | `DazPilotBridge-x64.dll` | Windows x64 |
-            | `DazPilotBridge-arm64.dll` | Windows ARM64 |
-            | `DazPilotBridge.dll` | Generic (x64 build) |
+            | `DazPilotBridge-x64.dll` | Windows x64 (also used on ARM64 Daz Studio) |
+            | `DazPilotBridge.dll` | Generic x64 build |
 
             Install: copy the correct DLL into your Daz Studio plugins folder and restart Daz.
           token: ${{ secrets.GITHUB_TOKEN }}
