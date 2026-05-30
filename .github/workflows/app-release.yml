@@ -16,7 +16,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
 
 permissions:
@@ -151,13 +150,8 @@ jobs:
         run: npm run tauri build -- --bundles ${{ matrix.bundles }} --target ${{ matrix.target }}
 
       # ── Upload artifacts ─────────────────────────────────────────────
-      - name: Upload updater JSON
-        uses: actions/upload-artifact@v4
-        with:
-          name: updater-json-${{ strategy.job-index }}
-          path: src-tauri/target/**/release/bundle/updater/*.json
-          if-no-files-found: warn
-
+      # Tauri v2 writes updater payloads (.tar.gz / .nsis.zip) and .sig files under bundle/*;
+      # latest.json is assembled in publish-release from those signatures.
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -166,6 +160,7 @@ jobs:
             src-tauri/target/**/release/bundle/dmg/*.dmg
             src-tauri/target/**/release/bundle/deb/*.deb
             src-tauri/target/**/release/bundle/appimage/*.AppImage
+            src-tauri/target/**/release/bundle/appimage/*.AppImage.tar.gz
             src-tauri/target/**/release/bundle/msi/*.msi
             src-tauri/target/**/release/bundle/nsis/*.exe
             src-tauri/target/**/release/bundle/nsis/*.zip
