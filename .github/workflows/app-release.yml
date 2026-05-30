@@ -110,10 +110,6 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Cache Rust
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri -> target
 
       # ── Frontend ─────────────────────────────────────────────────────
       - name: Install frontend dependencies
