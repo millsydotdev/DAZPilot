@@ -5172,7 +5172,7 @@ static void BridgeServerLoop() {
 
 const char* GetPluginName() { return "DazPilot Bridge"; }
 const char* GetPluginDescription() { return "AI-powered scene editing bridge for Daz Studio"; }
-const char* GetPluginVersion() { return "0.5.3"; }
+const char* GetPluginVersion() { return "0.5.5"; }
 int GetPluginType() { return 1; }
 
 bool PluginInitialize() {

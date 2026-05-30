@@ -1,6 +1,6 @@
 [package]
 name = "dazpilot"
-version = "0.5.4"
+version = "0.5.5"
 description = "DazPilot - AI Co-Pilot for Daz Studio"
 authors = ["DazPilot Team"]
 edition = "2021"

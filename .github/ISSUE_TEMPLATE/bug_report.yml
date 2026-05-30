@@ -32,7 +32,7 @@ body:
     attributes:
       label: DazPilot version
       description: App version from Settings or the latest release tag
-      placeholder: e.g. 0.5.4
+      placeholder: e.g. 0.5.5
     validations:
       required: true
 
