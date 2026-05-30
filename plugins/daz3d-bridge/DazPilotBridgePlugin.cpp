@@ -22,24 +22,6 @@
 #include <QtCore/QByteArray>
 #include <cstdlib>
 
-// Windows and DirectX headers for ImGui backends
-#ifdef _WIN32
-#include <windows.h>
-#include <d3d9.h>
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
-#include <tchar.h>
-#endif
-
-// ImGui includes
-#include "imgui.h"
-#include "imgui_impl_dx9.h"
-#include "imgui_impl_win32.h"
-#include "imgui_internal.h"
-
-// Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 #include <atomic>
 #include <sstream>
 #include <string>
@@ -49,6 +31,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #include <cstring>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QEvent>
+#include <QtCore/QTimer>
 
 #include "dzpane.h"
 #include <QtGui/QApplication>
@@ -70,7 +53,7 @@ class DazPilotPane : public DzPane {
 public:
     DazPilotPane() : DzPane("DazPilot Bridge") {
         QVBoxLayout* layout = new QVBoxLayout(this);
-        
+
         QLabel* titleLabel = new QLabel("DazPilot AI Bridge", this);
         QFont titleFont = titleLabel->font();
         titleFont.setBold(true);
@@ -78,10 +61,29 @@ public:
         titleLabel->setFont(titleFont);
         layout->addWidget(titleLabel);
 
-        m_statusLabel = new QLabel("Status: Disconnected", this);
-        layout->addWidget(m_statusLabel);
+        m_bridgeStatusLabel = new QLabel("Bridge: Stopped", this);
+        layout->addWidget(m_bridgeStatusLabel);
 
-        layout->addWidget(new QLabel("Last Commands:", this));
+        m_appStatusLabel = new QLabel("DazPilot app: Waiting for handoff", this);
+        layout->addWidget(m_appStatusLabel);
+
+        m_lastResultLabel = new QLabel(g_lastAppInboxStatus, this);
+        m_lastResultLabel->setWordWrap(true);
+        layout->addWidget(m_lastResultLabel);
+
+        QPushButton* refreshBtn = new QPushButton("Refresh Status", this);
+        connect(refreshBtn, SIGNAL(clicked()), this, SLOT(refreshStatus()));
+        layout->addWidget(refreshBtn);
+
+        QPushButton* sendBtn = new QPushButton("Send Viewport to DazPilot", this);
+        connect(sendBtn, SIGNAL(clicked()), this, SLOT(sendViewportToDazPilot()));
+        layout->addWidget(sendBtn);
+
+        QPushButton* copyBtn = new QPushButton("Copy Diagnostics", this);
+        connect(copyBtn, SIGNAL(clicked()), this, SLOT(copyDiagnostics()));
+        layout->addWidget(copyBtn);
+
+        layout->addWidget(new QLabel("Log:", this));
         m_logArea = new QTextEdit(this);
         m_logArea->setReadOnly(true);
         layout->addWidget(m_logArea);
@@ -89,106 +91,7 @@ public:
         QTimer* timer = new QTimer(this);
         connect(timer, SIGNAL(timeout()), this, SLOT(updateStatus()));
         timer->start(1000);
-        
-        // Initialize ImGui context (will be properly initialized in customEvent)
-        m_showImGuiDebug = true;
     }
-    
-    ~DazPilotPane() {
-        // ImGui cleanup would happen here if needed
-    }
-
-public slots:
-    void updateStatus() {
-        if (g_serverRunning.load()) {
-            m_statusLabel->setText(QString("Status: Listening on %1:%2")
-                .arg(g_state.host).arg(g_state.port));
-            m_statusLabel->setStyleSheet("color: #00ff00;");
-        } else {
-            m_statusLabel->setText("Status: Stopped");
-            m_statusLabel->setStyleSheet("color: #ff0000;");
-        }
-    }
-    
-    // Custom slot to show ImGui debug window
-    void showImGuiDebugWindow() {
-        m_showImGuiDebug = true;
-    }
-
-protected:
-    // Override customEvent to handle ImGui rendering
-    void customEvent(QEvent* e) override {
-        if (e->type() == QEvent::UpdateRequest) {
-            // Render ImGui debug window
-            if (m_showImGuiDebug) {
-                ImGui::Begin("DazPilot Debug", &m_showImGuiDebug);
-                ImGui::Text("Server Status: %s", g_serverRunning.load() ? "Running" : "Stopped");
-                ImGui::Text("Host: %s", g_state.host.toStdString().c_str());
-                ImGui::Text("Port: %d", g_state.port);
-                
-                if (ImGui::Button("Clear Last Error")) {
-                    g_state.lastError = "";
-                }
-                
-                ImGui::Separator();
-                ImGui::Text("Last Error: %s", 
-                    g_state.lastError.isEmpty() ? "(none)" : g_state.lastError.toStdString().c_str());
-                
-                ImGui::End();
-            }
-            
-            // Request next frame
-            QTimer::singleShot(16, this, [this]() {
-                QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
-            });
-        } else if (e->type() == QEvent::WinIdChange) {
-            // Initialize ImGui when we get a valid window ID
-            InitializeImGui();
-        }
-        
-        // Call base class implementation
-        DzPane::customEvent(e);
-    }
-
-private:
-    void InitializeImGui() {
-        // Get the native window handle
-        WId winId = this->winId();
-        if (!winId) return;
-        
-        // Setup Dear ImGui context
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
-        
-        // Setup Dear ImGui style
-        ImGui::StyleColorsDark();
-        //ImGui::StyleColorsLight();
-        
-        // Setup Platform/Renderer backends
-        HWND hwnd = (HWND)winId;
-        ImGui_ImplWin32_Init(hwnd);
-        ImGui_ImplDX9_Init(GetD3D9DeviceFromHwnd(hwnd));
-        
-        m_imguiInitialized = true;
-    }
-    
-    // Helper to get D3D9 device from window handle (simplified)
-    // In a real implementation, you'd need to get this from Dz3DView or similar
-    LPDIRECT3DDEVICE9 GetD3D9DeviceFromHwnd(HWND hwnd) {
-        // This is a simplified version - in practice you'd need to get the device from DAZ
-        // For now, we'll return null and handle it gracefully
-        return nullptr;
-    }
-    
-    QLabel* m_statusLabel;
-    QTextEdit* m_logArea;
-    bool m_showImGuiDebug = false;
-    bool m_imguiInitialized = false;
-};
 
 public slots:
     void updateStatus() {
