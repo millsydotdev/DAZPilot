@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  GH_PAT: ${{ secrets.GH_PAT }}
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Generate manifest
+        shell: pwsh
+        run: |
+          if (Test-Path "scripts/sync-manifest.ps1") {
+            .\scripts\sync-manifest.ps1
+          }
+
+      - name: Prepare release assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "release_assets" -Force
+
+          $dllPaths = @(
+            "dist/DAZStudioMCP.dll",
+            "build/Release/DAZStudioMCP.dll"
+          )
+          foreach ($p in $dllPaths) {
+            if (Test-Path $p) {
+              Copy-Item $p "release_assets/"
+              break
+            }
+          }
+
+          if (Test-Path "manifest/commands.json") {
+            Copy-Item "manifest/commands.json" "release_assets/"
+          }
+          Copy-Item "VERSION.txt" "release_assets/"
+          Copy-Item "LICENSE" "release_assets/"
+
+          Compress-Archive -Path "release_assets/*" -DestinationPath "DAZStudioMCP-${{ github.ref_name }}.zip"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: DAZStudio MCP ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          files: |
+            DAZStudioMCP-*.zip
+            release_assets/DAZStudioMCP.dll
+            release_assets/commands.json

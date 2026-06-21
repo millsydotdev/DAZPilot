@@ -1,0 +1,12 @@
+build/
+cmake-build-*/
+dist/
+*.user
+*.suo
+.vs/
+.idea/
+.junie/
+*.moc
+ThirdParty/
+thirdparty/
+moc_*
