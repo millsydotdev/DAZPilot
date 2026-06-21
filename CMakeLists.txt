@@ -153,13 +153,13 @@ if(DAZSTUDIO_MCP_SDK_FOUND)
     # DAZStudio-MCP Plugin
     # ═══════════════════════════════════════════════════════════════════════════════
     add_library(DazPilot SHARED
-        DAZStudioMCP.cpp
-        DAZStudioMCPPlugin.cpp
-        ExportOptions.cpp
-        Log.cpp
-        DAZStudioMCP.h
-        DAZStudioMCPPlugin.h
-        Log.h
+        src/DAZStudioMCP.cpp
+        src/DAZStudioMCPPlugin.cpp
+        src/ExportOptions.cpp
+        src/Log.cpp
+        src/DAZStudioMCP.h
+        src/DAZStudioMCPPlugin.h
+        src/Log.h
     )
     if(WIN32)
         target_sources(DazPilot PRIVATE
