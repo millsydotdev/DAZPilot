@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Checkout private DAZ SDK
+        uses: actions/checkout@v3
+        with:
+          repository: millsydotdev/DazPilot  # TODO: replace <ORG> with actual organization
+          token: ${{ secrets.GH_PAT }}
+          path: thirdparty/DAZStudio4.5+_SDK
+      - name: Configure CMake
+        run: cmake -S . -B build -DDAZ_SDK_ROOT="${{ github.workspace }}/thirdparty/DAZStudio4.5+_SDK"
+      - name: Build Release
+        run: cmake --build build --config Release
